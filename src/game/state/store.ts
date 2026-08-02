@@ -1,0 +1,455 @@
+// Central store. Game rules stay in src/game/rules — this store is a thin
+// dispatcher that applies rule functions to the state via immer and holds
+// transient UI state alongside.
+
+import { create } from 'zustand';
+import { produce } from 'immer';
+import { aiTurnDone, planAIQueue, stepAI } from '../ai/ai';
+import { UNIT_DEFS, TERRAIN_DEFS } from '../data/defs';
+import { computePreview, resolveBombardment, resolveCombat } from '../rules/combat';
+import { recomputeFog } from '../rules/fog';
+import { applyMove, attackableTargets, unitOnTile } from '../rules/movement';
+import { applyOperation, canUseOperation, validateOpTarget } from '../rules/ops';
+import { applyEventEffects } from '../rules/events';
+import {
+  deployReserve,
+  endTurnWarnings,
+  noteCityCapture,
+  noteUnitDestroyed,
+  pushNote,
+  resolveGlobalTurn,
+} from '../rules/turn';
+import { autosave, loadAutosave, loadSlot, saveSlot } from './save';
+import { buildInitialState } from '../scenarios/build';
+import {
+  AIActionLog,
+  CombatResult,
+  FactionId,
+  GameState,
+  OperationId,
+  TileId,
+} from '../types';
+
+export type MapMode = 'political' | 'supply' | 'terrain' | 'objectives' | 'intel';
+export type InteractionMode = 'idle' | 'attack' | 'op-target' | 'deploy';
+export type Screen = 'menu' | 'game';
+
+export interface AudioSettings {
+  master: number;
+  music: number;
+  sfx: number;
+  muted: boolean;
+}
+
+interface StoreState {
+  game: GameState | null;
+  screen: Screen;
+  mapMode: MapMode;
+  selectedUnitId: string | null;
+  selectedTileId: TileId | null;
+  hoveredTileId: TileId | null;
+  interactionMode: InteractionMode;
+  pendingOp: OperationId | null;
+  pendingReserveId: string | null;
+  pendingAttackId: string | null; // enemy unit id awaiting attack confirmation
+  lastCombat: CombatResult | null;
+  lastAILog: AIActionLog | null;
+  aiSpeed: number;
+  cameraFocus: { tile: TileId; seq: number } | null;
+  endTurnWarningsList: string[] | null;
+  audio: AudioSettings;
+  showSettings: boolean;
+  tutorialEnabled: boolean;
+
+  // lifecycle
+  newCampaign: (faction: FactionId, tutorial: boolean) => void;
+  continueCampaign: () => void;
+  loadFromSlot: (n: number) => void;
+  saveToSlot: (n: number) => void;
+  toMenu: () => void;
+
+  // selection & interaction
+  selectTile: (tile: TileId | null) => void;
+  selectUnit: (unitId: string | null) => void;
+  hoverTile: (tile: TileId | null) => void;
+  setMapMode: (mode: MapMode) => void;
+  setInteractionMode: (mode: InteractionMode) => void;
+  focusCamera: (tile: TileId) => void;
+
+  // orders
+  setPendingAttack: (unitId: string | null) => void;
+  orderMove: (dest: TileId) => void;
+  orderAttack: (defenderId: string) => void;
+  toggleReinforce: () => void;
+  orderEntrench: () => void;
+  beginOperation: (op: OperationId) => void;
+  applyOperationAt: (tile: TileId) => void;
+  beginDeploy: (reserveId: string) => void;
+  applyDeployAt: (tile: TileId) => void;
+  cancelInteraction: () => void;
+  dismissCombat: () => void;
+
+  // events & turn flow
+  chooseEventOption: (index: number) => void;
+  requestEndTurn: () => void;
+  confirmEndTurn: () => void;
+  cancelEndTurn: () => void;
+  aiStep: () => void;
+  setAISpeed: (ms: number) => void;
+
+  // tutorial
+  advanceTutorial: (fromStep: number) => void;
+  skipTutorial: () => void;
+
+  // settings
+  setAudio: (patch: Partial<AudioSettings>) => void;
+  setShowSettings: (show: boolean) => void;
+}
+
+function loadAudioSettings(): AudioSettings {
+  try {
+    const raw = localStorage.getItem('tbe-audio');
+    if (raw) return JSON.parse(raw);
+  } catch { /* default below */ }
+  return { master: 0.7, music: 0.5, sfx: 0.7, muted: false };
+}
+
+export const useStore = create<StoreState>((set, get) => {
+  // Apply a mutation to the game state via immer; no-op when no game.
+  const mutate = (fn: (draft: GameState) => void) => {
+    const game = get().game;
+    if (!game) return;
+    set({ game: produce(game, fn) });
+  };
+
+  return {
+    game: null,
+    screen: 'menu',
+    mapMode: 'political',
+    selectedUnitId: null,
+    selectedTileId: null,
+    hoveredTileId: null,
+    interactionMode: 'idle',
+    pendingOp: null,
+    pendingReserveId: null,
+    pendingAttackId: null,
+    lastCombat: null,
+    lastAILog: null,
+    aiSpeed: 900,
+    cameraFocus: null,
+    endTurnWarningsList: null,
+    audio: loadAudioSettings(),
+    showSettings: false,
+    tutorialEnabled: true,
+
+    newCampaign: (faction, tutorial) => {
+      const seed = (Date.now() % 2147483647) >>> 0;
+      const state = buildInitialState(faction, seed);
+      state.tutorialStep = tutorial ? 0 : -1;
+      pushNote(state, 'info', `Campaign begins — ${state.scenario.dateLabel}.`);
+      autosave(state);
+      set({
+        game: state,
+        screen: 'game',
+        selectedUnitId: null,
+        selectedTileId: null,
+        interactionMode: 'idle',
+        lastCombat: null,
+        lastAILog: null,
+        tutorialEnabled: tutorial,
+        cameraFocus: null,
+      });
+    },
+
+    continueCampaign: () => {
+      const state = loadAutosave();
+      if (!state) return;
+      set({ game: state, screen: 'game', selectedUnitId: null, selectedTileId: null, interactionMode: 'idle', lastCombat: null, lastAILog: null });
+    },
+
+    loadFromSlot: (n) => {
+      const state = loadSlot(n);
+      if (!state) return;
+      set({ game: state, screen: 'game', selectedUnitId: null, selectedTileId: null, interactionMode: 'idle', lastCombat: null, lastAILog: null });
+    },
+
+    saveToSlot: (n) => {
+      const game = get().game;
+      if (game) saveSlot(n, game);
+      set({}); // trigger subscribers (slot list refresh)
+    },
+
+    toMenu: () => {
+      const game = get().game;
+      if (game && game.phase !== 'ended') autosave(game);
+      set({ screen: 'menu' });
+    },
+
+    selectTile: (tile) => {
+      const { game, interactionMode } = get();
+      if (!game) return;
+      if (interactionMode === 'op-target') {
+        get().applyOperationAt(tile as TileId);
+        return;
+      }
+      if (interactionMode === 'deploy') {
+        get().applyDeployAt(tile as TileId);
+        return;
+      }
+      if (tile === null) {
+        set({ selectedTileId: null, selectedUnitId: null, interactionMode: 'idle', pendingAttackId: null });
+        return;
+      }
+      const unit = unitOnTile(game, tile);
+      if (unit && unit.faction === game.playerFaction && game.phase === 'player') {
+        set({ selectedUnitId: unit.id, selectedTileId: tile, interactionMode: 'idle', pendingAttackId: null });
+        return;
+      }
+      // Clicking an adjacent enemy with a friendly unit selected opens the
+      // combat preview for confirmation.
+      const { selectedUnitId } = get();
+      if (unit && selectedUnitId && game.phase === 'player') {
+        const attacker = game.units[selectedUnitId];
+        if (attacker && attackableTargets(game, attacker).some((t) => t.id === unit.id)) {
+          set({ pendingAttackId: unit.id, selectedTileId: tile });
+          return;
+        }
+      }
+      set({ selectedTileId: tile, selectedUnitId: null, interactionMode: 'idle', pendingAttackId: null });
+    },
+
+    setPendingAttack: (unitId) => set({ pendingAttackId: unitId }),
+
+    selectUnit: (unitId) => {
+      const game = get().game;
+      if (!game || !unitId) {
+        set({ selectedUnitId: null });
+        return;
+      }
+      const unit = game.units[unitId];
+      if (unit) set({ selectedUnitId: unitId, selectedTileId: unit.tile, interactionMode: 'idle' });
+    },
+
+    hoverTile: (tile) => set({ hoveredTileId: tile }),
+    setMapMode: (mode) => set({ mapMode: mode }),
+    setInteractionMode: (mode) => set({ interactionMode: mode }),
+    focusCamera: (tile) => set((s) => ({ cameraFocus: { tile, seq: (s.cameraFocus?.seq ?? 0) + 1 } })),
+
+    orderMove: (dest) => {
+      const { game, selectedUnitId } = get();
+      if (!game || !selectedUnitId || game.phase !== 'player') return;
+      let captured: TileId[] = [];
+      const next = produce(game, (draft) => {
+        captured = applyMove(draft, selectedUnitId, dest);
+        for (const t of captured) {
+          const cityId = draft.tiles[t].cityId;
+          if (cityId) noteCityCapture(draft, cityId, draft.playerFaction);
+        }
+        recomputeFog(draft);
+      });
+      set({ game: next, selectedTileId: dest });
+    },
+
+    orderAttack: (defenderId) => {
+      const { game, selectedUnitId } = get();
+      if (!game || !selectedUnitId || game.phase !== 'player') return;
+      const attacker = game.units[selectedUnitId];
+      const defender = game.units[defenderId];
+      if (!attacker || !defender) return;
+      const isArtillery = UNIT_DEFS[attacker.type].support > 0;
+      let result: CombatResult | null = null;
+      const next = produce(game, (draft) => {
+        const defenderRef = draft.units[defenderId];
+        result = isArtillery
+          ? resolveBombardment(draft, selectedUnitId, defenderId)
+          : resolveCombat(draft, selectedUnitId, defenderId);
+        if (result.defenderDestroyed && defenderRef) noteUnitDestroyed(draft, defenderRef);
+        if (result.tileCaptured) {
+          const cityId = draft.tiles[result.tile].cityId;
+          if (cityId) noteCityCapture(draft, cityId, draft.playerFaction);
+        }
+        const verb = isArtillery ? 'bombards' : 'attacks';
+        pushNote(draft, 'combat', `${attacker.name} ${verb} ${defender.name}.`);
+        recomputeFog(draft);
+      });
+      set({ game: next, lastCombat: result, interactionMode: 'idle', pendingAttackId: null });
+    },
+
+    toggleReinforce: () => {
+      const { selectedUnitId } = get();
+      if (!selectedUnitId) return;
+      mutate((draft) => {
+        const unit = draft.units[selectedUnitId];
+        if (!unit) return;
+        unit.reinforcing = !unit.reinforcing;
+        if (unit.reinforcing) {
+          pushNote(draft, 'reinforce', `${unit.name} begins receiving replacements.`);
+        }
+      });
+    },
+
+    orderEntrench: () => {
+      const { selectedUnitId } = get();
+      if (!selectedUnitId) return;
+      mutate((draft) => {
+        const unit = draft.units[selectedUnitId];
+        if (!unit || unit.movement <= 0) return;
+        const tile = draft.tiles[unit.tile];
+        const cap = Math.min(4, TERRAIN_DEFS[tile.terrain].entrenchCap + (tile.fortified ? 1 : 0));
+        unit.movement = 0;
+        if (unit.entrenchment < cap) unit.entrenchment += 1;
+      });
+    },
+
+    beginOperation: (op) => {
+      const game = get().game;
+      if (!game || game.phase !== 'player') return;
+      const check = canUseOperation(game, game.playerFaction, op);
+      if (!check.ok) return;
+      set({ pendingOp: op, interactionMode: 'op-target' });
+    },
+
+    applyOperationAt: (tile) => {
+      const { game, pendingOp } = get();
+      if (!game || !pendingOp) return;
+      const valid = validateOpTarget(game, game.playerFaction, pendingOp, tile);
+      if (!valid.ok) {
+        set({ interactionMode: 'idle', pendingOp: null });
+        return;
+      }
+      const next = produce(game, (draft) => {
+        const msg = applyOperation(draft, draft.playerFaction, pendingOp, tile);
+        pushNote(draft, 'info', msg);
+        recomputeFog(draft);
+      });
+      set({ game: next, pendingOp: null, interactionMode: 'idle' });
+    },
+
+    beginDeploy: (reserveId) => {
+      set({ pendingReserveId: reserveId, interactionMode: 'deploy' });
+    },
+
+    applyDeployAt: (tile) => {
+      const { game, pendingReserveId } = get();
+      if (!game || !pendingReserveId) return;
+      const next = produce(game, (draft) => {
+        const unit = deployReserve(draft, draft.playerFaction, pendingReserveId, tile);
+        if (unit) {
+          pushNote(draft, 'reinforce', `${unit.name} deploys to the theatre.`);
+          recomputeFog(draft);
+        }
+      });
+      set({ game: next, pendingReserveId: null, interactionMode: 'idle' });
+    },
+
+    cancelInteraction: () => set({ interactionMode: 'idle', pendingOp: null, pendingReserveId: null, pendingAttackId: null }),
+    dismissCombat: () => set({ lastCombat: null }),
+
+    chooseEventOption: (index) => {
+      mutate((draft) => {
+        const event = draft.pendingEvent;
+        if (!event) return;
+        const option = event.options[index];
+        if (option) {
+          applyEventEffects(draft, option.effects);
+          pushNote(draft, 'event', `${event.title}: ${option.label}.`);
+        }
+        draft.pendingEvent = null;
+      });
+    },
+
+    requestEndTurn: () => {
+      const game = get().game;
+      if (!game || game.phase !== 'player') return;
+      const warnings = endTurnWarnings(game);
+      if (warnings.length > 0) {
+        set({ endTurnWarningsList: warnings });
+      } else {
+        get().confirmEndTurn();
+      }
+    },
+
+    confirmEndTurn: () => {
+      const game = get().game;
+      if (!game || game.phase !== 'player') return;
+      const next = produce(game, (draft) => {
+        draft.phase = 'ai';
+        draft.aiQueue = planAIQueue(draft);
+        draft.aiIndex = 0;
+      });
+      set({
+        game: next,
+        endTurnWarningsList: null,
+        selectedUnitId: null,
+        interactionMode: 'idle',
+        lastCombat: null,
+      });
+    },
+
+    cancelEndTurn: () => set({ endTurnWarningsList: null }),
+
+    aiStep: () => {
+      const game = get().game;
+      if (!game || game.phase !== 'ai') return;
+      let log: AIActionLog | null = null;
+      let next = produce(game, (draft) => {
+        log = stepAI(draft);
+      });
+      if (log !== null) {
+        const focus = (log as AIActionLog).focusTile;
+        set({
+          game: next,
+          lastAILog: log,
+          ...(focus ? { cameraFocus: { tile: focus, seq: (get().cameraFocus?.seq ?? 0) + 1 } } : {}),
+        });
+        return;
+      }
+      // Queue exhausted: run global resolution and hand back control.
+      if (aiTurnDone(next)) {
+        next = produce(next, (draft) => {
+          resolveGlobalTurn(draft);
+        });
+        autosave(next);
+        set({ game: next, lastAILog: null });
+      }
+    },
+
+    setAISpeed: (ms) => set({ aiSpeed: ms }),
+
+    advanceTutorial: (fromStep) => {
+      mutate((draft) => {
+        if (draft.tutorialStep === fromStep) draft.tutorialStep = fromStep + 1;
+      });
+    },
+
+    skipTutorial: () => {
+      mutate((draft) => {
+        draft.tutorialStep = -1;
+      });
+    },
+
+    setAudio: (patch) => {
+      const audio = { ...get().audio, ...patch };
+      try {
+        localStorage.setItem('tbe-audio', JSON.stringify(audio));
+      } catch { /* non-fatal */ }
+      set({ audio });
+    },
+
+    setShowSettings: (show) => set({ showSettings: show }),
+  };
+});
+
+// Convenience selectors used by several components.
+export function usePlayerFaction(): FactionId | null {
+  return useStore((s) => s.game?.playerFaction ?? null);
+}
+
+export function useSelectedUnit() {
+  return useStore((s) => {
+    if (!s.game || !s.selectedUnitId) return null;
+    return s.game.units[s.selectedUnitId] ?? null;
+  });
+}
+
+export { computePreview, attackableTargets };
