@@ -13,13 +13,17 @@ export function EventModal() {
 
   return (
     <div className="modal-backdrop">
-      <div className="modal panel">
+      <div className="modal panel panel-framed briefing">
+        <div className="stamp">Decision</div>
         <div className="panel-title">
-          Strategic Decision
+          Strategic Briefing
           <span className="sub">Turn {game.turn}</span>
         </div>
         <div className="body">
-          <p style={{ fontFamily: 'var(--font-display)', fontSize: 17, color: 'var(--ink-bright)' }}>
+          <div className="doc-head">
+            From: Theatre staff · To: Commander · Subject follows
+          </div>
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 17, color: 'var(--ink-bright)', marginBottom: 6 }}>
             {event.title}
           </p>
           <p>{event.text}</p>
@@ -29,6 +33,7 @@ export function EventModal() {
               <span className="desc">{opt.description}</span>
             </button>
           ))}
+          <div className="sign-line">— By order of the theatre command</div>
         </div>
       </div>
     </div>
@@ -109,6 +114,10 @@ export function SettingsModal() {
   const setAudio = useStore((s) => s.setAudio);
   const aiSpeed = useStore((s) => s.aiSpeed);
   const setAISpeed = useStore((s) => s.setAISpeed);
+  const quality = useStore((s) => s.quality);
+  const setQuality = useStore((s) => s.setQuality);
+  const counterMode = useStore((s) => s.counterMode);
+  const toggleCounterMode = useStore((s) => s.toggleCounterMode);
   const game = useStore((s) => s.game);
   const saveToSlot = useStore((s) => s.saveToSlot);
   const loadFromSlot = useStore((s) => s.loadFromSlot);
@@ -161,6 +170,18 @@ export function SettingsModal() {
             <button className={`btn small ${aiSpeed >= 900 ? 'active' : ''}`} onClick={() => setAISpeed(900)}>Normal</button>
             <button className={`btn small ${aiSpeed === 400 ? 'active' : ''}`} onClick={() => setAISpeed(400)}>Fast</button>
             <button className={`btn small ${aiSpeed === 80 ? 'active' : ''}`} onClick={() => setAISpeed(80)}>Instant</button>
+          </div>
+
+          <hr className="divider" />
+          <h3 style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--ink-dim)' }}>Graphics</h3>
+          <div className="btn-row">
+            <button className={`btn small ${quality === 'high' ? 'active' : ''}`} onClick={() => setQuality('high')}>High</button>
+            <button className={`btn small ${quality === 'low' ? 'active' : ''}`} onClick={() => setQuality('low')}>Low (no post effects)</button>
+          </div>
+          <div className="btn-row">
+            <button className={`btn small ${counterMode ? 'active' : ''}`} onClick={toggleCounterMode}>
+              {counterMode ? 'Counters forced (Tab)' : 'Miniatures near / counters far (Tab)'}
+            </button>
           </div>
 
           {game && (

@@ -26,7 +26,10 @@ import {
   CITIES,
   CONTROL_ROWS,
   CORRIDORS,
+  ELEVATION_ROWS,
   FACTION_SETUP,
+  MAP_H,
+  MAP_W,
   RIVERS,
   SCENARIO_META,
   TERRAIN_ROWS,
@@ -38,6 +41,7 @@ const TERRAIN_CHARS: Record<string, TerrainType | null> = {
   f: 'forest',
   m: 'marsh',
   w: 'water',
+  u: 'urban',
   '.': null,
 };
 
@@ -59,8 +63,13 @@ export function buildInitialState(playerFaction: FactionId, seed: number): GameS
   const tiles: Record<TileId, Tile> = {};
 
   // ---- tiles from ASCII layers
+  if (TERRAIN_ROWS.length !== MAP_H) {
+    throw new Error(`Terrain has ${TERRAIN_ROWS.length} rows, expected ${MAP_H}`);
+  }
   TERRAIN_ROWS.forEach((row, y) => {
-    if (row.length !== 26) throw new Error(`Terrain row ${y} has length ${row.length}, expected 26`);
+    if (row.length !== MAP_W) throw new Error(`Terrain row ${y} has length ${row.length}, expected ${MAP_W}`);
+    if (CONTROL_ROWS[y]?.length !== MAP_W) throw new Error(`Control row ${y} has wrong length`);
+    if (ELEVATION_ROWS[y]?.length !== MAP_W) throw new Error(`Elevation row ${y} has wrong length`);
     for (let x = 0; x < row.length; x++) {
       const terrain = TERRAIN_CHARS[row[x]];
       if (terrain === null || terrain === undefined) continue;
@@ -70,11 +79,10 @@ export function buildInitialState(playerFaction: FactionId, seed: number): GameS
       if (terrain !== 'water' && controller === null) {
         throw new Error(`Tile ${x},${y} is land but has no controller`);
       }
-      // Elevation: gentle noise, raised in the Carpathian west and south Crimea.
-      let elevation = 0.15 + tileNoise(x, y, 7) * 0.25;
-      if (x <= 2 && y >= 4 && y <= 8) elevation += 0.45; // Carpathian foothills
-      if (y >= 15) elevation += 0.2; // Crimean uplands
-      if (terrain === 'forest') elevation += 0.08;
+      // Elevation from the geodata layer (base-36 char, 0..1 over a sqrt
+      // scale) plus a small deterministic jitter for visual variation.
+      const elevBase = parseInt(ELEVATION_ROWS[y][x], 36) / 35;
+      let elevation = Math.min(1, elevBase + tileNoise(x, y, 7) * 0.04);
       if (terrain === 'water') elevation = 0;
       tiles[tileId(x, y)] = {
         id: tileId(x, y),
@@ -107,6 +115,7 @@ export function buildInitialState(playerFaction: FactionId, seed: number): GameS
       supplyHub: c.hub,
       supplySource: c.source,
       decisiveFor: c.decisiveFor,
+      landmark: c.landmark,
     };
     tile.cityId = c.id;
     if (c.size === 'capital' || c.size === 'major') tile.terrain = 'urban';

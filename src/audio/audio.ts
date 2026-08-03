@@ -11,6 +11,10 @@ class AudioEngine {
   private sfxBus: GainNode | null = null;
   private started = false;
   private settings: AudioSettings = { master: 0.7, music: 0.5, sfx: 0.7, muted: false };
+  // Weather-bed nodes (v2-vision §7.2: per-weather ambience).
+  private windGain: GainNode | null = null;
+  private windFilter: BiquadFilterNode | null = null;
+  private rainGain: GainNode | null = null;
 
   start(): void {
     if (this.started) return;
@@ -26,10 +30,49 @@ class AudioEngine {
       this.applySettings(this.settings);
       this.startWind(ctx, this.musicBus);
       this.startDrone(ctx, this.musicBus);
+      this.startRain(ctx, this.musicBus);
       this.started = true;
     } catch {
       // Audio unavailable; run silently.
     }
+  }
+
+  // Ambience bed follows the weather: wind pitch/level, rain patter.
+  setWeather(weather: 'clear' | 'overcast' | 'rain' | 'mud' | 'snow'): void {
+    if (!this.ctx || !this.windGain || !this.windFilter || !this.rainGain) return;
+    const t = this.ctx.currentTime;
+    const bed: Record<string, { wind: number; freq: number; rain: number }> = {
+      clear: { wind: 0.10, freq: 380, rain: 0 },
+      overcast: { wind: 0.17, freq: 430, rain: 0 },
+      rain: { wind: 0.2, freq: 520, rain: 0.16 },
+      mud: { wind: 0.15, freq: 400, rain: 0.04 },
+      snow: { wind: 0.24, freq: 300, rain: 0 },
+    };
+    const b = bed[weather];
+    this.windGain.gain.setTargetAtTime(b.wind, t, 2.5);
+    this.windFilter.frequency.setTargetAtTime(b.freq, t, 2.5);
+    this.rainGain.gain.setTargetAtTime(b.rain, t, 2.5);
+  }
+
+  // High-passed noise loop, silent until rain weather fades it in.
+  private startRain(ctx: AudioContext, out: GainNode): void {
+    const bufferSize = ctx.sampleRate * 2;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.loop = true;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 2600;
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(out);
+    src.start();
+    this.rainGain = gain;
   }
 
   applySettings(s: AudioSettings): void {
@@ -72,7 +115,37 @@ class AudioEngine {
     gain.connect(out);
     src.start();
     lfo.start();
+    this.windGain = gain;
+    this.windFilter = filter;
   }
+
+  // Map-table foley: a soft paper swish (event windows, briefings).
+  paper(): void {
+    if (!this.ctx || !this.sfxBus) return;
+    const t = this.ctx.currentTime;
+    const dur = 0.28;
+    const buffer = this.ctx.createBuffer(1, this.ctx.sampleRate * dur, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      const env = Math.sin((i / data.length) * Math.PI);
+      data[i] = (Math.random() * 2 - 1) * env * env;
+    }
+    const src = this.ctx.createBufferSource();
+    src.buffer = buffer;
+    const f = this.ctx.createBiquadFilter();
+    f.type = 'bandpass';
+    f.frequency.value = 3200;
+    f.Q.value = 0.7;
+    const g = this.ctx.createGain();
+    g.gain.value = 0.09;
+    src.connect(f);
+    f.connect(g);
+    g.connect(this.sfxBus);
+    src.start(t);
+  }
+
+  // A dull switch click (map-mode changes, toggles).
+  switchTick(): void { this.blip(320, 0.045, 0.06, 'square'); }
 
   // Two very quiet detuned drones — tension, not melody.
   private startDrone(ctx: AudioContext, out: GainNode): void {

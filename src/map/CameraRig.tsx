@@ -6,11 +6,9 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import type { MapControls as MapControlsImpl } from 'three-stdlib';
-import { tileWorldById, HEX_W, HEX_H } from '../game/hex';
+import { tileWorldById } from '../game/hex';
 import { useStore } from '../game/state/store';
-
-const MAP_W = 26 * HEX_W;
-const MAP_H = 17 * HEX_H;
+import { WORLD_W as MAP_W, WORLD_H as MAP_H } from './worldDims';
 
 export function CameraRig() {
   const controlsRef = useRef<MapControlsImpl>(null);
@@ -23,8 +21,16 @@ export function CameraRig() {
     const controls = controlsRef.current;
     if (!controls) return;
     controls.target.set(MAP_W * 0.58, 0, MAP_H * 0.45);
-    camera.position.set(MAP_W * 0.58, 26, MAP_H * 0.45 + 17);
+    camera.position.set(MAP_W * 0.58, 34, MAP_H * 0.45 + 22);
     controls.update();
+    // Dev/automation camera hook (golden harness close-ups, playtest).
+    (window as unknown as Record<string, unknown>).__TBE_CAMERA__ = {
+      set: (px: number, py: number, pz: number, tx: number, tz: number) => {
+        camera.position.set(px, py, pz);
+        controls.target.set(tx, 0, tz);
+        controls.update();
+      },
+    };
   }, [camera]);
 
   useEffect(() => {
@@ -33,9 +39,19 @@ export function CameraRig() {
     targetGoal.current = new THREE.Vector3(wx, 0, wz);
   }, [focus?.seq]);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const controls = controlsRef.current;
     if (!controls) return;
+    // Main-menu backdrop: a slow drift along the Dnipro (v2-vision §7.2).
+    if (useStore.getState().screen === 'menu') {
+      const t = state.clock.elapsedTime * 0.018;
+      const cx = MAP_W * 0.52 + Math.sin(t) * MAP_W * 0.1;
+      const cz = MAP_H * 0.42 + Math.cos(t * 0.7) * MAP_H * 0.08;
+      controls.target.set(cx, 0, cz);
+      camera.position.set(cx + 3, 15, cz + 11.5);
+      controls.update();
+      return;
+    }
     // Clamp target to the map bounds.
     controls.target.x = THREE.MathUtils.clamp(controls.target.x, -4, MAP_W + 4);
     controls.target.z = THREE.MathUtils.clamp(controls.target.z, -4, MAP_H + 6);
@@ -66,7 +82,7 @@ export function CameraRig() {
       minAzimuthAngle={-0.7}
       maxAzimuthAngle={0.7}
       minDistance={7}
-      maxDistance={55}
+      maxDistance={80}
       dampingFactor={0.12}
       panSpeed={1.1}
       zoomSpeed={1.0}

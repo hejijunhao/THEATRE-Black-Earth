@@ -17,7 +17,7 @@ function aiActsFor(state: GameState, actor: FactionId): GameState {
     d.aiIndex = 0;
   });
   let guard = 0;
-  while (!aiTurnDone(s) && guard < 120) {
+  while (!aiTurnDone(s) && guard < 400) {
     s = produce(s, (d) => {
       stepAI(d);
     });
@@ -46,7 +46,8 @@ declare const process: { env: Record<string, string | undefined> };
 
 describe.skipIf(!process.env.BALANCE)('AI vs AI balance', () => {
   it('plays a full campaign', () => {
-    for (const seed of [11, 42]) {
+    const seeds = process.env.SEEDS ? process.env.SEEDS.split(',').map(Number) : [11, 42];
+    for (const seed of seeds) {
       let state = buildInitialState('UA', seed);
       const log: unknown[] = [summarize(state)];
       while (state.phase !== 'ended' && state.turn < state.scenario.maxTurns + 1) {
@@ -58,6 +59,14 @@ describe.skipIf(!process.env.BALANCE)('AI vs AI balance', () => {
           d.pendingEvent = null; // auto-dismiss events in simulation
         });
         if (state.turn % 6 === 0 || state.phase === 'ended') log.push(summarize(state));
+        if (process.env.VERBOSE) {
+          for (const n of state.notifications.filter(
+            (n) => n.turn === state.turn - 1 && (n.kind === 'capture' || n.kind === 'combat'),
+          )) {
+            // eslint-disable-next-line no-console
+            console.log(`  t${n.turn}: ${n.text}`);
+          }
+        }
       }
       // eslint-disable-next-line no-console
       console.log(`seed ${seed}:`, JSON.stringify(log, null, 1));

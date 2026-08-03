@@ -32,7 +32,9 @@ export function noteCityCapture(state: GameState, cityId: string, byFaction: Fac
   const city = state.cities[cityId];
   const winner = state.factions[byFaction];
   const loser = state.factions[opposing(byFaction)];
-  const swing = Math.min(8, Math.max(2, Math.round(city.vp / 3)));
+  // v2 re-tune: the 48×36 grid doubled the city count and combat tempo, so
+  // per-event war-support swings are softer than v1's (see v2-vision §12).
+  const swing = Math.min(6, Math.max(1, Math.round(city.vp / 4)));
   winner.warSupport = Math.min(100, winner.warSupport + swing);
   loser.warSupport = Math.max(0, loser.warSupport - swing);
   winner.score += city.vp;
@@ -42,7 +44,8 @@ export function noteCityCapture(state: GameState, cityId: string, byFaction: Fac
 export function noteUnitDestroyed(state: GameState, unit: Unit): void {
   const owner = state.factions[unit.faction];
   const enemy = state.factions[opposing(unit.faction)];
-  owner.warSupport = Math.max(0, owner.warSupport - 4);
+  // v2 re-tune: −2 (was −4) — twice the formations, same political clock.
+  owner.warSupport = Math.max(0, owner.warSupport - 2);
   enemy.score += 8;
   pushNote(state, 'combat', `${unit.name} has been destroyed as a fighting formation.`);
 }
@@ -146,6 +149,11 @@ export function resolveGlobalTurn(state: GameState): boolean {
   // Expire transient effects.
   for (const e of state.effects) e.turnsLeft -= 1;
   state.effects = state.effects.filter((e) => e.turnsLeft > 0);
+
+  // Cosmetic battle wear fades over several turns (v2-vision §4.4).
+  for (const tile of Object.values(state.tiles)) {
+    if (tile.recentCombat && tile.recentCombat > 0) tile.recentCombat -= 1;
+  }
 
   // Next turn begins.
   state.turn += 1;

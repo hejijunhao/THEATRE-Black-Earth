@@ -1,11 +1,19 @@
-// Top strip: turn, date, weather, faction resources, war support, score.
+// Top strip as a LEDGER (v2-vision §7.2): grouped resource cells with icon,
+// value and a per-turn delta chip — the delta is the part players read.
 
 import { WEATHER_DEFS } from '../game/data/defs';
 import { useStore } from '../game/state/store';
 import { formatTurnDate } from '../game/rules/weather';
-import { heldVP } from '../game/rules/victory';
+import { heldVP, startVP } from '../game/rules/victory';
 import { opposing } from '../game/types';
+import { Ico } from './icons';
 import { Tip } from './Tip';
+
+function Delta({ value }: { value: number }) {
+  const cls = value > 0 ? '' : value < 0 ? 'neg' : 'zero';
+  const label = value > 0 ? `+${value}` : `${value}`;
+  return <span className={`delta-chip ${cls}`}>{label}</span>;
+}
 
 export function TopBar() {
   const game = useStore((s) => s.game);
@@ -16,6 +24,7 @@ export function TopBar() {
   const f = game.factions[game.playerFaction];
   const enemy = game.factions[opposing(game.playerFaction)];
   const vp = heldVP(game, game.playerFaction);
+  const vpDelta = vp - startVP(game, game.playerFaction);
 
   const wsClass = f.warSupport < 25 ? 'bad' : f.warSupport < 45 ? 'warn' : '';
 
@@ -28,7 +37,7 @@ export function TopBar() {
         text={`Each turn represents roughly one week. The campaign is adjudicated after turn ${game.scenario.maxTurns}. Scenario: ${game.scenario.dateLabel}.`}
       >
         <div className="cell">
-          <span className="k">Turn</span>
+          <span className="ico"><Ico name="turn" /></span>
           <span className="v">{game.turn}/{game.scenario.maxTurns}</span>
           <span className="v" style={{ color: 'var(--ink-dim)' }}>{formatTurnDate(game)}</span>
         </div>
@@ -39,15 +48,12 @@ export function TopBar() {
         text="Weather affects movement, attack effectiveness, reconnaissance and readiness recovery. Mud and snow slow everything off the roads."
       >
         <div className="cell">
-          <span className="k">Wx</span>
+          <span className="ico"><Ico name={game.weather} /></span>
           <span className="v">{WEATHER_DEFS[game.weather].label}</span>
         </div>
       </Tip>
 
-      <Tip
-        title="Faction"
-        text={`You command the ${f.name} side in this designed scenario.`}
-      >
+      <Tip title="Faction" text={`You command the ${f.name} side in this designed scenario.`}>
         <div className="cell">
           <span className={`faction-chip ${f.id}`} />
           <span className="v">{f.name}</span>
@@ -56,21 +62,23 @@ export function TopBar() {
 
       <Tip
         title="Manpower"
-        text="Used to restore formation strength and deploy reserves. Gained slowly each turn. If it runs out, damaged formations cannot be rebuilt."
+        text={`Used to restore formation strength and deploy reserves. Income ${f.manpowerIncome} per turn. If it runs out, damaged formations cannot be rebuilt.`}
       >
         <div className="cell">
-          <span className="k">MP</span>
+          <span className="ico"><Ico name="manpower" /></span>
           <span className="v">{Math.floor(f.manpower)}</span>
+          <Delta value={f.manpowerIncome} />
         </div>
       </Tip>
 
       <Tip
         title="Equipment"
-        text="Vehicles, weapons and matériel. Consumed by reinforcement, especially for mechanised and armoured formations."
+        text={`Vehicles, weapons and matériel. Income ${f.equipmentIncome} per turn. Consumed by reinforcement, especially for mechanised and armoured formations.`}
       >
         <div className="cell">
-          <span className="k">EQ</span>
+          <span className="ico"><Ico name="equipment" /></span>
           <span className="v">{Math.floor(f.equipment)}</span>
+          <Delta value={f.equipmentIncome} />
         </div>
       </Tip>
 
@@ -79,8 +87,9 @@ export function TopBar() {
         text={`Fuel for strategic operations. Regenerates ${f.commandRegen} per turn up to ${f.commandMax}.`}
       >
         <div className="cell">
-          <span className="k">CMD</span>
+          <span className="ico"><Ico name="command" /></span>
           <span className="v">{f.command}/{f.commandMax}</span>
+          <Delta value={f.commandRegen} />
         </div>
       </Tip>
 
@@ -89,10 +98,10 @@ export function TopBar() {
         text="National cohesion. Falls with heavy losses and lost cities; rises with successes. If it collapses, the campaign is lost — the enemy's can collapse too."
       >
         <div className="cell">
-          <span className="k">Support</span>
+          <span className="ico"><Ico name="support" /></span>
           <span className={`v ${wsClass}`}>{Math.round(f.warSupport)}%</span>
           <span className="v" style={{ color: 'var(--ink-dim)', fontSize: 11 }}>
-            (foe {Math.round(enemy.warSupport)}%)
+            foe {Math.round(enemy.warSupport)}%
           </span>
         </div>
       </Tip>
@@ -102,16 +111,17 @@ export function TopBar() {
         text="Accumulates from territorial gains relative to the start, captured objectives and destroyed enemy formations. Decides the outcome at the turn limit."
       >
         <div className="cell">
-          <span className="k">Score</span>
+          <span className="ico"><Ico name="score" /></span>
           <span className="v">{f.score}</span>
           <span className="v" style={{ color: 'var(--ink-dim)', fontSize: 11 }}>vs {enemy.score}</span>
         </div>
       </Tip>
 
-      <Tip title="Victory points held" text="Total victory-point value of cities currently under your control.">
+      <Tip title="Victory points held" text="Total victory-point value of cities currently under your control, and the change since the campaign began.">
         <div className="cell">
-          <span className="k">VP</span>
+          <span className="ico"><Ico name="vp" /></span>
           <span className="v">{vp}</span>
+          <Delta value={vpDelta} />
         </div>
       </Tip>
 

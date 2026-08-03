@@ -1,6 +1,6 @@
 // Main menu: new campaign (faction choice), continue, load, settings.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { autosaveHeader, hasAutosave, slotHeaders } from '../game/state/save';
 import { useStore } from '../game/state/store';
 import { FactionId } from '../game/types';
@@ -9,6 +9,9 @@ export function MainMenu() {
   const newCampaign = useStore((s) => s.newCampaign);
   const continueCampaign = useStore((s) => s.continueCampaign);
   const loadFromSlot = useStore((s) => s.loadFromSlot);
+  const ensureMenuBackdrop = useStore((s) => s.ensureMenuBackdrop);
+  // The menu sits over the live theatre at dawn.
+  useEffect(() => ensureMenuBackdrop(), [ensureMenuBackdrop]);
   const [faction, setFaction] = useState<FactionId>('UA');
   const [tutorial, setTutorial] = useState(true);
   const [confirmNew, setConfirmNew] = useState(false);

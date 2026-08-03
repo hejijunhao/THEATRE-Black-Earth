@@ -2,3 +2,6 @@ node_modules
 dist
 *.local
 .DS_Store
+scripts/geo/cache
+scripts/out
+scripts/golden/current

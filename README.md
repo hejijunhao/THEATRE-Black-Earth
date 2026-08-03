@@ -3,6 +3,15 @@
 A compact single-player, turn-based operational strategy game set during the
 contemporary war in Ukraine, built as a self-contained browser game.
 
+**v0.2 — The Living Theatre.** The map is now real Ukrainian topography,
+hydrography and land cover (derived offline from Copernicus DEM, ESA
+WorldCover and Natural Earth, quantised to a 48×36 hex grid); the land is a
+continuous lit relief surface with chernozem strip-fields; formations are
+procedural miniatures whose silhouette carries their state (`Tab` returns
+the classic counters); the political map mode is a parchment staff map. See
+[`docs/plans/v2-vision.md`](docs/plans/v2-vision.md) and the
+[changelog](docs/changelog.md).
+
 > **Scenario disclaimer.** The map, formations, starting positions and balance
 > are a deliberately simplified, *designed scenario* ("Black Earth, Spring
 > 2025"). It is not a reproduction of live battlefield conditions, real orders
@@ -41,6 +50,7 @@ BALANCE=1 npx vitest run src/game/__tests__/balance.test.ts   # AI-vs-AI campaig
 | Click adjacent enemy | Open the combat preview; confirm to attack |
 | `Esc` | Cancel targeting / deselect |
 | `Shift+Enter` | End turn |
+| `Tab` | Toggle miniatures / classic counters |
 
 Bottom-left: map modes (Political, Supply, Terrain, Objectives, Intelligence).
 Bottom-center: Reinforce, Entrench, Operations, Reserves, End Turn.

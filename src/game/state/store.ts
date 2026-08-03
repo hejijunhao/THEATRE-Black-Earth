@@ -62,7 +62,7 @@ interface StoreState {
   tutorialEnabled: boolean;
 
   // lifecycle
-  newCampaign: (faction: FactionId, tutorial: boolean) => void;
+  newCampaign: (faction: FactionId, tutorial: boolean, fixedSeed?: number) => void;
   continueCampaign: () => void;
   loadFromSlot: (n: number) => void;
   saveToSlot: (n: number) => void;
@@ -104,6 +104,15 @@ interface StoreState {
   // settings
   setAudio: (patch: Partial<AudioSettings>) => void;
   setShowSettings: (show: boolean) => void;
+  quality: 'high' | 'low';
+  setQuality: (q: 'high' | 'low') => void;
+  // Force counter plates at any zoom (Tab). Persisted — wargamers who want
+  // the board game keep it.
+  counterMode: boolean;
+  toggleCounterMode: () => void;
+  // Menu backdrop: put a throwaway campaign in state so the main menu sits
+  // over the live map (v2-vision §7.2). Never autosaved.
+  ensureMenuBackdrop: () => void;
 }
 
 function loadAudioSettings(): AudioSettings {
@@ -140,10 +149,12 @@ export const useStore = create<StoreState>((set, get) => {
     endTurnWarningsList: null,
     audio: loadAudioSettings(),
     showSettings: false,
+    quality: (localStorage.getItem('tbe-quality') as 'high' | 'low') ?? 'high',
+    counterMode: localStorage.getItem('tbe-counters') === '1',
     tutorialEnabled: true,
 
-    newCampaign: (faction, tutorial) => {
-      const seed = (Date.now() % 2147483647) >>> 0;
+    newCampaign: (faction, tutorial, fixedSeed) => {
+      const seed = fixedSeed !== undefined ? fixedSeed >>> 0 : (Date.now() % 2147483647) >>> 0;
       const state = buildInitialState(faction, seed);
       state.tutorialStep = tutorial ? 0 : -1;
       pushNote(state, 'info', `Campaign begins — ${state.scenario.dateLabel}.`);
@@ -437,6 +448,21 @@ export const useStore = create<StoreState>((set, get) => {
     },
 
     setShowSettings: (show) => set({ showSettings: show }),
+    setQuality: (q) => {
+      localStorage.setItem('tbe-quality', q);
+      set({ quality: q });
+    },
+    toggleCounterMode: () => {
+      const next = !get().counterMode;
+      localStorage.setItem('tbe-counters', next ? '1' : '0');
+      set({ counterMode: next });
+    },
+    ensureMenuBackdrop: () => {
+      if (get().game) return;
+      const backdrop = buildInitialState('UA', 20250301);
+      backdrop.tutorialStep = -1;
+      set({ game: backdrop });
+    },
   };
 });
 

@@ -6,7 +6,6 @@ import { reachableTiles, unitOnTile } from '../rules/movement';
 import { computePreview, resolveCombat } from '../rules/combat';
 import { planAIQueue, stepAI, aiTurnDone } from '../ai/ai';
 import { resolveGlobalTurn } from '../rules/turn';
-import { tileId } from '../types';
 
 describe('hex grid', () => {
   it('computes symmetric adjacency', () => {
@@ -28,9 +27,10 @@ describe('scenario build', () => {
   const state = buildInitialState('UA', 42);
 
   it('produces a playable map in the target size range', () => {
+    // v2: 48×36 geodata-derived grid, ~900 land hexes (v2-vision §3.4).
     const land = Object.values(state.tiles).filter((t) => t.terrain !== 'water');
-    expect(land.length).toBeGreaterThan(250);
-    expect(land.length).toBeLessThan(500);
+    expect(land.length).toBeGreaterThan(700);
+    expect(land.length).toBeLessThan(1200);
   });
 
   it('assigns starting control correctly', () => {
@@ -39,13 +39,13 @@ describe('scenario build', () => {
     expect(state.tiles[state.cities.sevastopol.tile].controller).toBe('RU');
   });
 
-  it('places 12-20 units per side without stacking', () => {
+  it('places 26-40 units per side without stacking', () => {
     const ua = Object.values(state.units).filter((u) => u.faction === 'UA');
     const ru = Object.values(state.units).filter((u) => u.faction === 'RU');
-    expect(ua.length).toBeGreaterThanOrEqual(12);
-    expect(ua.length).toBeLessThanOrEqual(20);
-    expect(ru.length).toBeGreaterThanOrEqual(12);
-    expect(ru.length).toBeLessThanOrEqual(20);
+    expect(ua.length).toBeGreaterThanOrEqual(26);
+    expect(ua.length).toBeLessThanOrEqual(40);
+    expect(ru.length).toBeGreaterThanOrEqual(26);
+    expect(ru.length).toBeLessThanOrEqual(40);
     const tiles = Object.values(state.units).map((u) => u.tile);
     expect(new Set(tiles).size).toBe(tiles.length);
   });
@@ -57,9 +57,15 @@ describe('scenario build', () => {
     expect(bad.length).toBe(0);
   });
 
-  it('has river edges including the Dnipro at Kyiv', () => {
-    expect(state.riverEdges.length).toBeGreaterThan(15);
-    expect(state.bridgeEdges).toContain('10,2|11,2');
+  it('has river edges including a bridged Dnipro crossing near Kyiv', () => {
+    expect(state.riverEdges.length).toBeGreaterThan(60);
+    expect(state.bridgeEdges.length).toBeGreaterThan(10);
+    // A bridge must exist within two hexes of the capital (the Kyiv crossings).
+    const kyiv = state.cities.kyiv.tile;
+    const nearKyiv = state.bridgeEdges.some((edge) =>
+      edge.split('|').some((t) => hexDistance(t, kyiv) <= 2),
+    );
+    expect(nearKyiv).toBe(true);
   });
 });
 
@@ -138,13 +144,13 @@ describe('full turn cycle', () => {
       d.aiIndex = 0;
     });
     let steps = 0;
-    while (!aiTurnDone(state) && steps < 100) {
+    while (!aiTurnDone(state) && steps < 400) {
       state = produce(state, (d) => {
         stepAI(d);
       });
       steps += 1;
     }
-    expect(steps).toBeLessThan(100);
+    expect(steps).toBeLessThan(400);
     state = produce(state, (d) => {
       resolveGlobalTurn(d);
     });
@@ -166,7 +172,7 @@ describe('full turn cycle', () => {
         d.aiIndex = 0;
       });
       let guard = 0;
-      while (!aiTurnDone(state) && guard < 100) {
+      while (!aiTurnDone(state) && guard < 400) {
         state = produce(state, (d) => {
           stepAI(d);
         });
@@ -197,6 +203,6 @@ describe('save roundtrip', () => {
     const state = buildInitialState('UA', 123);
     const restored = JSON.parse(JSON.stringify(state));
     expect(restored).toEqual(state);
-    expect(restored.tiles[tileId(10, 2)].cityId).toBe('kyiv');
+    expect(restored.tiles[state.cities.kyiv.tile].cityId).toBe('kyiv');
   });
 });

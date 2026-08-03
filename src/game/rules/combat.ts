@@ -263,6 +263,11 @@ export function resolveCombat(state: GameState, attackerId: string, defenderId: 
   attacker.reinforcing = false;
   defender.reinforcing = false;
 
+  // Cosmetic battle wear (v2-vision §4.4): the renderer draws craters and
+  // smoke from this counter. No rule reads it.
+  const contestedTile = state.tiles[defender.tile];
+  if (contestedTile) contestedTile.recentCombat = 3;
+
   let defenderRetreated = false;
   let defenderDestroyed = false;
   let tileCaptured = false;

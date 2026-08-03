@@ -24,11 +24,13 @@ export const FACTION_STRONG: Record<FactionId, string> = {
 };
 
 export const WEATHER_ENV: Record<WeatherType, { sky: string; fog: string; sun: number; ambient: number; fogDensity: number }> = {
-  clear:    { sky: '#a8b3ae', fog: '#a8b3a4', sun: 1.35, ambient: 0.55, fogDensity: 0.006 },
-  overcast: { sky: '#8d949a', fog: '#8d949a', sun: 0.85, ambient: 0.6, fogDensity: 0.009 },
-  rain:     { sky: '#6f7a82', fog: '#6f7a82', sun: 0.6, ambient: 0.55, fogDensity: 0.013 },
-  mud:      { sky: '#837f74', fog: '#837f74', sun: 0.75, ambient: 0.55, fogDensity: 0.011 },
-  snow:     { sky: '#aab4bd', fog: '#b6bec6', sun: 0.9, ambient: 0.7, fogDensity: 0.010 },
+  // v2: brighter than v1 — the continuous surface absorbs more light than
+  // the prisms did, and readability outranks mood (Phase C adds grading).
+  clear:    { sky: '#a8b3ae', fog: '#a8b3a4', sun: 1.5, ambient: 0.72, fogDensity: 0.005 },
+  overcast: { sky: '#8d949a', fog: '#8d949a', sun: 1.05, ambient: 0.78, fogDensity: 0.007 },
+  rain:     { sky: '#6f7a82', fog: '#6f7a82', sun: 0.75, ambient: 0.7, fogDensity: 0.011 },
+  mud:      { sky: '#837f74', fog: '#837f74', sun: 0.95, ambient: 0.72, fogDensity: 0.009 },
+  snow:     { sky: '#aab4bd', fog: '#b6bec6', sun: 1.05, ambient: 0.85, fogDensity: 0.009 },
 };
 
 const tmpA = new THREE.Color();

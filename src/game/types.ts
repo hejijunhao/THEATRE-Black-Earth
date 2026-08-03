@@ -22,6 +22,9 @@ export interface Tile {
   rail: boolean;
   fortified: boolean; // player/AI built fortification state
   elevation: number;  // purely visual, 0..1
+  // Cosmetic battle-wear counter (v2-vision §4.4): set on combat, decays per
+  // turn; the renderer draws craters/burns/smoke from it. No rules read it.
+  recentCombat?: number;
 }
 
 export interface City {
@@ -33,6 +36,9 @@ export interface City {
   supplyHub: boolean;     // extends supply network
   supplySource?: boolean; // originates supply (national entry points)
   decisiveFor?: FactionId; // capturing it counts toward decisive victory
+  // Cosmetic landmark tag (v2-vision §4.3): an abstracted silhouette the
+  // renderer places at this city. No rules read it.
+  landmark?: string;
 }
 
 export interface Unit {
@@ -264,7 +270,10 @@ export interface GameState {
   unitSeq: number;
 }
 
-export const SAVE_VERSION = 1;
+// v2: 48×36 geodata-derived grid (was 26×17 hand-authored); v3 adds the two
+// sanctioned cosmetic fields (tile.recentCombat, city.landmark). Old saves
+// are incompatible and are ignored by the loader rather than half-loaded.
+export const SAVE_VERSION = 3;
 
 export function tileId(x: number, y: number): TileId {
   return `${x},${y}`;

@@ -6,6 +6,7 @@ import { computePreview } from '../game/rules/combat';
 import { supplyStateFromLevel } from '../game/rules/supply';
 import { useStore } from '../game/state/store';
 import { CombatVerdict, Unit } from '../game/types';
+import { MiniViewport } from './MiniViewport';
 import { Tip } from './Tip';
 
 const VERDICT_LABEL: Record<CombatVerdict, string> = {
@@ -43,6 +44,7 @@ function UnitDetails({ unit }: { unit: Unit }) {
   const game = useStore((s) => s.game)!;
   const def = UNIT_DEFS[unit.type];
   const tile = game.tiles[unit.tile];
+  const showViewport = unit.faction === game.playerFaction;
   const supplyTip =
     unit.supply === 'isolated'
       ? 'No connection to a supply source. The formation will degrade each turn it remains cut off. Reopen a land corridor or use Emergency Resupply.'
@@ -58,6 +60,8 @@ function UnitDetails({ unit }: { unit: Unit }) {
           <div className="name">{unit.name}</div>
         </div>
       </div>
+
+      {showViewport && <MiniViewport unit={unit} fortified={tile.fortified} />}
 
       <div className="status-tags">
         <Tip title="Supply state" text={supplyTip}>
@@ -306,7 +310,7 @@ export function SidePanel() {
   }
 
   return (
-    <div className="side-panel panel">
+    <div className="side-panel panel panel-framed">
       <div className="panel-title">
         {title}
         <span className="sub">{game.scenario.dateLabel}</span>

@@ -9,7 +9,7 @@ import { validateOpTarget } from '../game/rules/ops';
 import { validDeployTiles } from '../game/rules/turn';
 import { OPERATION_DEFS } from '../game/data/defs';
 import { tileWorldById } from '../game/hex';
-import { tileTopY } from './Tiles';
+import { tileGroundY } from './terrain/heightfield';
 
 function useHexShapes() {
   return useMemo(() => {
@@ -23,10 +23,8 @@ function useHexShapes() {
   }, []);
 }
 
-function tileY(gameTiles: Record<string, { elevation: number; terrain: string }>, id: string): number {
-  const t = gameTiles[id];
-  if (!t) return 0.3;
-  return tileTopY(t.elevation, t.terrain) + 0.012;
+function tileY(_gameTiles: Record<string, { elevation: number; terrain: string }>, id: string): number {
+  return tileGroundY(id) + 0.045;
 }
 
 export function Overlays() {
@@ -94,7 +92,7 @@ export function Overlays() {
           return (
             <mesh key={`reach-${r.id}`} geometry={disc} position={[wx, tileY(tiles, r.id), wz]}>
               <meshBasicMaterial
-                color={r.entersZOC ? '#c9a352' : enemyGround ? '#b08b5a' : '#d8d2ba'}
+                color={r.entersZOC ? '#c9a352' : enemyGround ? '#b08b5a' : '#c6c0ab'}
                 transparent
                 opacity={r.entersZOC ? 0.34 : 0.24}
                 depthWrite={false}
@@ -145,7 +143,7 @@ export function Overlays() {
           const { wx, wz } = tileWorldById(selectedTileId);
           return [wx, tileY(tiles, selectedTileId) + 0.02, wz];
         })()}>
-          <meshBasicMaterial color="#e8dfc8" transparent opacity={0.9} depthWrite={false} />
+          <meshBasicMaterial color="#d6cfba" transparent opacity={0.9} depthWrite={false} />
         </mesh>
       )}
 
@@ -155,7 +153,7 @@ export function Overlays() {
           const { wx, wz } = tileWorldById(hoveredTileId);
           return [wx, tileY(tiles, hoveredTileId) + 0.015, wz];
         })()}>
-          <meshBasicMaterial color="#cfc9b8" transparent opacity={0.35} depthWrite={false} />
+          <meshBasicMaterial color="#bdb7a6" transparent opacity={0.35} depthWrite={false} />
         </mesh>
       )}
 

@@ -5,8 +5,8 @@ import { useMemo } from 'react';
 import * as THREE from 'three';
 import { neighborIds, sharedEdge, HEX_SIZE } from '../game/hex';
 import { useStore } from '../game/state/store';
-import { mergeGeometries } from './Rivers';
-import { tileTopY } from './Tiles';
+import { mergeGeometries } from './geomUtils';
+import { groundY } from './terrain/heightfield';
 
 export function Frontline() {
   const game = useStore((s) => s.game);
@@ -26,10 +26,7 @@ export function Frontline() {
         seen.add(key);
         const edge = sharedEdge(tile.id, nId);
         if (!edge) continue;
-        const h = Math.max(
-          tileTopY(tile.elevation, tile.terrain),
-          tileTopY(n.elevation, n.terrain),
-        ) + 0.03;
+        const h = groundY(edge.mx, edge.mz) + 0.06;
         const len = HEX_SIZE * 1.18;
         const seg = new THREE.BoxGeometry(len, 0.07, 0.09);
         const angle = Math.atan2(edge.ez, edge.ex);

@@ -1,99 +1,208 @@
-// Scenario: "Black Earth, Spring 2025".
-// A deliberately compressed, designed representation of the theatre.
-// This is NOT a live-battlefield reproduction: geography is simplified,
-// unit designations are representative, and the frontline is a designed
-// approximation of a static contemporary front.
+// GENERATED FILE — do not edit by hand.
+// Regenerate with: node scripts/geo/build-scenario.mjs
 //
-// Map: 26 x 17 offset grid (odd-r, pointy-top). '.' = off-map, 'w' = sea,
-// 'p' = plains, 'f' = forest, 'm' = marsh. Urban terrain is applied
-// automatically to capital/major city tiles.
+// Scenario: "Black Earth, Spring 2025". Terrain, hydrography, infrastructure
+// and city locations derive from open geospatial data, quantised to a
+// 48×36 odd-r hex grid (~26 km hexes). The front line, order of
+// battle, faction economies and all balance numbers are DESIGNED — this is
+// not a reproduction of live battlefield conditions.
+//
+// Data sources (retrieved 2026-08-03):
+//   Elevation:  Terrain Tiles on AWS (Mapzen terrarium; SRTM/GMTED/ETOPO composite)
+//               Public domain data sources; tiles CC-BY (Mapzen/Linux Foundation)
+//   Land cover: ESA WorldCover 10 m 2021 v200
+//               CC-BY 4.0 © ESA WorldCover project 2021
+//   Vectors:    Natural Earth 10m (rivers, roads, railroads, populated places, admin-0)
+//               Public domain
 
 import { CitySize, FactionId, ScenarioMeta, UnitType } from '../types';
 
+export const MAP_W = 48;
+export const MAP_H = 36;
+
+// '.' off-map · 'w' sea · 'p' plains · 'f' forest · 'm' marsh · 'u' urban
 export const TERRAIN_ROWS: string[] = [
-  '..ffmmfffpfppppff.........', // r0  Polissia
-  '.fffmfffppfpppfppfpppf....', // r1
-  '.fpffppppppfppppppppppp...', // r2  Kyiv - Kharkiv belt
-  'fpfppppfppppfpppfpppfppp..', // r3
-  'ffppfpppfppppfppppfpfpppp.', // r4  Donets valley
-  'fffppppppppppppfppppffppp.', // r5
-  'fffppppppppppfppppppppppp.', // r6
-  'ffppppppppppppppppppppppp.', // r7
-  'fpppppppppppppppppppppppp.', // r8
-  '.pppppppppppppppppfpppppp.', // r9
-  '..ppppppppppppppppppppppp.', // r10 southern steppe
-  '...ppppppppppppppppppppp..', // r11 Azov coast belt
-  '....ppppppppppmppwwwwww...', // r12 Black Sea coast
-  '....wwwwwwwwwwmmpwwww.....', // r13 Syvash approaches
-  '............wpmpppww......', // r14 northern Crimea
-  '............wpppppw.......', // r15 Crimea
-  '............wpppww........', // r16 southern Crimea
+  '.....................ffffffpff..................',
+  '..fpfffff...........fpffffffff..................',
+  '.fffffffffmf.ff.f...fpppppffff..................',
+  '.ffffffffffffffffff.ffpppppfpp..................',
+  '..fpfffffpffffffffffffpfppppppppf...............',
+  '..pfppfffffffffffffmfpppfpppppppf...............',
+  '..pppppffppffffffffffppppfpppppffp..............',
+  '..ppppppppppfpppfpfufppppppppfffpp..............',
+  '.pfffffffffffffffppffppppppppppfpppppfpp........',
+  'ffpffppppppppppppppppfpppppppppppppupppp........',
+  'fpfpfpppppppppppppppppfppppppfpfpppffppppppp....',
+  'pffffpppppppppppppppffffpppppppppppppppppppppp..',
+  'ffppfpppppppfffppppppfffpmmpppppppppppfpppppppp.',
+  'fffpppfpppfpffppppppffppfpmpppppppppppffpfpppp..',
+  'fffffppppfpffpppppppppfppfpppppppppppppfpfffpp..',
+  'ffffpppfffpfppfpfpppppppppppppfpppppppppppppf...',
+  'fffffpppfppp.ppfppppppppppppppppuppppppppppfpp..',
+  'fffffffp......pffpppppppppppppppppppppppppffpp..',
+  '.ffffffp........fpppppppppppupppppppppppfppppp..',
+  '....f...........pfppppppppppppppuppppppppp......',
+  '................ppppppppppppppmmmppppppppp......',
+  '................ppppppppppppppppppppppppp.......',
+  '.................ppppppppppppppppppppppp.ww.....',
+  '.................ppppppupppppppppppppmwwww......',
+  '...................pppwmmppppppppppwwwwww.......',
+  '...............p.p.pwwwwppppppppp.wwwww.........',
+  '................ppppwwwwwpppmmmm..ww............',
+  '...............ppppww..wwwwwmpmww...............',
+  '...............pppwww...wwwwppppwwwwww..........',
+  '..............pppwww....wwppppppwwwwww..........',
+  '..............p...w......wwppppppwmppww.........',
+  '.........................wwwpppppwpmww..........',
+  '..........................wwwpfffwwwww..........',
+  '..........................wwffwwwwwww...........',
+  '...........................wwmwwww..............',
+  '...........................wwww.................',
 ];
 
 export const CONTROL_ROWS: string[] = [
-  '..uuuuuuuuuuuuuuu.........', // r0
-  '.uuuuuuuuuuuuuuuuuuuuu....', // r1
-  '.uuuuuuuuuuuuuuuuuuuuur...', // r2
-  'uuuuuuuuuuuuuuuuuuuuuurr..', // r3
-  'uuuuuuuuuuuuuuuuuuuuurrrr.', // r4
-  'uuuuuuuuuuuuuuuuuuuuurrrr.', // r5
-  'uuuuuuuuuuuuuuuuuuuuurrrr.', // r6
-  'uuuuuuuuuuuuuuuuuuuuurrrr.', // r7
-  'uuuuuuuuuuuuuuuuuuuuurrrr.', // r8
-  '.uuuuuuuuuuuuuuuuuuurrrrr.', // r9
-  '..uuuuuuuuuuuuuurrrrrrrrr.', // r10
-  '...uuuuuuuuuuuurrrrrrrrr..', // r11
-  '....uuuuuuuuuurrr.........', // r12
-  '..............rrr.........', // r13
-  '.............rrrrr........', // r14
-  '.............rrrrr........', // r15
-  '.............rrr..........', // r16
+  '.....................uuuuuuuuu..................',
+  '..uuuuuuu...........uuuuuuuuuu..................',
+  '.uuuuuuuuuuu.uu.u...uuuuuuuuuu..................',
+  '.uuuuuuuuuuuuuuuuuu.uuuuuuuuuu..................',
+  '..uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu...............',
+  '..uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu...............',
+  '..uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu..............',
+  '..uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu..............',
+  '.uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuurr........',
+  'uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuurr........',
+  'uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuurrrr....',
+  'uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuurrrrrr..',
+  'uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuurrrrrr.',
+  'uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuurrrrrr..',
+  'uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuurrrrr..',
+  'uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuurrrrr...',
+  'uuuuuuuuuuuu.uuuuuuuuuuuuuuuuuuuuuuuuuuurrrrrr..',
+  'uuuuuuuu......uuuuuuuuuuuuuuuuuuuuuuuuurrrrrrr..',
+  '.uuuuuuu........uuuuuuuuuuuuuuuuuuuuuuurrrrrrr..',
+  '....u...........uuuuuuuuuuuuuuuuuuuuuurrrr......',
+  '................uuuuuuuuuuuuuuuuuuuurrrrrr......',
+  '................uuuuuuuuuuuuuuurrrrrrrrrr.......',
+  '.................uuuuuuuuuuuuurrrrrrrrrr........',
+  '.................uuuuuuuuuuurrrrrrrrrr..........',
+  '...................uuu.uuuurrrrrrrr.............',
+  '...............u.u.u....urrrrrrrr...............',
+  '................uuuu.....rrrrrrr................',
+  '...............uuuu.........rrr.................',
+  '...............uuu..........rrrr................',
+  '..............uuu.........rrrrrr................',
+  '..............u............rrrrrr.rrr...........',
+  '............................rrrrr.rr............',
+  '.............................rrrr...............',
+  '............................rr..................',
+  '.............................r..................',
+  '................................................',
 ];
 
-// Rivers are defined as two parallel bank paths; every adjacent (west, east)
-// tile pair between the two banks becomes a river edge.
+// Per-hex mean elevation, base-36 (0..z ~ 0..1 over a sqrt scale, max 1200 m).
+export const ELEVATION_ROWS: string[] = [
+  '000000000000000000000bccbdddce000000000000000000',
+  '00dcccccc00000000000cccbcddcee000000000000000000',
+  '0ddddddddccc0dd0c000bcbbcbbced000000000000000000',
+  '0eedddeddddeefeccbb0cbbbbcbccd000000000000000000',
+  '00eeedddddeeeeedcccbbbbbbcccdddde000000000000000',
+  '00efeeeeeeefeeeddccabbbbccdddddde000000000000000',
+  '00effffffefffffedcccabbbbccccddcde00000000000000',
+  '00fffffgfffffffedddcbabbbccccccdcc00000000000000',
+  '0ffffffhggggfgffeeddbaabbbcbcbcdcdeddcde00000000',
+  'ihffhiihhhhggggffeeedbabbbbcbbdbcddcdcdc00000000',
+  'ghihijjihihhhhhhgfeddccabbabbbcbcddcbbcccddb0000',
+  'hhijjjiiiiihhhhhgfeeddaaaaaaaabbccddbbdbcdcbdd00',
+  'lhghijiiiiiiihghhffffedba99aaaaabccddbbbcbcacbc0',
+  'ojigijihiiiiihhhggffeedcdba99a9aabccbbcbbbbcbb00',
+  'ttnkhhihghhhhhhggfgfedeeeedcba89bcccddccbbabab00',
+  'uxrkihggfgffgghgfffeddeeddcdcc9999abcdcccebaa000',
+  'pwyvnhgggegg0efgfeeeddeeecdccccbabbabcdddffdcc00',
+  'ltxxrmjf000000egfecccdffdddbbbcabcbccdeefgggec00',
+  '0lqyxupk00000000feecbbdddbcaaabbabcbcbcdedecef00',
+  '0000z00000000000eedcb9abaaa998998abbcceecc000000',
+  '0000000000000000cedaaa899999985557abcddfcb000000',
+  '0000000000000000ccba99888978988899befeca90000000',
+  '00000000000000000bbaa89868788899998bdba704200000',
+  '000000000000000008b89766777678887688753003000000',
+  '000000000000000000096545454466665343200020000000',
+  '000000000000000c0b073000245555553000000000000000',
+  '0000000000000000a9963000134333230000000000000000',
+  '000000000000000b86620000000123210000000000000000',
+  '000000000000000a75310000000465431000000000000000',
+  '000000000000007530000000057897641004220000000000',
+  '000000000000006000000000036679985258743000000000',
+  '00000000000000000000000000018dggd475330000000000',
+  '00000000000000000000000000004fomf400000000000000',
+  '0000000000000000000000000002fog00000000000000000',
+  '00000000000000000000000000006j800000000000000000',
+  '000000000000000000000000000000000000000000000000',
+];
+
+// Rivers live on hex EDGES, generated from two bank chains. Each bank is a
+// hex-adjacent "ladder" BY CONSTRUCTION (vertex-walk tracing); the builder
+// re-validates every step. See docs/overview.md §6.3.
 export interface RiverDef {
   name: string;
   bankA: Array<[number, number]>;
   bankB: Array<[number, number]>;
 }
 
-// IMPORTANT: each bank must be a hex-adjacent chain (a "ladder"), otherwise
-// the generated cross-bank edge set has vertex holes that units could cross
-// dry. The builder validates chain adjacency.
 export const RIVERS: RiverDef[] = [
   {
     name: 'Dnipro',
-    bankA: [
-      [10, 1], [10, 2], [10, 3], [10, 4], [10, 5], [11, 6], [12, 6], [12, 7],
-      [13, 8], [14, 8], [14, 9], [15, 9], [15, 10], [14, 11], [13, 11], [13, 12],
-    ],
-    bankB: [
-      [11, 1], [11, 2], [11, 3], [11, 4], [11, 5], [12, 5], [13, 6], [13, 7],
-      [14, 7], [15, 8], [16, 8], [16, 9], [16, 10], [15, 11], [15, 12], [14, 12],
-    ],
+    bankA: [[19, 4], [19, 5], [19, 6], [19, 7], [20, 8], [20, 9], [21, 10], [22, 10], [22, 11], [23, 11], [24, 12], [25, 12], [25, 13], [26, 13], [27, 14], [28, 14], [29, 14], [29, 15], [30, 16], [31, 16], [32, 16], [32, 17], [32, 18], [31, 19], [32, 20], [31, 20], [30, 20], [29, 20], [28, 21], [28, 22], [27, 23], [26, 23]],
+    bankB: [[20, 4], [20, 5], [20, 6], [20, 7], [21, 8], [21, 9], [22, 9], [23, 10], [24, 10], [24, 11], [25, 11], [26, 12], [27, 12], [27, 13], [28, 13], [29, 13], [30, 14], [30, 15], [31, 15], [32, 15], [33, 16], [33, 17], [33, 18], [32, 19], [33, 20], [32, 21], [31, 21], [30, 21], [29, 21], [29, 22], [28, 23], [28, 24], [27, 24], [26, 24]],
   },
   {
-    name: 'Siverskyi Donets',
-    bankA: [
-      [18, 4], [19, 4], [19, 5], [20, 5], [21, 5], [22, 5],
-    ],
-    bankB: [
-      [18, 3], [19, 3], [20, 4], [21, 4], [22, 4],
-    ],
+    name: 'Donets',
+    bankA: [[37, 8], [36, 9], [36, 10], [35, 11], [36, 12], [37, 12], [37, 13], [38, 13], [39, 14], [40, 14], [41, 14], [41, 15], [42, 15], [43, 15], [44, 16], [45, 16]],
+    bankB: [[38, 8], [37, 9], [37, 10], [36, 11], [37, 11], [38, 12], [39, 12], [39, 13], [40, 13], [41, 13], [42, 14], [43, 14], [44, 14], [44, 15]],
+  },
+  {
+    name: 'Southern Bug',
+    bankA: [[23, 21], [23, 20], [22, 20], [21, 19], [21, 18], [20, 17], [19, 17], [18, 17], [18, 16], [17, 15], [16, 15], [16, 14], [15, 14], [14, 13], [14, 12], [13, 11], [12, 11], [11, 11], [10, 11], [9, 11]],
+    bankB: [[22, 21], [21, 21], [21, 20], [20, 19], [20, 18], [19, 18], [18, 18], [17, 17], [17, 16], [16, 16], [15, 15], [14, 15], [14, 14], [13, 13], [13, 12], [12, 12], [11, 12], [10, 12], [9, 12], [8, 11]],
+  },
+  {
+    name: 'Desna',
+    bankA: [[27, 0], [26, 1], [25, 1], [25, 2], [24, 2], [23, 2], [22, 2], [21, 2], [20, 3], [20, 4], [19, 5], [20, 6]],
+    bankB: [[28, 0], [27, 1], [27, 2], [26, 2], [25, 3], [24, 3], [23, 3], [22, 3], [21, 3], [21, 4], [20, 5], [21, 6], [20, 7]],
+  },
+  {
+    name: 'Seym',
+    bankA: [[29, 3], [28, 3], [28, 2], [27, 2], [26, 3], [26, 2]],
+    bankB: [[30, 4], [29, 4], [28, 4], [27, 3], [27, 4], [26, 4], [25, 3]],
   },
 ];
 
-// Bridge / crossing edges (adjacent tile pairs across a river).
+// Bridge / crossing edges: derived — corridor steps that cross a river edge.
 export const BRIDGES: Array<[[number, number], [number, number]]> = [
-  [[10, 2], [11, 2]],   // Kyiv
-  [[12, 6], [13, 6]],   // Cherkasy
-  [[14, 8], [15, 8]],   // Kremenchuk
-  [[15, 9], [16, 9]],   // Dnipro city
-  [[15, 10], [15, 11]], // Zaporizhzhia
-  [[13, 12], [14, 12]], // Kherson
-  [[19, 4], [19, 3]],   // Izium
-  [[21, 5], [21, 4]],   // Sievierodonetsk
+  [[14, 12], [13, 12]],
+  [[12, 12], [11, 11]],
+  [[11, 11], [11, 12]],
+  [[10, 12], [9, 11]],
+  [[9, 11], [9, 12]],
+  [[19, 7], [20, 7]],
+  [[15, 14], [15, 15]],
+  [[10, 11], [10, 12]],
+  [[14, 12], [13, 13]],
+  [[23, 11], [24, 11]],
+  [[32, 18], [32, 19]],
+  [[27, 4], [26, 3]],
+  [[26, 3], [27, 3]],
+  [[27, 3], [27, 2]],
+  [[26, 4], [26, 3]],
+  [[25, 2], [24, 3]],
+  [[28, 4], [28, 3]],
+  [[28, 3], [29, 4]],
+  [[8, 11], [9, 11]],
+  [[13, 13], [14, 13]],
+  [[39, 13], [40, 14]],
+  [[31, 16], [30, 15]],
+  [[30, 15], [30, 16]],
+  [[33, 16], [32, 16]],
+  [[21, 21], [22, 20]],
 ];
 
 export interface CityDef {
@@ -106,92 +215,264 @@ export interface CityDef {
   hub: boolean;
   source?: boolean;
   decisiveFor?: FactionId;
+  landmark?: string;
 }
 
 export const CITIES: CityDef[] = [
-  // Ukrainian-held at start
-  { id: 'kyiv', name: 'Kyiv', x: 10, y: 2, size: 'capital', vp: 25, hub: true, source: true },
-  { id: 'kharkiv', name: 'Kharkiv', x: 19, y: 2, size: 'major', vp: 15, hub: true, decisiveFor: 'RU' },
-  { id: 'sumy', name: 'Sumy', x: 16, y: 1, size: 'town', vp: 4, hub: true },
-  { id: 'chernihiv', name: 'Chernihiv', x: 12, y: 0, size: 'town', vp: 4, hub: false },
-  { id: 'lviv', name: 'Lviv', x: 1, y: 3, size: 'major', vp: 10, hub: true, source: true },
-  { id: 'vinnytsia', name: 'Vinnytsia', x: 6, y: 6, size: 'town', vp: 4, hub: true },
-  { id: 'cherkasy', name: 'Cherkasy', x: 12, y: 6, size: 'town', vp: 4, hub: true },
-  { id: 'kremenchuk', name: 'Kremenchuk', x: 14, y: 8, size: 'town', vp: 4, hub: true },
-  { id: 'poltava', name: 'Poltava', x: 17, y: 6, size: 'town', vp: 4, hub: true },
-  { id: 'dnipro', name: 'Dnipro', x: 15, y: 9, size: 'major', vp: 15, hub: true },
-  { id: 'zaporizhzhia', name: 'Zaporizhzhia', x: 15, y: 10, size: 'major', vp: 10, hub: true, decisiveFor: 'RU' },
-  { id: 'kryvyirih', name: 'Kryvyi Rih', x: 13, y: 10, size: 'town', vp: 5, hub: true },
-  { id: 'mykolaiv', name: 'Mykolaiv', x: 11, y: 12, size: 'town', vp: 5, hub: true },
-  { id: 'odesa', name: 'Odesa', x: 8, y: 12, size: 'major', vp: 15, hub: true, source: true },
-  { id: 'kherson', name: 'Kherson', x: 13, y: 12, size: 'town', vp: 6, hub: false },
-  { id: 'kramatorsk', name: 'Kramatorsk', x: 20, y: 6, size: 'town', vp: 5, hub: true },
-  { id: 'izium', name: 'Izium', x: 19, y: 4, size: 'town', vp: 3, hub: false },
-  { id: 'kupiansk', name: 'Kupiansk', x: 21, y: 3, size: 'town', vp: 3, hub: false },
-  { id: 'pavlohrad', name: 'Pavlohrad', x: 17, y: 8, size: 'town', vp: 2, hub: true },
-  // Russian-held at start
-  { id: 'luhansk', name: 'Luhansk', x: 24, y: 4, size: 'major', vp: 10, hub: true, source: true },
-  { id: 'sievierodonetsk', name: 'Sievierodonetsk', x: 21, y: 4, size: 'town', vp: 4, hub: false },
-  { id: 'bakhmut', name: 'Bakhmut', x: 21, y: 7, size: 'town', vp: 3, hub: false },
-  { id: 'donetsk', name: 'Donetsk', x: 22, y: 8, size: 'major', vp: 15, hub: true },
-  { id: 'mariupol', name: 'Mariupol', x: 21, y: 11, size: 'major', vp: 10, hub: true, decisiveFor: 'UA' },
-  { id: 'berdiansk', name: 'Berdiansk', x: 19, y: 11, size: 'town', vp: 4, hub: true },
-  { id: 'melitopol', name: 'Melitopol', x: 17, y: 11, size: 'major', vp: 8, hub: true, decisiveFor: 'UA' },
-  { id: 'novakakhovka', name: 'Nova Kakhovka', x: 15, y: 12, size: 'town', vp: 3, hub: true },
-  { id: 'dzhankoi', name: 'Dzhankoi', x: 15, y: 14, size: 'town', vp: 3, hub: true },
-  { id: 'simferopol', name: 'Simferopol', x: 15, y: 15, size: 'major', vp: 8, hub: true, source: true },
-  { id: 'sevastopol', name: 'Sevastopol', x: 13, y: 16, size: 'major', vp: 8, hub: false },
-  { id: 'kerch', name: 'Kerch', x: 17, y: 15, size: 'town', vp: 3, hub: true, source: true },
-  { id: 'belgorodaxis', name: 'Belgorod Axis', x: 22, y: 2, size: 'town', vp: 0, hub: true, source: true },
-  { id: 'rostovaxis', name: 'Rostov Axis', x: 24, y: 10, size: 'town', vp: 0, hub: true, source: true },
+  { id: 'kyiv', name: 'Kyiv', x: 19, y: 7, size: 'capital', vp: 25, hub: true, source: true, landmark: 'capital' },
+  { id: 'kharkiv', name: 'Kharkiv', x: 35, y: 9, size: 'major', vp: 15, hub: true, decisiveFor: 'RU', landmark: 'derzhprom' },
+  { id: 'dnipro', name: 'Dnipro', x: 32, y: 16, size: 'major', vp: 15, hub: true },
+  { id: 'odesa', name: 'Odesa', x: 19, y: 25, size: 'major', vp: 15, hub: true, source: true, landmark: 'port' },
+  { id: 'donetsk', name: 'Donetsk', x: 40, y: 18, size: 'major', vp: 15, hub: true },
+  { id: 'lviv', name: 'Lviv', x: 2, y: 10, size: 'major', vp: 10, hub: true, source: true },
+  { id: 'zaporizhzhia', name: 'Zaporizhzhia', x: 32, y: 19, size: 'major', vp: 10, hub: true, decisiveFor: 'RU', landmark: 'dam' },
+  { id: 'kryvyirih', name: 'Kryvyi Rih', x: 27, y: 18, size: 'major', vp: 5, hub: true },
+  { id: 'mykolaiv', name: 'Mykolaiv', x: 23, y: 23, size: 'major', vp: 10, hub: true },
+  { id: 'mariupol', name: 'Mariupol', x: 39, y: 22, size: 'major', vp: 10, hub: true, decisiveFor: 'UA', landmark: 'port' },
+  { id: 'luhansk', name: 'Luhansk', x: 44, y: 16, size: 'major', vp: 10, hub: true, source: true },
+  { id: 'khmelnytskyi', name: 'Khmelnytskyi', x: 10, y: 12, size: 'major', vp: 6, hub: true },
+  { id: 'horlivka', name: 'Horlivka', x: 40, y: 17, size: 'major', vp: 6, hub: true },
+  { id: 'sevastopol', name: 'Sevastopol', x: 28, y: 33, size: 'major', vp: 8, hub: true },
+  { id: 'simferopol', name: 'Simferopol', x: 30, y: 32, size: 'major', vp: 8, hub: true, source: true },
+  { id: 'vinnytsia', name: 'Vinnytsia', x: 14, y: 12, size: 'major', vp: 6, hub: true },
+  { id: 'kherson', name: 'Kherson', x: 25, y: 24, size: 'major', vp: 6, hub: false },
+  { id: 'poltava', name: 'Poltava', x: 30, y: 11, size: 'major', vp: 6, hub: true },
+  { id: 'chernihiv', name: 'Chernihiv', x: 22, y: 2, size: 'major', vp: 6, hub: true },
+  { id: 'chernivtsi', name: 'Chernivtsi', x: 7, y: 16, size: 'major', vp: 6, hub: true },
+  { id: 'cherkasy', name: 'Cherkasy', x: 24, y: 12, size: 'major', vp: 6, hub: true },
+  { id: 'sumy', name: 'Sumy', x: 31, y: 5, size: 'major', vp: 6, hub: true },
+  { id: 'zhytomyr', name: 'Zhytomyr', x: 15, y: 8, size: 'major', vp: 6, hub: true },
+  { id: 'rivne', name: 'Rivne', x: 8, y: 6, size: 'major', vp: 6, hub: true },
+  { id: 'kropyvnytskyi', name: 'Kropyvnytskyi', x: 24, y: 16, size: 'town', vp: 4, hub: true },
+  { id: 'ternopil', name: 'Ternopil', x: 6, y: 11, size: 'town', vp: 4, hub: true },
+  { id: 'ivanofrankivsk', name: 'Ivano-Frankivsk', x: 4, y: 14, size: 'town', vp: 4, hub: false },
+  { id: 'kremenchuk', name: 'Kremenchuk', x: 27, y: 13, size: 'town', vp: 4, hub: false },
+  { id: 'lutsk', name: 'Lutsk', x: 5, y: 6, size: 'town', vp: 4, hub: false },
+  { id: 'bilatserkva', name: 'Bila Tserkva', x: 19, y: 10, size: 'town', vp: 4, hub: true },
+  { id: 'kramatorsk', name: 'Kramatorsk', x: 39, y: 15, size: 'town', vp: 4, hub: false },
+  { id: 'melitopol', name: 'Melitopol', x: 33, y: 23, size: 'town', vp: 8, hub: true, decisiveFor: 'UA' },
+  { id: 'kerch', name: 'Kerch', x: 36, y: 30, size: 'town', vp: 4, hub: false },
+  { id: 'nikopol', name: 'Nikopol', x: 30, y: 20, size: 'town', vp: 4, hub: false },
+  { id: 'lysychansk', name: 'Lysychansk', x: 41, y: 14, size: 'town', vp: 4, hub: true },
+  { id: 'drohobych', name: 'Drohobych', x: 0, y: 12, size: 'town', vp: 4, hub: false },
+  { id: 'berdyansk', name: 'Berdyansk', x: 37, y: 23, size: 'town', vp: 4, hub: false },
+  { id: 'nizhyn', name: 'Nizhyn', x: 23, y: 4, size: 'town', vp: 4, hub: false },
+  { id: 'kamianetspodilskyi', name: 'Kamianets-Podilskyi', x: 8, y: 15, size: 'town', vp: 4, hub: false },
+  { id: 'yevpatoriya', name: 'Yevpatoriya', x: 28, y: 31, size: 'town', vp: 4, hub: false },
+  { id: 'konotop', name: 'Konotop', x: 27, y: 4, size: 'town', vp: 4, hub: true },
+  { id: 'shostka', name: 'Shostka', x: 27, y: 1, size: 'town', vp: 4, hub: true },
+  { id: 'brovary', name: 'Brovary', x: 20, y: 7, size: 'town', vp: 4, hub: true },
+  { id: 'izium', name: 'Izium', x: 38, y: 13, size: 'town', vp: 3, hub: false },
+  { id: 'kupiansk', name: 'Kupiansk', x: 39, y: 10, size: 'town', vp: 3, hub: true },
+  { id: 'bakhmut', name: 'Bakhmut', x: 40, y: 15, size: 'town', vp: 3, hub: true },
+  { id: 'pavlohrad', name: 'Pavlohrad', x: 34, y: 15, size: 'town', vp: 2, hub: true },
+  { id: 'novakakhovka', name: 'Nova Kakhovka', x: 27, y: 23, size: 'town', vp: 3, hub: true },
+  { id: 'dzhankoi', name: 'Dzhankoi', x: 30, y: 28, size: 'town', vp: 3, hub: true },
+  { id: 'sloviansk', name: 'Sloviansk', x: 39, y: 14, size: 'town', vp: 3, hub: true },
+  { id: 'belgorodaxis', name: 'Belgorod Axis', x: 39, y: 8, size: 'town', vp: 0, hub: true, source: true },
+  { id: 'rostovaxis', name: 'Rostov Axis', x: 40, y: 21, size: 'town', vp: 0, hub: true, source: true },
 ];
 
-// Road / rail corridors: contiguous adjacent tile chains.
 export interface CorridorDef {
   rail: boolean;
   path: Array<[number, number]>;
 }
 
 export const CORRIDORS: CorridorDef[] = [
-  // Kyiv - Lviv
-  { rail: true, path: [[10, 2], [9, 2], [8, 2], [7, 2], [6, 3], [5, 3], [4, 3], [3, 3], [2, 3], [1, 3]] },
-  // Kyiv - Odesa
-  { rail: true, path: [[10, 2], [9, 3], [9, 4], [9, 5], [9, 6], [9, 7], [9, 8], [9, 9], [9, 10], [9, 11], [9, 12], [8, 12]] },
-  // Kyiv - Kharkiv
-  { rail: true, path: [[10, 2], [11, 2], [12, 2], [13, 2], [14, 2], [15, 2], [16, 2], [17, 2], [18, 2], [19, 2]] },
-  // Kharkiv - Poltava - Dnipro
-  { rail: true, path: [[19, 2], [18, 3], [18, 4], [18, 5], [18, 6], [17, 6], [17, 7], [17, 8], [16, 9], [15, 9]] },
-  // Dnipro - Zaporizhzhia - Melitopol - Crimea
-  { rail: true, path: [[15, 9], [15, 10], [15, 11], [16, 11], [17, 11], [16, 11], [16, 12], [16, 13], [16, 14], [15, 14], [15, 15]] },
-  // Simferopol - Sevastopol
-  { rail: false, path: [[15, 15], [15, 16], [14, 16], [13, 16]] },
-  // Simferopol - Kerch
-  { rail: true, path: [[15, 15], [16, 15], [17, 15]] },
-  // Kharkiv - Kupiansk
-  { rail: false, path: [[19, 2], [20, 2], [20, 3], [21, 3]] },
-  // Kharkiv - Izium - Kramatorsk
-  { rail: false, path: [[18, 4], [19, 4], [19, 5], [20, 6]] },
-  // Pavlohrad - Kramatorsk lateral
-  { rail: false, path: [[17, 8], [18, 8], [19, 8], [19, 7], [20, 7], [20, 6]] },
-  // Dnipro - Kryvyi Rih - Mykolaiv - Kherson / Odesa
-  { rail: false, path: [[15, 9], [14, 9], [13, 9], [13, 10], [12, 10], [12, 11], [11, 11], [11, 12], [12, 12], [13, 12]] },
-  { rail: true, path: [[11, 12], [10, 12], [9, 12], [8, 12]] },
-  // Kyiv - Cherkasy - Kremenchuk (west-bank road)
-  { rail: false, path: [[10, 2], [10, 3], [10, 4], [10, 5], [11, 6], [12, 6], [12, 7], [13, 8], [14, 8], [14, 9], [15, 9]] },
-  // Kyiv - Vinnytsia
-  { rail: false, path: [[6, 3], [6, 4], [6, 5], [6, 6]] },
-  // Kyiv - Chernihiv, Sumy - Kharkiv
-  { rail: false, path: [[10, 2], [11, 2], [11, 1], [12, 0]] },
-  { rail: false, path: [[16, 1], [17, 1], [18, 1], [19, 2]] },
-  // Russian side: Luhansk - Donetsk - Mariupol - Melitopol (land corridor)
-  { rail: true, path: [[24, 4], [23, 5], [23, 6], [22, 7], [22, 8]] },
-  { rail: false, path: [[22, 8], [21, 9], [21, 10], [21, 11]] },
-  { rail: true, path: [[21, 11], [20, 11], [19, 11], [18, 11], [17, 11]] },
-  { rail: true, path: [[21, 11], [22, 10], [23, 10], [24, 10]] },
-  { rail: false, path: [[22, 2], [22, 3], [22, 4], [21, 4]] },
-  { rail: false, path: [[24, 4], [23, 4], [22, 4]] },
-  // Nova Kakhovka - Melitopol / Kherson bank
-  { rail: false, path: [[14, 12], [15, 12], [16, 12], [16, 11], [17, 11]] },
+  { rail: false, path: [[2, 10], [1, 10], [0, 10]] },
+  { rail: false, path: [[7, 17], [7, 16]] },
+  { rail: false, path: [[7, 17], [7, 18]] },
+  { rail: false, path: [[7, 16], [6, 16], [5, 16]] },
+  { rail: false, path: [[4, 15], [3, 15]] },
+  { rail: false, path: [[15, 14], [14, 13], [14, 12], [13, 12], [12, 12], [11, 11], [11, 12], [10, 12], [9, 11], [9, 12], [8, 11], [7, 11], [6, 11]] },
+  { rail: false, path: [[6, 11], [5, 11], [5, 10], [4, 10], [3, 10], [2, 10]] },
+  { rail: false, path: [[3, 7], [4, 6], [5, 6], [5, 5]] },
+  { rail: false, path: [[5, 5], [6, 6], [6, 5], [7, 6], [8, 6]] },
+  { rail: false, path: [[8, 6], [9, 6], [10, 6], [11, 6]] },
+  { rail: false, path: [[11, 6], [12, 6], [12, 7], [13, 7], [14, 8], [15, 8], [16, 8], [17, 8], [17, 7], [18, 7], [19, 7], [20, 7]] },
+  { rail: false, path: [[6, 13], [6, 14], [6, 15], [7, 16]] },
+  { rail: false, path: [[6, 11], [6, 12], [6, 13]] },
+  { rail: false, path: [[15, 14], [16, 14], [17, 14], [18, 14], [18, 15]] },
+  { rail: false, path: [[3, 3], [4, 4], [5, 4], [4, 5], [5, 5], [6, 6], [6, 7], [6, 8], [7, 8], [6, 8], [6, 9], [6, 10], [6, 11]] },
+  { rail: false, path: [[2, 1], [3, 1]] },
+  { rail: false, path: [[3, 1], [3, 2], [3, 3]] },
+  { rail: false, path: [[19, 24], [19, 25]] },
+  { rail: false, path: [[14, 5], [14, 6], [14, 7], [15, 8], [14, 8], [14, 9], [14, 10], [15, 10], [14, 11], [14, 12]] },
+  { rail: false, path: [[1, 10], [0, 10]] },
+  { rail: false, path: [[2, 10], [1, 10]] },
+  { rail: false, path: [[1, 8], [1, 9], [2, 10]] },
+  { rail: false, path: [[17, 22], [17, 23]] },
+  { rail: false, path: [[35, 30], [36, 30]] },
+  { rail: false, path: [[15, 29], [16, 28], [17, 28], [17, 27], [18, 26]] },
+  { rail: false, path: [[15, 14], [15, 15], [14, 15], [14, 16]] },
+  { rail: false, path: [[14, 4], [13, 5], [12, 5], [12, 6], [11, 7], [11, 8], [10, 8]] },
+  { rail: false, path: [[11, 10], [10, 10], [10, 11], [10, 12], [9, 13], [10, 14], [9, 14]] },
+  { rail: false, path: [[8, 15], [9, 16], [8, 16], [7, 17]] },
+  { rail: false, path: [[0, 9], [1, 10]] },
+  { rail: false, path: [[6, 11], [6, 10], [5, 11], [6, 11]] },
+  { rail: false, path: [[8, 6], [7, 7], [6, 7], [6, 8], [5, 8], [4, 9], [3, 9], [2, 9]] },
+  { rail: false, path: [[30, 4], [31, 4], [31, 5], [32, 6], [31, 7], [32, 7], [33, 8], [34, 8], [34, 9]] },
+  { rail: false, path: [[30, 28], [30, 29], [31, 29], [32, 30], [32, 31]] },
+  { rail: false, path: [[14, 12], [13, 13], [12, 13], [13, 14], [12, 14], [12, 15]] },
+  { rail: false, path: [[8, 6], [8, 5]] },
+  { rail: false, path: [[9, 4], [8, 3]] },
+  { rail: false, path: [[2, 5], [3, 5], [4, 5], [5, 6]] },
+  { rail: false, path: [[1, 12], [2, 12], [3, 12], [3, 11], [4, 12], [4, 11], [5, 12], [5, 11]] },
+  { rail: false, path: [[19, 7], [19, 6], [18, 7], [18, 6], [17, 6], [16, 5], [15, 5], [14, 5], [14, 4], [13, 4], [12, 4], [11, 4], [10, 3], [9, 3], [8, 3], [7, 3], [6, 3], [5, 3], [5, 4], [4, 4]] },
+  { rail: false, path: [[20, 13], [21, 13], [22, 13], [23, 13], [24, 12], [23, 11], [24, 11], [23, 11], [24, 11], [24, 10], [24, 9], [24, 8]] },
+  { rail: false, path: [[20, 13], [20, 12], [20, 11], [19, 11], [19, 10], [18, 10]] },
+  { rail: false, path: [[1, 18], [2, 18]] },
+  { rail: false, path: [[6, 14], [7, 14], [8, 14], [8, 15]] },
+  { rail: false, path: [[2, 10], [2, 11], [3, 12]] },
+  { rail: false, path: [[4, 14], [3, 14], [3, 15]] },
+  { rail: false, path: [[0, 14], [0, 13], [1, 12], [1, 11], [2, 10]] },
+  { rail: false, path: [[5, 13], [4, 13], [5, 14], [4, 14]] },
+  { rail: false, path: [[6, 9], [7, 9], [8, 9], [9, 9], [10, 9], [11, 9], [12, 9], [13, 10], [14, 10], [15, 10], [16, 10], [17, 10], [18, 10], [19, 10], [20, 10], [20, 9]] },
+  { rail: false, path: [[35, 9], [35, 10], [34, 10], [34, 11], [33, 11], [33, 12]] },
+  { rail: false, path: [[33, 12], [33, 13], [33, 14], [32, 15]] },
+  { rail: false, path: [[32, 18], [31, 17], [32, 16]] },
+  { rail: false, path: [[32, 18], [32, 19]] },
+  { rail: false, path: [[45, 17], [45, 18]] },
+  { rail: true, path: [[28, 1], [29, 0]] },
+  { rail: true, path: [[27, 1], [28, 1]] },
+  { rail: true, path: [[22, 0], [23, 0], [23, 1], [24, 2]] },
+  { rail: true, path: [[14, 3], [15, 3]] },
+  { rail: true, path: [[27, 4], [26, 3], [27, 3], [27, 2], [28, 2], [27, 1]] },
+  { rail: true, path: [[2, 1], [2, 2], [3, 2], [2, 3], [3, 3]] },
+  { rail: true, path: [[3, 3], [4, 4]] },
+  { rail: true, path: [[27, 4], [27, 3]] },
+  { rail: true, path: [[26, 4], [26, 3], [27, 4]] },
+  { rail: true, path: [[24, 2], [25, 2], [24, 3], [25, 3], [26, 4]] },
+  { rail: true, path: [[27, 3], [28, 4], [28, 3], [29, 4], [30, 4]] },
+  { rail: true, path: [[15, 4], [14, 3]] },
+  { rail: true, path: [[26, 4], [25, 4], [24, 4], [23, 5]] },
+  { rail: true, path: [[14, 5], [14, 4], [15, 4]] },
+  { rail: true, path: [[2, 5], [3, 4], [3, 3]] },
+  { rail: true, path: [[4, 4], [5, 4], [4, 5], [5, 5]] },
+  { rail: true, path: [[23, 5], [22, 5]] },
+  { rail: true, path: [[14, 6], [14, 5]] },
+  { rail: true, path: [[5, 5], [6, 6], [6, 5], [7, 6], [8, 6]] },
+  { rail: true, path: [[14, 7], [14, 6]] },
+  { rail: true, path: [[8, 6], [7, 7]] },
+  { rail: true, path: [[22, 5], [22, 6], [21, 6], [20, 7]] },
+  { rail: true, path: [[7, 7], [8, 7]] },
+  { rail: true, path: [[20, 7], [19, 7]] },
+  { rail: true, path: [[8, 7], [9, 7]] },
+  { rail: true, path: [[7, 7], [6, 7]] },
+  { rail: true, path: [[15, 8], [14, 7]] },
+  { rail: true, path: [[19, 8], [19, 7]] },
+  { rail: true, path: [[9, 7], [10, 8]] },
+  { rail: true, path: [[10, 8], [11, 8]] },
+  { rail: true, path: [[14, 9], [15, 8]] },
+  { rail: true, path: [[18, 8], [19, 8]] },
+  { rail: true, path: [[6, 7], [6, 8], [5, 8], [4, 9]] },
+  { rail: true, path: [[17, 9], [18, 8]] },
+  { rail: true, path: [[17, 9], [18, 9]] },
+  { rail: true, path: [[35, 8], [34, 9]] },
+  { rail: true, path: [[35, 9], [35, 8]] },
+  { rail: true, path: [[11, 8], [11, 9], [12, 8], [12, 9], [13, 9]] },
+  { rail: true, path: [[34, 9], [35, 9]] },
+  { rail: true, path: [[16, 9], [17, 9]] },
+  { rail: true, path: [[4, 9], [3, 9]] },
+  { rail: true, path: [[13, 9], [14, 9]] },
+  { rail: true, path: [[35, 9], [35, 10]] },
+  { rail: true, path: [[3, 9], [3, 10], [2, 9], [2, 10]] },
+  { rail: true, path: [[18, 9], [18, 10]] },
+  { rail: true, path: [[2, 10], [1, 10]] },
+  { rail: true, path: [[1, 10], [0, 10]] },
+  { rail: true, path: [[18, 10], [19, 10]] },
+  { rail: true, path: [[14, 9], [15, 10]] },
+  { rail: true, path: [[15, 10], [16, 10], [15, 9], [16, 9]] },
+  { rail: true, path: [[39, 9], [40, 10], [39, 10]] },
+  { rail: true, path: [[19, 10], [20, 10]] },
+  { rail: true, path: [[39, 10], [39, 11]] },
+  { rail: true, path: [[14, 11], [15, 10]] },
+  { rail: true, path: [[1, 10], [1, 11]] },
+  { rail: true, path: [[20, 10], [20, 11], [21, 10]] },
+  { rail: true, path: [[3, 9], [4, 10], [5, 10], [5, 11], [6, 11]] },
+  { rail: true, path: [[14, 12], [14, 11]] },
+  { rail: true, path: [[6, 11], [7, 11], [8, 11], [9, 11], [10, 12]] },
+  { rail: true, path: [[35, 10], [35, 11], [35, 12]] },
+  { rail: true, path: [[1, 11], [2, 12], [1, 12]] },
+  { rail: true, path: [[39, 11], [39, 12], [39, 13]] },
+  { rail: true, path: [[21, 10], [21, 11], [22, 12], [22, 13]] },
+  { rail: true, path: [[22, 13], [23, 12], [23, 13]] },
+  { rail: true, path: [[13, 13], [14, 13], [14, 12]] },
+  { rail: true, path: [[12, 13], [13, 13]] },
+  { rail: true, path: [[10, 12], [11, 12], [11, 13], [12, 13]] },
+  { rail: true, path: [[35, 12], [36, 12], [35, 13]] },
+  { rail: true, path: [[39, 13], [40, 14]] },
+  { rail: true, path: [[45, 11], [46, 12]] },
+  { rail: true, path: [[35, 13], [36, 14]] },
+  { rail: true, path: [[13, 14], [12, 13]] },
+  { rail: true, path: [[41, 14], [40, 14]] },
+  { rail: true, path: [[23, 13], [24, 13], [25, 14]] },
+  { rail: true, path: [[14, 14], [13, 14]] },
+  { rail: true, path: [[25, 14], [25, 15]] },
+  { rail: true, path: [[25, 15], [26, 15]] },
+  { rail: true, path: [[40, 15], [41, 14]] },
+  { rail: true, path: [[36, 14], [35, 15], [35, 14], [34, 15]] },
+  { rail: true, path: [[24, 15], [25, 14]] },
+  { rail: true, path: [[43, 15], [43, 16]] },
+  { rail: true, path: [[14, 15], [14, 14]] },
+  { rail: true, path: [[34, 15], [34, 16]] },
+  { rail: true, path: [[15, 16], [14, 15]] },
+  { rail: true, path: [[31, 16], [30, 15]] },
+  { rail: true, path: [[43, 16], [42, 16]] },
+  { rail: true, path: [[30, 15], [30, 16]] },
+  { rail: true, path: [[29, 16], [30, 16]] },
+  { rail: true, path: [[32, 16], [31, 16]] },
+  { rail: true, path: [[1, 12], [0, 13], [0, 14]] },
+  { rail: true, path: [[26, 15], [27, 15], [28, 16]] },
+  { rail: true, path: [[28, 16], [29, 16]] },
+  { rail: true, path: [[40, 16], [40, 15]] },
+  { rail: true, path: [[41, 16], [41, 17]] },
+  { rail: true, path: [[42, 16], [41, 17]] },
+  { rail: true, path: [[22, 16], [22, 17], [23, 16], [23, 15], [24, 16], [24, 15]] },
+  { rail: true, path: [[40, 17], [40, 16]] },
+  { rail: true, path: [[34, 16], [33, 17]] },
+  { rail: true, path: [[33, 17], [33, 16], [32, 16]] },
+  { rail: true, path: [[41, 17], [41, 16]] },
+  { rail: true, path: [[40, 17], [41, 16]] },
+  { rail: true, path: [[38, 17], [38, 16], [37, 17]] },
+  { rail: true, path: [[15, 17], [15, 16]] },
+  { rail: true, path: [[41, 17], [42, 17]] },
+  { rail: true, path: [[22, 17], [22, 16]] },
+  { rail: true, path: [[39, 17], [38, 17]] },
+  { rail: true, path: [[42, 17], [43, 17]] },
+  { rail: true, path: [[40, 18], [39, 17]] },
+  { rail: true, path: [[37, 17], [36, 17], [36, 18]] },
+  { rail: true, path: [[40, 17], [40, 18]] },
+  { rail: true, path: [[36, 18], [35, 17], [36, 18], [35, 17]] },
+  { rail: true, path: [[35, 17], [34, 17], [34, 16], [33, 17]] },
+  { rail: true, path: [[44, 18], [44, 17]] },
+  { rail: true, path: [[43, 17], [44, 18]] },
+  { rail: true, path: [[41, 18], [40, 17]] },
+  { rail: true, path: [[44, 17], [44, 18], [44, 17], [45, 18]] },
+  { rail: true, path: [[39, 18], [40, 18]] },
+  { rail: true, path: [[33, 17], [33, 18]] },
+  { rail: true, path: [[16, 18], [15, 17]] },
+  { rail: true, path: [[39, 19], [39, 18]] },
+  { rail: true, path: [[16, 19], [16, 18]] },
+  { rail: true, path: [[33, 18], [32, 19]] },
+  { rail: true, path: [[41, 19], [40, 19], [41, 18]] },
+  { rail: true, path: [[39, 19], [38, 19]] },
+  { rail: true, path: [[22, 20], [21, 19], [22, 18], [22, 17]] },
+  { rail: true, path: [[38, 19], [39, 20]] },
+  { rail: true, path: [[39, 20], [39, 21]] },
+  { rail: true, path: [[21, 21], [22, 20]] },
+  { rail: true, path: [[21, 22], [20, 21], [21, 22], [20, 21], [21, 21]] },
+  { rail: true, path: [[39, 21], [39, 22]] },
+  { rail: true, path: [[32, 19], [33, 20], [32, 21], [33, 22]] },
+  { rail: true, path: [[16, 19], [17, 20], [18, 20], [17, 21], [18, 21], [18, 22]] },
+  { rail: true, path: [[18, 22], [18, 23]] },
+  { rail: true, path: [[20, 24], [20, 23], [20, 22], [21, 22]] },
+  { rail: true, path: [[18, 23], [19, 24], [20, 24]] },
+  { rail: true, path: [[33, 22], [32, 23], [33, 23], [32, 23], [33, 24], [32, 24], [31, 25], [31, 26]] },
+  { rail: true, path: [[31, 26], [30, 27], [30, 28]] },
+  { rail: true, path: [[30, 28], [30, 29]] },
+  { rail: true, path: [[30, 29], [30, 30], [29, 30], [29, 31]] },
+  { rail: true, path: [[29, 31], [29, 32], [28, 33]] },
 ];
 
 export interface UnitPlacement {
@@ -206,42 +487,74 @@ export interface UnitPlacement {
 }
 
 export const UNITS: UnitPlacement[] = [
-  // ------------------------------------------------ Ukraine
-  { id: 'u1', faction: 'UA', type: 'armored', name: '1st Tank Brigade', x: 18, y: 3 },
-  { id: 'u2', faction: 'UA', type: 'mechanized', name: '92nd Mechanised Brigade', x: 20, y: 3 },
-  { id: 'u3', faction: 'UA', type: 'infantry', name: '57th Motorised Brigade', x: 21, y: 3, entrenchment: 2 },
-  { id: 'u4', faction: 'UA', type: 'infantry', name: '60th Infantry Brigade', x: 20, y: 4, entrenchment: 2 },
-  { id: 'u5', faction: 'UA', type: 'infantry', name: '63rd Infantry Brigade', x: 20, y: 5, entrenchment: 2 },
-  { id: 'u6', faction: 'UA', type: 'infantry', name: '24th Infantry Brigade', x: 20, y: 6, entrenchment: 3 },
-  { id: 'u7', faction: 'UA', type: 'infantry', name: '53rd Infantry Brigade', x: 20, y: 7, entrenchment: 2 },
-  { id: 'u8', faction: 'UA', type: 'infantry', name: '72nd Infantry Brigade', x: 20, y: 8, entrenchment: 2 },
-  { id: 'u9', faction: 'UA', type: 'mechanized', name: '93rd Mechanised Brigade', x: 19, y: 8 },
-  { id: 'u10', faction: 'UA', type: 'artillery', name: '26th Artillery Brigade', x: 19, y: 7 },
-  { id: 'u11', faction: 'UA', type: 'recon', name: '131st Reconnaissance Battalion', x: 18, y: 6 },
-  { id: 'u12', faction: 'UA', type: 'mechanized', name: '47th Mechanised Brigade', x: 14, y: 10 },
-  { id: 'u13', faction: 'UA', type: 'infantry', name: '65th Infantry Brigade', x: 15, y: 10, entrenchment: 3 },
-  { id: 'u14', faction: 'UA', type: 'artillery', name: '55th Artillery Brigade', x: 14, y: 9 },
-  { id: 'u15', faction: 'UA', type: 'infantry', name: '35th Marine Brigade', x: 13, y: 12, entrenchment: 2 },
-  { id: 'u16', faction: 'UA', type: 'mechanized', name: '28th Mechanised Brigade', x: 12, y: 11 },
-  { id: 'u17', faction: 'UA', type: 'infantry', name: '110th Territorial Brigade', x: 16, y: 9, entrenchment: 2 },
-  { id: 'u18', faction: 'UA', type: 'infantry', name: '128th Mountain Assault Brigade', x: 18, y: 9, entrenchment: 1 },
-  // ------------------------------------------------ Russia
-  { id: 'r1', faction: 'RU', type: 'mechanized', name: '20th Motor-Rifle Division', x: 22, y: 3 },
-  { id: 'r2', faction: 'RU', type: 'armored', name: '4th Tank Division', x: 23, y: 4 },
-  { id: 'r3', faction: 'RU', type: 'infantry', name: '2nd Corps Rifle Division', x: 21, y: 4, entrenchment: 2 },
-  { id: 'r4', faction: 'RU', type: 'mechanized', name: '144th Motor-Rifle Division', x: 22, y: 5 },
-  { id: 'r5', faction: 'RU', type: 'infantry', name: '132nd Rifle Brigade', x: 21, y: 6, entrenchment: 2 },
-  { id: 'r6', faction: 'RU', type: 'infantry', name: '98th Rifle Division', x: 21, y: 7, entrenchment: 2 },
-  { id: 'r7', faction: 'RU', type: 'artillery', name: '8th Artillery Brigade', x: 22, y: 7 },
-  { id: 'r8', faction: 'RU', type: 'infantry', name: '5th Motor-Rifle Brigade', x: 21, y: 8, entrenchment: 2 },
-  { id: 'r9', faction: 'RU', type: 'recon', name: '45th Reconnaissance Brigade', x: 22, y: 6 },
-  { id: 'r10', faction: 'RU', type: 'mechanized', name: '36th Motor-Rifle Brigade', x: 20, y: 9 },
-  { id: 'r11', faction: 'RU', type: 'armored', name: '90th Tank Division', x: 17, y: 10 },
-  { id: 'r12', faction: 'RU', type: 'infantry', name: '58th Rifle Division', x: 16, y: 10, entrenchment: 3 },
-  { id: 'r13', faction: 'RU', type: 'artillery', name: '439th Rocket Artillery Brigade', x: 18, y: 10 },
-  { id: 'r14', faction: 'RU', type: 'mechanized', name: '127th Motor-Rifle Division', x: 15, y: 11 },
-  { id: 'r15', faction: 'RU', type: 'infantry', name: '810th Naval Infantry Brigade', x: 14, y: 12, entrenchment: 2 },
-  { id: 'r16', faction: 'RU', type: 'infantry', name: '71st Rifle Regiment', x: 19, y: 10, entrenchment: 1 },
+  { id: 'u1', faction: 'UA', type: 'armored', name: '1st Tank Brigade', x: 36, y: 10 },
+  { id: 'u2', faction: 'UA', type: 'mechanized', name: '92nd Mechanised Brigade', x: 37, y: 9 },
+  { id: 'r1', faction: 'RU', type: 'mechanized', name: '20th Motor-Rifle Division', x: 40, y: 10 },
+  { id: 'u3', faction: 'UA', type: 'infantry', name: '57th Motorised Brigade', x: 39, y: 10, entrenchment: 2 },
+  { id: 'u4', faction: 'UA', type: 'infantry', name: '60th Infantry Brigade', x: 39, y: 11, entrenchment: 2 },
+  { id: 'u5', faction: 'UA', type: 'infantry', name: '14th Mechanised Brigade', x: 37, y: 8, entrenchment: 2 },
+  { id: 'u6', faction: 'UA', type: 'recon', name: '3rd Reconnaissance Battalion', x: 36, y: 9 },
+  { id: 'u7', faction: 'UA', type: 'infantry', name: '63rd Infantry Brigade', x: 39, y: 13, entrenchment: 2 },
+  { id: 'u8', faction: 'UA', type: 'infantry', name: '66th Mechanised Brigade', x: 39, y: 12, entrenchment: 1 },
+  { id: 'u9', faction: 'UA', type: 'artillery', name: '26th Artillery Brigade', x: 39, y: 14 },
+  { id: 'u10', faction: 'UA', type: 'infantry', name: '24th Infantry Brigade', x: 39, y: 15, entrenchment: 3 },
+  { id: 'u11', faction: 'UA', type: 'infantry', name: '53rd Infantry Brigade', x: 39, y: 16, entrenchment: 2 },
+  { id: 'u12', faction: 'UA', type: 'mechanized', name: '93rd Mechanised Brigade', x: 38, y: 15 },
+  { id: 'u13', faction: 'UA', type: 'artillery', name: '55th Artillery Brigade', x: 38, y: 16 },
+  { id: 'u14', faction: 'UA', type: 'infantry', name: '5th Assault Brigade', x: 38, y: 17, entrenchment: 2 },
+  { id: 'u15', faction: 'UA', type: 'infantry', name: '72nd Infantry Brigade', x: 37, y: 19, entrenchment: 3 },
+  { id: 'u16', faction: 'UA', type: 'infantry', name: '79th Air Assault Brigade', x: 38, y: 18, entrenchment: 2 },
+  { id: 'u17', faction: 'UA', type: 'recon', name: '131st Reconnaissance Battalion', x: 37, y: 17 },
+  { id: 'u18', faction: 'UA', type: 'infantry', name: '65th Infantry Brigade', x: 34, y: 19, entrenchment: 3 },
+  { id: 'u19', faction: 'UA', type: 'mechanized', name: '47th Mechanised Brigade', x: 33, y: 20 },
+  { id: 'u20', faction: 'UA', type: 'infantry', name: '110th Territorial Brigade', x: 35, y: 19, entrenchment: 2 },
+  { id: 'u21', faction: 'UA', type: 'infantry', name: '118th Mechanised Brigade', x: 36, y: 19, entrenchment: 2 },
+  { id: 'u22', faction: 'UA', type: 'artillery', name: '44th Artillery Brigade', x: 33, y: 19 },
+  { id: 'u23', faction: 'UA', type: 'infantry', name: '128th Mountain Assault Brigade', x: 32, y: 20, entrenchment: 2 },
+  { id: 'u24', faction: 'UA', type: 'infantry', name: '35th Marine Brigade', x: 25, y: 24, entrenchment: 2 },
+  { id: 'u25', faction: 'UA', type: 'mechanized', name: '28th Mechanised Brigade', x: 26, y: 23 },
+  { id: 'u26', faction: 'UA', type: 'infantry', name: '59th Motorised Brigade', x: 28, y: 22, entrenchment: 2 },
+  { id: 'u27', faction: 'UA', type: 'infantry', name: '124th Territorial Brigade', x: 30, y: 21, entrenchment: 2 },
+  { id: 'u28', faction: 'UA', type: 'artillery', name: '45th Artillery Brigade', x: 27, y: 23 },
+  { id: 'u29', faction: 'UA', type: 'mechanized', name: '4th Tank Brigade', x: 32, y: 16 },
+  { id: 'u30', faction: 'UA', type: 'armored', name: '17th Tank Brigade', x: 35, y: 15 },
+  { id: 'u31', faction: 'UA', type: 'mechanized', name: '33rd Mechanised Brigade', x: 33, y: 18 },
+  { id: 'u32', faction: 'UA', type: 'infantry', name: '101st Territorial Brigade', x: 35, y: 9, entrenchment: 1 },
+  { id: 'u33', faction: 'UA', type: 'recon', name: '15th Reconnaissance Battalion', x: 32, y: 19 },
+  { id: 'u34', faction: 'UA', type: 'infantry', name: '116th Mechanised Brigade', x: 31, y: 20, entrenchment: 1 },
+  { id: 'r2', faction: 'RU', type: 'armored', name: '4th Tank Division', x: 41, y: 11 },
+  { id: 'r3', faction: 'RU', type: 'infantry', name: '2nd Corps Rifle Division', x: 41, y: 12, entrenchment: 2 },
+  { id: 'r4', faction: 'RU', type: 'mechanized', name: '144th Motor-Rifle Division', x: 41, y: 13 },
+  { id: 'r5', faction: 'RU', type: 'infantry', name: '25th Motor-Rifle Brigade', x: 41, y: 14, entrenchment: 2 },
+  { id: 'r6', faction: 'RU', type: 'recon', name: '45th Reconnaissance Brigade', x: 42, y: 12 },
+  { id: 'r7', faction: 'RU', type: 'infantry', name: '132nd Rifle Brigade', x: 40, y: 15, entrenchment: 2 },
+  { id: 'r8', faction: 'RU', type: 'infantry', name: '98th Rifle Division', x: 40, y: 16, entrenchment: 2 },
+  { id: 'r9', faction: 'RU', type: 'artillery', name: '8th Artillery Brigade', x: 41, y: 16 },
+  { id: 'r10', faction: 'RU', type: 'infantry', name: '5th Motor-Rifle Brigade', x: 40, y: 18, entrenchment: 2 },
+  { id: 'r11', faction: 'RU', type: 'infantry', name: '1st Slavic Brigade', x: 39, y: 19, entrenchment: 2 },
+  { id: 'r12', faction: 'RU', type: 'artillery', name: '238th Artillery Brigade', x: 40, y: 17 },
+  { id: 'r13', faction: 'RU', type: 'infantry', name: '155th Naval Infantry Brigade', x: 38, y: 20, entrenchment: 2 },
+  { id: 'r14', faction: 'RU', type: 'mechanized', name: '36th Motor-Rifle Brigade', x: 37, y: 20 },
+  { id: 'r15', faction: 'RU', type: 'infantry', name: '58th Rifle Division', x: 34, y: 21, entrenchment: 3 },
+  { id: 'r16', faction: 'RU', type: 'armored', name: '90th Tank Division', x: 35, y: 21 },
+  { id: 'r17', faction: 'RU', type: 'artillery', name: '439th Rocket Artillery Brigade', x: 33, y: 21 },
+  { id: 'r18', faction: 'RU', type: 'infantry', name: '42nd Motor-Rifle Division', x: 32, y: 21, entrenchment: 3 },
+  { id: 'r19', faction: 'RU', type: 'infantry', name: '71st Rifle Regiment', x: 36, y: 21, entrenchment: 2 },
+  { id: 'r20', faction: 'RU', type: 'mechanized', name: '76th Air Assault Division', x: 34, y: 22 },
+  { id: 'r21', faction: 'RU', type: 'infantry', name: '810th Naval Infantry Brigade', x: 27, y: 24, entrenchment: 2 },
+  { id: 'r22', faction: 'RU', type: 'mechanized', name: '127th Motor-Rifle Division', x: 28, y: 23 },
+  { id: 'r23', faction: 'RU', type: 'infantry', name: '7th Air Assault Division', x: 29, y: 23, entrenchment: 2 },
+  { id: 'r24', faction: 'RU', type: 'artillery', name: '291st Artillery Brigade', x: 29, y: 24 },
+  { id: 'r25', faction: 'RU', type: 'mechanized', name: '19th Motor-Rifle Division', x: 37, y: 22 },
+  { id: 'r26', faction: 'RU', type: 'infantry', name: '70th Motor-Rifle Regiment', x: 33, y: 23, entrenchment: 1 },
+  { id: 'r27', faction: 'RU', type: 'infantry', name: '22nd Army Corps Garrison', x: 29, y: 29 },
+  { id: 'r28', faction: 'RU', type: 'infantry', name: '128th Rifle Brigade', x: 39, y: 8, entrenchment: 1 },
+  { id: 'r29', faction: 'RU', type: 'mechanized', name: '3rd Army Corps Group', x: 42, y: 17 },
+  { id: 'r30', faction: 'RU', type: 'infantry', name: '336th Naval Infantry Brigade', x: 39, y: 22, entrenchment: 1 },
+  { id: 'r31', faction: 'RU', type: 'recon', name: '100th Reconnaissance Brigade', x: 42, y: 18 },
+  { id: 'r32', faction: 'RU', type: 'infantry', name: '2nd Luhansk Rifle Division', x: 44, y: 16, entrenchment: 2 },
+  { id: 'r33', faction: 'RU', type: 'infantry', name: '9th Motor-Rifle Brigade', x: 40, y: 21, entrenchment: 1 },
+  { id: 'r34', faction: 'RU', type: 'mechanized', name: '68th Army Corps Group', x: 37, y: 21 },
 ];
 
 export interface FactionSetup {
@@ -258,26 +571,26 @@ export interface FactionSetup {
 
 export const FACTION_SETUP: Record<FactionId, FactionSetup> = {
   UA: {
-    manpower: 110,
-    equipment: 100,
+    manpower: 200,
+    equipment: 180,
     command: 6,
-    commandMax: 10,
-    commandRegen: 4,
-    manpowerIncome: 10,
-    equipmentIncome: 11,
+    commandMax: 12,
+    commandRegen: 5,
+    manpowerIncome: 18,
+    equipmentIncome: 20,
     warSupport: 70,
-    reserves: [{ type: 'mechanized', name: '82nd Air Assault Brigade', strength: 90 }],
+    reserves: [{ type: 'mechanized', name: '82nd Air Assault Brigade', strength: 90 }, { type: 'infantry', name: '3rd Assault Brigade', strength: 90 }],
   },
   RU: {
-    manpower: 160,
-    equipment: 135,
+    manpower: 290,
+    equipment: 240,
     command: 6,
-    commandMax: 10,
-    commandRegen: 3,
-    manpowerIncome: 15,
-    equipmentIncome: 13,
+    commandMax: 12,
+    commandRegen: 4,
+    manpowerIncome: 27,
+    equipmentIncome: 23,
     warSupport: 65,
-    reserves: [{ type: 'infantry', name: '104th Rifle Division', strength: 90 }],
+    reserves: [{ type: 'infantry', name: '104th Rifle Division', strength: 90 }, { type: 'armored', name: '47th Tank Division', strength: 85 }],
   },
 };
 
@@ -285,7 +598,7 @@ export const SCENARIO_META: ScenarioMeta = {
   id: 'black-earth-2025',
   name: 'Black Earth',
   description:
-    'A designed operational scenario set on a static front, spring 2025. Geography, formations and starting conditions are deliberately simplified and do not reproduce live battlefield conditions.',
+    'A designed operational scenario set on a static front, spring 2025. Terrain, hydrography and infrastructure derive from open geospatial data; the front line, formations and starting conditions are deliberately simplified and do not reproduce live battlefield conditions.',
   dateLabel: 'Spring 2025 · designed scenario',
   startDate: { year: 2025, month: 3, day: 1 },
   maxTurns: 36,

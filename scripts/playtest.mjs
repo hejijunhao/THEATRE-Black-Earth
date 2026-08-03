@@ -38,6 +38,20 @@ const skip = await page.$$eval('.tutorial-prompt a', (as) => {
 console.log('tutorial skipped:', skip);
 await sleep(400);
 
+// Terrain picking: click the map centre and assert a tile got selected
+// (world-position -> hex math replaced per-prism raycasting in v2 Phase B).
+await page.mouse.click(800, 500);
+await sleep(300);
+const picked = await page.evaluate(() => window.__TBE_DEBUG__?.summary()?.selectedTile);
+console.log('terrain click picked tile:', picked);
+if (!picked) {
+  console.error('FAIL: terrain click selected no tile');
+  process.exitCode = 1;
+}
+// Clear the selection again before the scripted flow.
+await page.keyboard.press('Escape');
+await sleep(200);
+
 // Select the 92nd Mechanised (u2) via the store directly for determinism,
 // then screenshot the movement overlay.
 await page.evaluate(() => {

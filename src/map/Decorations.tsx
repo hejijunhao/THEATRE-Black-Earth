@@ -8,7 +8,7 @@ import { hashSeed } from '../game/rng';
 import { useStore } from '../game/state/store';
 import { tileWorld, tileWorldById } from '../game/hex';
 import { makeLabelTexture } from './textures';
-import { tileTopY } from './Tiles';
+import { groundY, hexFracs, tileGroundY } from './terrain/heightfield';
 
 function jitter(x: number, y: number, salt: number): number {
   return ((hashSeed(`${x}:${y}:${salt}`) % 1000) / 1000 - 0.5);
@@ -23,17 +23,22 @@ export function Forests() {
     const geometry = new THREE.ConeGeometry(0.16, 0.42, 6);
     const matrices: THREE.Matrix4[] = [];
     for (const tile of Object.values(game.tiles)) {
-      if (tile.terrain !== 'forest') continue;
+      const frac = hexFracs(tile.x, tile.y).forest;
+      const isForest = tile.terrain === 'forest';
+      // Shelter belts: sparse trees on partially wooded steppe hexes, so
+      // partial cover reads as woodland rather than as albedo darkening.
+      if (!isForest && (frac < 0.14 || tile.terrain === 'water')) continue;
       const { wx, wz } = tileWorld(tile.x, tile.y);
-      const top = tileTopY(tile.elevation, tile.terrain);
-      const n = 3 + (hashSeed(tile.id) % 3);
+      // Density follows the geodata forest fraction for this hex.
+      const n = isForest ? 2 + Math.round(frac * 6) + (hashSeed(tile.id) % 2) : 1 + (hashSeed(tile.id) % 2);
       for (let k = 0; k < n; k++) {
         const dx = jitter(tile.x, tile.y, k * 3 + 1) * 1.15;
         const dz = jitter(tile.x, tile.y, k * 3 + 2) * 1.05;
         const s = 0.75 + (jitter(tile.x, tile.y, k * 3 + 3) + 0.5) * 0.6;
+        const gy = groundY(wx + dx, wz + dz);
         const m = new THREE.Matrix4()
           .makeScale(s, s, s)
-          .setPosition(wx + dx, top + 0.2 * s, wz + dz);
+          .setPosition(wx + dx, gy + 0.2 * s, wz + dz);
         matrices.push(m);
       }
     }
@@ -72,16 +77,16 @@ export function UrbanBlocks() {
       const isTown = !!tile.cityId && !isUrban;
       if (!isUrban && !isTown) continue;
       const { wx, wz } = tileWorld(tile.x, tile.y);
-      const top = tileTopY(tile.elevation, tile.terrain);
       const n = isUrban ? 6 : 2;
       for (let k = 0; k < n; k++) {
         const dx = jitter(tile.x, tile.y, k * 5 + 11) * 1.1;
         const dz = jitter(tile.x, tile.y, k * 5 + 12) * 1.0;
         const sy = 0.7 + (jitter(tile.x, tile.y, k * 5 + 13) + 0.5) * 1.6;
         const sxz = 0.7 + (jitter(tile.x, tile.y, k * 5 + 14) + 0.5) * 0.8;
+        const gy = groundY(wx + dx, wz + dz);
         const m = new THREE.Matrix4()
           .makeScale(sxz, sy, sxz)
-          .setPosition(wx + dx, top + 0.11 * sy, wz + dz);
+          .setPosition(wx + dx, gy + 0.11 * sy, wz + dz);
         matrices.push(m);
       }
     }
@@ -119,7 +124,7 @@ function CityLabel({ cityId }: { cityId: string }) {
   );
 
   const { wx, wz } = tileWorldById(city.tile);
-  const top = tileTopY(tile.elevation, tile.terrain);
+  const top = tileGroundY(city.tile);
   const scale = city.size === 'capital' ? 3.1 : city.size === 'major' ? 2.5 : 1.75;
 
   return (
@@ -152,7 +157,7 @@ export function Fortifications() {
       .filter((t) => t.fortified)
       .map((t) => {
         const { wx, wz } = tileWorld(t.x, t.y);
-        return { wx, wz, y: tileTopY(t.elevation, t.terrain) + 0.02, id: t.id };
+        return { wx, wz, y: tileGroundY(t.id) + 0.05, id: t.id };
       });
   }, [game?.tiles]);
 

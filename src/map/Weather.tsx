@@ -5,11 +5,9 @@ import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useStore } from '../game/state/store';
-import { HEX_W, HEX_H } from '../game/hex';
+import { WORLD_W as AREA_W, WORLD_H as AREA_H } from './worldDims';
 
 const COUNT = 1400;
-const AREA_W = 26 * HEX_W;
-const AREA_H = 17 * HEX_H;
 const CEILING = 14;
 
 export function WeatherParticles() {

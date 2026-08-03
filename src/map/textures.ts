@@ -198,6 +198,106 @@ export function makeCounterTexture(spec: CounterSpec): THREE.CanvasTexture {
   return texture;
 }
 
+// ---------------------------------------------------------------- standards
+// The compact standard floating above a miniature (v2-vision §6.2): NATO
+// symbol, abbreviated designation, strength pips, supply dot, experience
+// chevrons. A distilled counter plate.
+
+export interface StandardSpec {
+  type: UnitType;
+  faction: 'UA' | 'RU';
+  name: string;
+  tier: number;        // 1..4 (strength quarter)
+  supply: SupplyState;
+  experience: number;  // 0..3
+  selected: boolean;
+}
+
+export function standardKey(s: StandardSpec): string {
+  return ['std', s.type, s.faction, s.name, s.tier, s.supply, s.experience, s.selected].join('|');
+}
+
+// "92nd Mechanised Brigade" -> "92 MECH", "131st Reconnaissance…" -> "131 RECON"
+export function abbreviate(name: string, type: UnitType): string {
+  const num = name.match(/^(\d+)/)?.[1] ?? '';
+  const kind =
+    type === 'infantry' ? 'INF'
+    : type === 'mechanized' ? 'MECH'
+    : type === 'armored' ? 'TK'
+    : type === 'artillery' ? 'ARTY'
+    : 'RECON';
+  return num ? `${num} ${kind}` : kind;
+}
+
+export function makeStandardTexture(spec: StandardSpec): THREE.CanvasTexture {
+  const w = 256;
+  const h = 84;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d')!;
+
+  const bg = FACTION_BG[spec.faction];
+  const edge = spec.selected ? '#e8dfc8' : FACTION_EDGE[spec.faction];
+  ctx.fillStyle = bg;
+  ctx.strokeStyle = edge;
+  ctx.lineWidth = spec.selected ? 6 : 3;
+  ctx.beginPath();
+  ctx.roundRect(3, 3, w - 6, h - 6, 10);
+  ctx.fill();
+  ctx.stroke();
+
+  // NATO symbol, small, left
+  drawSymbol(ctx, spec.type, 14, 20, 52, 42, '#e8e2d2');
+
+  // Abbreviated designation
+  ctx.fillStyle = '#e2dcc8';
+  ctx.font = font(MONO, 30, 700);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(abbreviate(spec.name, spec.type), 84, 34);
+
+  // Strength pips (4 quarters)
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath();
+    ctx.arc(96 + i * 26, 62, 7, 0, Math.PI * 2);
+    if (i < spec.tier) {
+      ctx.fillStyle = spec.tier > 2 ? '#8fae72' : spec.tier > 1 ? '#c9a352' : '#b04a3a';
+      ctx.fill();
+    } else {
+      ctx.strokeStyle = 'rgba(226,220,200,0.45)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  }
+
+  // Supply dot
+  ctx.fillStyle = SUPPLY_COLOR[spec.supply];
+  ctx.beginPath();
+  ctx.arc(30, 66, 8, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Experience chevrons
+  if (spec.experience > 0) {
+    ctx.strokeStyle = '#d8cf9a';
+    ctx.lineWidth = 3;
+    for (let i = 0; i < Math.min(3, spec.experience); i++) {
+      const cx = 226;
+      const cy = 22 + i * 14;
+      ctx.beginPath();
+      ctx.moveTo(cx - 9, cy + 5);
+      ctx.lineTo(cx, cy - 3);
+      ctx.lineTo(cx + 9, cy + 5);
+      ctx.stroke();
+    }
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.anisotropy = 4;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
 // City label sprite texture.
 export function makeLabelTexture(name: string, size: CitySize, faction: 'UA' | 'RU' | null): {
   texture: THREE.CanvasTexture;

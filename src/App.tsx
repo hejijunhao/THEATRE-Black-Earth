@@ -16,8 +16,11 @@ import {
   SettingsModal,
   VictoryScreen,
 } from './ui/Modals';
+import { AssetsView } from './ui/AssetsView';
+import { Journal } from './ui/Journal';
 import { Notifications } from './ui/Notifications';
 import { SidePanel } from './ui/SidePanel';
+import { TurnCard } from './ui/TurnCard';
 import { TopBar } from './ui/TopBar';
 import { Tutorial } from './ui/Tutorial';
 
@@ -69,6 +72,9 @@ function useAudioWiring() {
     let prevCombatSeq: unknown = null;
     let prevSelected: string | null = null;
     let prevNoteCount = 0;
+    let prevWeather: string | null = null;
+    let prevMode: string | null = null;
+    let prevEvent = false;
     return useStore.subscribe((s) => {
       if (s.lastCombat && s.lastCombat !== prevCombatSeq) {
         prevCombatSeq = s.lastCombat;
@@ -85,6 +91,18 @@ function useAudioWiring() {
         else if (latest.kind === 'warning') audio.alert();
       }
       prevNoteCount = notes;
+      // Weather bed follows the theatre.
+      const weather = s.game?.weather ?? null;
+      if (weather && weather !== prevWeather) {
+        audio.setWeather(weather);
+        prevWeather = weather;
+      }
+      // Map-table foley: switch tick on mode change, paper on briefings.
+      if (prevMode !== null && s.mapMode !== prevMode) audio.switchTick();
+      prevMode = s.mapMode;
+      const hasEvent = Boolean(s.game?.pendingEvent);
+      if (hasEvent && !prevEvent) audio.paper();
+      prevEvent = hasEvent;
     });
   }, []);
 }
@@ -104,6 +122,10 @@ function useKeyboard() {
         else selectTile(null);
       } else if (e.key === 'Enter' && e.shiftKey) {
         requestEndTurn();
+      } else if (e.key === 'Tab') {
+        // Manual counter-mode override (v2-vision §6.3).
+        e.preventDefault();
+        useStore.getState().toggleCounterMode();
       }
     };
     window.addEventListener('keydown', onKey);
@@ -128,6 +150,11 @@ function useDebugHook() {
   useEffect(() => {
     const w = window as unknown as Record<string, unknown>;
     w.__TBE_DEBUG__ = {
+      // Deterministic campaign start for the golden-image harness.
+      newGame: (faction: 'UA' | 'RU', seed: number) =>
+        useStore.getState().newCampaign(faction, false, seed),
+      setMapMode: (mode: 'political' | 'supply' | 'terrain' | 'objectives' | 'intel') =>
+        useStore.getState().setMapMode(mode),
       selectUnit: (id: string) => useStore.getState().selectUnit(id),
       attackTargets: () => {
         const s = useStore.getState();
@@ -154,6 +181,7 @@ function useDebugHook() {
           ua: units.filter((u) => u.faction === 'UA').length,
           ru: units.filter((u) => u.faction === 'RU').length,
           selected: s.selectedUnitId,
+          selectedTile: s.selectedTileId,
           notifications: s.game.notifications.slice(-5).map((n) => n.text),
           result: s.game.result,
         };
@@ -173,9 +201,15 @@ export default function App() {
   useAISpeedPersistence();
   useDebugHook();
 
+  // Dev-only asset review route (v2-vision §8).
+  if (window.location.hash === '#assets') {
+    return <AssetsView />;
+  }
+
   if (screen === 'menu') {
     return (
       <div className="app-root">
+        <MapScene />
         <MainMenu />
         <SettingsModal />
       </div>
@@ -196,6 +230,8 @@ export default function App() {
         <EventModal />
         <EndTurnDialog />
         <SettingsModal />
+        <Journal />
+        <TurnCard />
         <Tutorial />
         <VictoryScreen />
       </div>
