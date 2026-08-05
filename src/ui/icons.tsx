@@ -124,6 +124,24 @@ const ICONS: Record<string, ReactNode> = {
   ),
   trend: P('M3 19L9 12l4 3 7-8M14 7h6v6'),
   counters: P('M4 8h10v7H4zM8 5h12v7'),
+  // command bar
+  reinforce: (
+    <>
+      {C(12, 12, 7.5)}
+      {P('M12 8v8M8 12h8')}
+    </>
+  ),
+  operations: (
+    <>
+      {P('M12 3l2.2 4.5 5 .7-3.6 3.5.9 5L12 14.4 7.5 16.7l.9-5L4.8 8.2l5-.7z')}
+    </>
+  ),
+  reserves: (
+    <>
+      {P('M5 7h10v10H5zM9 4h10v10')}
+      {P('M8 11h4M8 14h4')}
+    </>
+  ),
 };
 
 export function Ico({ name, size = 14, className }: { name: string; size?: number; className?: string }) {

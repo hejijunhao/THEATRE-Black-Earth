@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.1](#021--2026-08-04--hud-material-polish) | 2026-08-04 | HUD material polish | map-table textures, panel field grain, brass corner ticks, plate buttons, menu ornament, command-bar SVG icons, instrument bars |
 | [0.2.0-F](#020-f--2026-08-03--v2-phase-f-presentation) | 2026-08-03 | v2 Phase F — Presentation | map modes as renderers, parchment political, supply flow, battle wear, combat moment, landmarks, SAVE_VERSION 3, colour-space fix |
 | [0.2.0-E](#020-e--2026-08-03--v2-phase-e-the-interface) | 2026-08-03 | v2 Phase E — The interface | panel frames, icon system, ledger top bar, delta chips, journal rail, unit viewport, briefing events, turn card, live-map menu, foley, ambience |
 | [0.2.0-D](#020-d--2026-08-03--v2-phase-d-formations-as-machines) | 2026-08-03 | v2 Phase D — Formations as machines | procedural miniatures, state→silhouette, strength=element count, standards, earthworks, counter LOD, Tab toggle, asset ledger, #assets route |
@@ -16,6 +17,86 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.1] — 2026-08-04 · HUD material polish
+
+Furniture-quality pass on the map-table interface (v2-vision §7) after
+Phase E’s structural HUD. Adds a small material kit and deepens CSS
+hierarchy without abandoning the inline-SVG icon contract or the
+restrained, non-triumphalist register.
+
+### Why
+
+Phase E shipped frames, ledger, journal, and line icons, but panels still
+read as flat glass rectangles. The intent of §7.1 — *machined aluminium,
+dark olive field, brass edge* — needed real grain and clearer interaction
+states so the subject panel, command bar, and menu feel like apparatus
+around a staff map rather than a web dashboard.
+
+### Where / how
+
+**Material kit** (`public/ui/`)
+
+| File | Role |
+| --- | --- |
+| `panel-field.png` | Tileable milled olive/charcoal grain (CSS `background`) |
+| `btn-plate.png` | Flat metal plate for large menu actions and End Turn |
+| `ornament-rule.png` | Brass geometric divider under the main-menu title |
+| `btn-deep.png` | Deeper recessed plate (shipped, unused for now) |
+| `bar-frame.png` | Instrument bar trough (shipped, unused for now) |
+| `README.md` | Manifest of the set and usage notes |
+
+Assets are static under `public/ui/` (Vite copies them into `dist/ui/`).
+No network load at runtime. Hover / pressed are **CSS filters and inset
+shadows on a single plate geometry** so outlines never drift between
+states (game-ui-icons interaction-state rule).
+
+**Styles** (`src/ui/styles.css`)
+
+- CSS variables for the kit (`--tex-field`, `--tex-plate`, `--tex-rule`, …).
+- `.panel`: field texture + soft-light blend, top-edge highlight, stronger
+  inset shadow; pseudo-grain overlay retained.
+- `.panel-framed`: brass-tinted corner ticks (was plain line colour),
+  thicker outer shadow, gold-tinged inner field line — hierarchy by frame
+  weight is more legible at a glance.
+- `.panel-title`: faint brass wash under headers.
+- `.bar` / fills: taller instrument channel, inset trough, gradient fills
+  with a light top sheen (Strength / Readiness / Morale).
+- `.btn` / `.option-btn` / `.map-mode-btn`: metal gradient faces, hover
+  brass edge glow, active inset press.
+- `.end-turn-btn` / `.menu-btn-large`: plate texture under gold/dark
+  gradients; brightness filters for hover/pressed.
+- `.top-bar`: field grain + brass brand diamond; ledger cells unchanged
+  in structure.
+- `.journal-card`, `.note`, `.tooltip`, `.turn-card .tc-inner`,
+  `.unit-viewport`: shared grain / corner-tick treatment so feeds stay
+  plainer than the subject panel but no longer raw black boxes.
+- `.tag` / `.delta-chip`: subtle fill so status chips sit on the field.
+
+**Components**
+
+- `MainMenu.tsx` — `.menu-ornament` divider under the title (background
+  image from `ornament-rule.png`).
+- `CommandBar.tsx` — unicode glyphs (✚ ⌓ ◈ ▣) replaced with `Ico`
+  line icons; operations list shows per-op icons; ops popup uses
+  `panel-framed`.
+- `icons.tsx` — added `reinforce`, `operations`, `reserves` for the
+  command bar (stroke = `currentColor`, same 24² line contract as Phase E).
+
+### What deliberately did not change
+
+- **Line icons stay SVG** — Phase E’s “no-assets property for glyphs”
+  holds; raster art is only for field/plate materials.
+- **No simulation / `SAVE_VERSION` impact** — pure presentation.
+- Skipped a generated occult-style briefing seal and a heavy shelf-style
+  corner bracket; both fought the restrained map-table idiom. CSS corner
+  ticks and the existing DECISION stamp remain the ornament language.
+- `btn-deep.png` and `bar-frame.png` are on disk for a later pass if
+  plate depth or true 9-slice bars prove worth the weight.
+
+### Verification
+
+`npx tsc --noEmit` clean · 16/16 rule tests · `npm run build` OK.
 
 ## [0.2.0-F] — 2026-08-03 · v2 Phase F: Presentation
 

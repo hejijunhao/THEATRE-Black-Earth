@@ -19,7 +19,7 @@ the classic counters); the political map mode is a parchment staff map. See
 > restrained and non-triumphalist; casualties are represented abstractly
 > through strength, morale, readiness and war support.
 
-Built to the product brief in [`docs/v1-briefing.md`](docs/v1-briefing.md).
+Built to the product brief in [`docs/archive/v1-briefing.md`](docs/archive/v1-briefing.md).
 
 ## Running the game
 

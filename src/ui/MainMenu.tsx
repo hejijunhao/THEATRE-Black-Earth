@@ -35,6 +35,7 @@ export function MainMenu() {
         <h1 className="menu-title">
           THEATRE<span className="thin"> · </span>BLACK EARTH
         </h1>
+        <div className="menu-ornament" aria-hidden />
         <div className="menu-sub">An operational study · Spring 2025 · designed scenario</div>
 
         <div className="menu-section">

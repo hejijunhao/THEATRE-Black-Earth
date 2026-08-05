@@ -6,6 +6,7 @@ import { OPERATION_DEFS, UNIT_DEFS } from '../game/data/defs';
 import { canUseOperation } from '../game/rules/ops';
 import { MapMode, useStore } from '../game/state/store';
 import { OperationId } from '../game/types';
+import { Ico } from './icons';
 import { Tip } from './Tip';
 
 const MAP_MODES: Array<{ id: MapMode; label: string; tip: string }> = [
@@ -74,7 +75,7 @@ export function CommandBar() {
               disabled={!unit || unit.strength >= 98}
               onClick={toggleReinforce}
             >
-              <span className="ico">✚</span>
+              <span className="ico"><Ico name="reinforce" size={16} /></span>
               Reinforce
             </button>
           </Tip>
@@ -87,7 +88,7 @@ export function CommandBar() {
               disabled={!unit || unit.movement <= 0}
               onClick={orderEntrench}
             >
-              <span className="ico">⌓</span>
+              <span className="ico"><Ico name="entrench" size={16} /></span>
               Entrench
             </button>
           </Tip>
@@ -102,7 +103,7 @@ export function CommandBar() {
               className={`cmd-btn ${showOps || pendingOp ? 'active' : ''}`}
               onClick={() => { setShowOps(!showOps); setShowReserves(false); }}
             >
-              <span className="ico">◈</span>
+              <span className="ico"><Ico name="operations" size={16} /></span>
               Operations
             </button>
           </Tip>
@@ -114,7 +115,7 @@ export function CommandBar() {
               className={`cmd-btn ${showReserves ? 'active' : ''}`}
               onClick={() => { setShowReserves(!showReserves); setShowOps(false); }}
             >
-              <span className="ico">▣</span>
+              <span className="ico"><Ico name="reserves" size={16} /></span>
               Reserves ({faction.reserves.length})
             </button>
           </Tip>
@@ -131,8 +132,8 @@ export function CommandBar() {
 
       {showOps && (
         <div
-          className="panel"
-          style={{ position: 'absolute', bottom: 76, left: '50%', transform: 'translateX(-50%)', width: 440, zIndex: 25 }}
+          className="panel panel-framed"
+          style={{ position: 'absolute', bottom: 76, left: '50%', transform: 'translateX(-50%)', width: 460, zIndex: 25 }}
         >
           <div className="panel-title">
             Strategic Operations
@@ -145,7 +146,7 @@ export function CommandBar() {
               return (
                 <Tip key={opId} title={def.name} text={def.description} block>
                   <button
-                    className="option-btn"
+                    className="option-btn op-row"
                     disabled={!check.ok}
                     style={!check.ok ? { opacity: 0.45 } : undefined}
                     onClick={() => {
@@ -153,10 +154,13 @@ export function CommandBar() {
                       setShowOps(false);
                     }}
                   >
-                    <span className="label">{def.name}</span>
-                    <span className="desc">
-                      {def.cost[game.playerFaction]} CMD · cooldown {def.cooldown}t
-                      {!check.ok && check.reason ? ` — ${check.reason}` : ''}
+                    <span className="op-ico"><Ico name={opId} size={16} /></span>
+                    <span className="op-copy">
+                      <span className="label">{def.name}</span>
+                      <span className="desc">
+                        {def.cost[game.playerFaction]} CMD · cooldown {def.cooldown}t
+                        {!check.ok && check.reason ? ` — ${check.reason}` : ''}
+                      </span>
                     </span>
                   </button>
                 </Tip>

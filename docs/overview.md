@@ -3,7 +3,7 @@
 An orientation document for anyone (human or agent) picking up this repository.
 The [README](../README.md) explains the game to a *player*; the
 [changelog](changelog.md) records what was built; the
-[v1 briefing](v1-briefing.md) is the original product spec. **This document
+[v1 briefing](archive/v1-briefing.md) is the original product spec. **This document
 explains the codebase to a developer.**
 
 ---
@@ -12,7 +12,8 @@ explains the codebase to a developer.**
 
 A self-contained, single-player, turn-based **operational strategy game** that
 runs entirely in the browser. No backend, no accounts, no network calls at
-runtime (fonts are bundled, audio is synthesised, there are no image assets).
+runtime (fonts are bundled, audio is synthesised, and the only images are the
+locally-served HUD material kit in `public/ui/`).
 Saves live in `localStorage`.
 
 The scenario — *"Black Earth, Spring 2025"* — is a deliberately simplified
@@ -207,9 +208,11 @@ and direction of the boundary between two tiles, which is how rivers and the
 frontline ribbon are drawn along hex *edges* rather than tile centres.
 
 ### Scenario & builder — [`blackEarth2025.ts`](../src/game/scenarios/blackEarth2025.ts) → [`build.ts`](../src/game/scenarios/build.ts)
-The map is **data, not code**: two 26-char × 17-row ASCII layers (terrain,
-starting control) plus declarative feature lists — cities, river bank chains,
-bridges, road/rail corridors, unit placements, faction setup.
+The map is **data, not code**: three 48-char × 36-row ASCII layers (terrain,
+starting control, elevation) plus declarative feature lists — cities, river bank
+chains, bridges, road/rail corridors, unit placements, faction setup. Both this
+module and `map/data/terrainData.ts` are **generated** by
+`scripts/geo/build-scenario.mjs` — change the pipeline inputs, not the outputs.
 
 `buildInitialState()` compiles that into a `GameState` and **throws on any
 authoring error**: wrong row length, land tile with no controller, city on
@@ -328,7 +331,9 @@ manual slots.
    `(10,4) → (11,5)` looks contiguous in column/row arithmetic but is **not**
    adjacent in odd-r, leaving a vertex hole units cross dry. This actually
    happened: the RU AI drove a tank division through such a gap and took Dnipro
-   on turn 1. `build.ts:44` now asserts it. Re-read this before touching
+   on turn 1. `assertAdjacent()` in `build.ts` now asserts it, and
+   `validateAndDeriveEdges()` in `scripts/geo/rivers.mjs` enforces it in the
+   generator. Re-read this before touching
    `RIVERS`.
 4. **Rules mutate the immer draft; the store does not mutate state directly.**
 5. **One unit per tile.** Enforced in the builder, in `moveCostInto`, and in
@@ -361,8 +366,8 @@ The dev server must run on **port 5199** for the browser scripts
 (`npm run dev -- --port 5199`).
 
 The browser scripts use `puppeteer-core` against a locally installed Chrome and
-talk to the game through `window.__TBE_DEBUG__`, exposed by `useDebugHook` at
-[`App.tsx:127`](../src/App.tsx). That hook is the sanctioned automation surface —
+talk to the game through `window.__TBE_DEBUG__`, exposed by
+[`useDebugHook()`](../src/App.tsx). That hook is the sanctioned automation surface —
 extend it rather than reaching into the store from test code.
 
 Balance reference from v1: AI-vs-AI seeds produced one 36-turn stalemate and one
