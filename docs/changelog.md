@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [eval-01](#eval-01--2026-08-05--img2threejs-tooling-evaluation-no-code-change) | 2026-08-05 | Tooling evaluation — img2threejs | image→procedural Three.js, Panzer IV trial, blockout render, emitter defects, verdict: rejected for runtime geometry |
 | [0.2.1](#021--2026-08-04--hud-material-polish) | 2026-08-04 | HUD material polish | map-table textures, panel field grain, brass corner ticks, plate buttons, menu ornament, command-bar SVG icons, instrument bars |
 | [0.2.0-F](#020-f--2026-08-03--v2-phase-f-presentation) | 2026-08-03 | v2 Phase F — Presentation | map modes as renderers, parchment political, supply flow, battle wear, combat moment, landmarks, SAVE_VERSION 3, colour-space fix |
 | [0.2.0-E](#020-e--2026-08-03--v2-phase-e-the-interface) | 2026-08-03 | v2 Phase E — The interface | panel frames, icon system, ledger top bar, delta chips, journal rail, unit viewport, briefing events, turn card, live-map menu, foley, ambience |
@@ -17,6 +18,117 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [eval-01] — 2026-08-05 · img2threejs tooling evaluation (no code change)
+
+Evaluated [img2threejs](https://github.com/img2threejs/img2threejs) as a source
+of higher-fidelity vehicle miniatures. **Verdict: rejected for runtime
+geometry.** Recorded here as a decision record so the question is not reopened
+from scratch. **Nothing was committed** — no `src/assets/` factory, no
+`docs/asset-ledger.md` row, no dependency.
+
+### What it is
+
+Not a photogrammetry or mesh-import tool, despite the name. It is a **Claude
+Code skill** (Apache-2.0, v1.4.4-beta.3, 81 Python files, stdlib-only, no pip
+installs) that takes a reference photograph and *writes TypeScript* rebuilding
+the subject from primitives and procedural shaders, gated by an eight-pass
+pipeline with vision-review loops. Installed to `~/.claude/skills/img2threejs`
+(outside this repo).
+
+Supply-chain note: the only outbound-network script is
+`forge/stage1_intake/fetch_cs2_metadata.py`, which is CS2-skin-specific and not
+on the generic object path. The pipeline we ran is fully offline.
+
+### Method
+
+Subject: Panzer IV Ausf. H — deliberately chosen as historically distant
+hardware, not live-conflict equipment, so the trial would not itself violate
+the §1.4 tone rule. Reference was a Spanish Army museum vehicle from Wikimedia
+Commons (CC BY-SA 3.0), picked for a plain background and a single flat sand
+paint field rather than camouflage.
+
+Drove the full mandatory gate chain — 20 gated steps enforced by a local state
+machine (`.img2threejs/state.json`) that refuses to advance without evidence:
+layered image analysis → reference admission → pre-spec assessment → detail
+inventory → spec authoring → reference-PBR extraction → strict validation →
+blockout codegen → browser render.
+
+Authored spec: **53 components** (7 macro / 40 meso / 6 micro), 3 materials,
+2 repetition systems, 16 detail-inventory entries, real metre dimensions.
+Passes `validate_sculpt_spec.py --strict-quality`.
+
+### Findings
+
+1. **The strict-quality gate and the code generator contradict each other.**
+   The emitter is
+   `endpoint ? new THREE.CylinderGeometry(…) : geometry_for(primitive, …)` —
+   any component carrying a complete `attachment` becomes a default-radius
+   cylinder, ignoring its declared `primitive` *and* its `dimensions`. But
+   `--strict-quality` **requires** complete attachments on every non-root
+   component. The spec that passes the quality gate is exactly the spec that
+   renders as six sticks. No authoring satisfies both.
+2. **`dimensions` are applied as node scale, and children inherit it.**
+   Stripping attachments makes nested components multiply their parents' scale
+   — the tank came out with a 2,212 m bounding box. Only after flattening all
+   53 components to root did it render at correct size (6.81 × 2.94 × 2.88 m).
+   A hierarchical tree — which the tool's own `minimumSpecDepth` demands —
+   cannot render correctly through this path.
+3. **Fixed, lavish segment counts.** `BoxGeometry(1, 1, 1, 12, 12, 12)` is
+   **1,728 triangles for a box** that needs 12; spheres are `(0.5, 64, 40)`,
+   cylinders `(…, 48, 16)`. Not parameterised by viewing distance.
+4. **De-lit albedo extraction inverted the subject's value** — pale Dunkelgelb
+   `#A8956C` came back as `#46351C` with `#0F0D07` in the palette, and the
+   extracted palette overrides the authored `baseColor`. The tool's own rule
+   ("solid albedo for flat paint") is not followed by its extraction path.
+5. **`repetitionSystems` are radial-only** (`ang = start + i*360/count`).
+   Fine for sprocket teeth or a bolt circle; cannot express a linear
+   road-wheel array or a track loop. Sixteen road wheels had to be authored
+   individually.
+6. **The whole spec JSON is inlined into the emitted `.ts`**, including
+   absolute local filesystem paths — 963 lines to emit six boxes. The module
+   also imports `EffectComposer`, `BokehPass`, `UnrealBloomPass` and
+   `OrbitControls`, which would collide with the Phase C post chain.
+
+What is genuinely good: the gates are real and caught two authoring errors of
+ours (a `continuous-sculpt` misclassification of countable cylinders, and
+`detailInventory.mapsTo` refs pointing at labels instead of resolvable ids);
+determinism is respected (seeded `hashString`, no `Math.random()`); repetition
+uses `InstancedMesh`; and the docs are honest about single-image limits.
+
+### The numbers against our stack
+
+| | img2threejs blockout | `tank()` in `src/assets/vehicles.ts` |
+| --- | --- | --- |
+| Triangles | 10,272 | ≈90 (computed from the primitive calls) |
+| Draw calls | 6 | ⅙ of one — merges into the whole stand |
+| Materials | 6 × `MeshPhysicalMaterial` + 1024² map sets | vertex colours, no textures |
+| Fidelity delivered | 6 untextured boxes | hull, turret, glacis, gun, tracks |
+
+Roughly **100× the triangles for a coarser shape**, before the structural,
+form, material, surface and lighting passes ever run — against a
+`performanceBudget` default of 250,000 triangles and 160 draw calls *per
+object*, for a miniature that occupies 0.2 world units on a 1.7-unit hex.
+
+### Conclusion
+
+The blocker is not the tonal mismatch flagged when the question was first
+raised (§1.4 forbids catalogued, photoreal hardware); it is that the generator
+does not currently produce correct geometry for a multi-part object at all.
+Stages 1–3 were expected to be the salvageable part; the trial shows stage 3
+does not work for assemblies.
+
+What *would* transfer is the **spec, not the code** — the component tree with
+measured metre dimensions, positions, confidence values and mirrored-inference
+flags is a usable blueprint to hand-port into `cbox`/`ccyl` calls. If this is
+revisited, point it at tonally neutral scenery (grain elevator, pontoon
+section, rail wagon), author the spec, and port from the spec — never from the
+emitted TypeScript.
+
+Coverage limit: 1 of 8 passes was run. No vision-review loop, and the 40 meso
+components were authored but never rendered — the blockout result made further
+passes uninformative. Trial artifacts (spec, generated factories, renders) were
+written to an **ephemeral session scratchpad** and are not retained.
 
 ## [0.2.1] — 2026-08-04 · HUD material polish
 
