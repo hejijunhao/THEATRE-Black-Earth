@@ -5,16 +5,17 @@
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { makeEarthworksGeometry, makeMiniatureGeometry, tierFromStrength } from '../assets/units';
+import { makeEarthworksGeometry, makeMiniatureBuild, tierFromStrength } from '../assets/units';
+import { HeroFormation } from '../map/HeroFormation';
 import { Unit } from '../game/types';
 
 const MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.82, metalness: 0.05 });
 
 function Model({ unit, fortified }: { unit: Unit; fortified: boolean }) {
   const ref = useRef<THREE.Group>(null);
-  const geometry = useMemo(
+  const build = useMemo(
     () =>
-      makeMiniatureGeometry({
+      makeMiniatureBuild({
         type: unit.type,
         faction: unit.faction,
         tier: tierFromStrength(unit.strength),
@@ -38,7 +39,10 @@ function Model({ unit, fortified }: { unit: Unit; fortified: boolean }) {
         <boxGeometry args={[0.74, 0.032, 0.52]} />
         <meshStandardMaterial color={unit.faction === 'UA' ? '#33507a' : '#67352c'} roughness={0.6} />
       </mesh>
-      <mesh geometry={geometry} material={MAT} />
+      {build.props && <mesh geometry={build.props} material={MAT} />}
+      {build.heroType && (
+        <HeroFormation type={build.heroType} faction={unit.faction} slots={build.heroSlots} />
+      )}
       {earthworks && <mesh geometry={earthworks} material={MAT} position={[0, -0.012, 0]} />}
     </group>
   );

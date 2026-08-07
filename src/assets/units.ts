@@ -8,8 +8,9 @@ import * as THREE from 'three';
 import { mergeGeometries } from '../map/geomUtils';
 import { FactionId, UnitType } from '../game/types';
 import { place } from './parts';
+import { HeroUnitType, hasHeroModel } from './heroFleet';
 import {
-  droneMast, figure, ifv, lightTruck, mrap, smokePuffs, supplyTruck, tank, towedGun,
+  figure, lightTruck, smokePuffs, supplyTruck,
 } from './vehicles';
 
 export interface MiniatureSpec {
@@ -22,6 +23,26 @@ export interface MiniatureSpec {
   smoke: boolean;              // hasAttacked
 }
 
+// Where one hero vehicle sits on the base plate. Vehicles are authored +x
+// forward, so a slot is a ground position plus a heading; `rz` is the slight
+// roll a bogged-down element gets when the formation is disorganized.
+export interface HeroSlot {
+  x: number;
+  z: number;
+  ry: number;
+  rz: number;
+}
+
+// A composed formation: the vertex-coloured props merge to one geometry as
+// before, while the fighting vehicles are instance transforms against a
+// shared hero geometry. Keeping them apart is what lets a 19k-triangle
+// panzer appear four times on a plate without four copies of it in memory.
+export interface MiniatureBuild {
+  props: THREE.BufferGeometry | null;
+  heroType: HeroUnitType | null;
+  heroSlots: HeroSlot[];
+}
+
 export function tierFromStrength(strength: number): 1 | 2 | 3 | 4 {
   return Math.min(4, Math.max(1, Math.ceil(strength / 25))) as 1 | 2 | 3 | 4;
 }
@@ -30,47 +51,72 @@ export function miniatureKey(s: MiniatureSpec): string {
   return [s.type, s.faction, s.tier, s.supplyTruck, s.reinforcing, s.disorganized, s.smoke].join('|');
 }
 
-// Formation slots on the base plate (base ≈ 0.72 × 0.5, facing -z "north").
-const VEHICLE_SLOTS: Array<[number, number, number]> = [
-  [-0.16, 0.06, -0.12],
-  [0.1, -0.08, 0.1],
-  [-0.02, 0.13, 0.28],
-  [0.19, 0.1, -0.3],
-];
 const FIGURE_SLOTS: Array<[number, number]> = [
   [-0.06, -0.16], [0.04, -0.14], [-0.14, -0.1], [0.13, -0.17], [0.0, -0.02],
 ];
-// Fixed off-formation scatter for disorganized units (same for all — the
-// pattern reads, the cache stays small).
-const SCATTER: Array<[number, number, number]> = [
-  [-0.24, 0.14, 0.6],
-  [0.2, -0.02, -0.45],
-  [0.05, 0.2, 1.1],
-  [0.24, 0.16, 0.3],
+
+// Hero formations are echelons. Vehicles are authored +x forward, and a hero
+// hull with its gun reaches ~0.32 across a 0.74 base plate, so a file abreast
+// would interpenetrate and a line ahead would not fit four. The diagonal is
+// the only layout that takes the full tier — and it is how armour actually
+// moves. Symmetric about the plate centre, so strength reads as formation
+// depth rather than as a lopsided cluster, and the two off-diagonal corners
+// stay clear for the supply truck and the replacement column.
+//
+// The steps are bounded by the plate, not by taste. A tier-4 panzer echelon
+// reaches (0.085·1.5 + 0.162) × (0.115·1.5 + 0.0485) ≈ 0.29 × 0.22, and
+// Units.tsx spins the whole formation by up to UNIT_FACING_JITTER against a
+// plate that does not turn with it, which costs another ~0.03 in z. That
+// lands inside the plate's 0.37 × 0.26 half-extent with a little to spare;
+// widening either step, or the jitter, puts tanks over the edge.
+const HERO_STEP_X = 0.085;
+const HERO_STEP_Z = 0.115;
+
+// Fixed off-formation displacement per slot for disorganized formations —
+// same intent as the old miniature scatter: the pattern reads, and it stays
+// deterministic (no Math.random anywhere in the asset layer).
+const HERO_SCATTER: Array<[number, number, number]> = [
+  [0.052, -0.062, 0.55],
+  [-0.061, 0.049, -0.42],
+  [0.043, 0.072, 0.9],
+  [-0.034, -0.055, 0.28],
 ];
 
-function vehicleFor(type: UnitType, faction: FactionId): THREE.BufferGeometry[] {
-  switch (type) {
-    case 'armored': return tank(faction);
-    case 'mechanized': return ifv(faction);
-    case 'artillery': return towedGun(faction);
-    case 'recon': return mrap(faction);
-    case 'infantry': return lightTruck(faction);
+function heroFormation(count: number, disorganized: boolean): HeroSlot[] {
+  const slots: HeroSlot[] = [];
+  for (let i = 0; i < count; i++) {
+    const t = i - (count - 1) / 2;
+    let x = -t * HERO_STEP_X;
+    let z = t * HERO_STEP_Z;
+    // Headings fan by a hair — dead-parallel elements read as CG.
+    let ry = (((i * 37) % 7) - 3) * 0.012;
+    let rz = 0;
+    if (disorganized) {
+      const [dx, dz, dr] = HERO_SCATTER[i % HERO_SCATTER.length];
+      x += dx;
+      z += dz;
+      ry += dr;
+      if (i === 0) rz = 0.06; // one element bogged, canted off its tracks
+    }
+    slots.push({ x, z, ry, rz });
   }
+  return slots;
 }
 
-const cache = new Map<string, THREE.BufferGeometry>();
+const cache = new Map<string, MiniatureBuild>();
 
-export function makeMiniatureGeometry(spec: MiniatureSpec): THREE.BufferGeometry {
+export function makeMiniatureBuild(spec: MiniatureSpec): MiniatureBuild {
   const key = miniatureKey(spec);
   const hit = cache.get(key);
   if (hit) return hit;
 
   const parts: THREE.BufferGeometry[] = [];
-  const slots = spec.disorganized ? SCATTER : VEHICLE_SLOTS.map(([x, z, r]) => [x, z, r * 0.35] as [number, number, number]);
+  const heroType = hasHeroModel(spec.type) ? spec.type : null;
+  let heroSlots: HeroSlot[] = [];
 
-  if (spec.type === 'infantry') {
-    // Figures in loose ranks; a light truck appears from tier 2.
+  if (heroType === null) {
+    // Infantry — no hero factory for this class yet, so it keeps the
+    // parts.ts figures: loose ranks, with a light truck from tier 2.
     const figures = 1 + spec.tier; // 2..5
     for (let i = 0; i < figures; i++) {
       const [fx, fz] = FIGURE_SLOTS[i % FIGURE_SLOTS.length];
@@ -83,21 +129,21 @@ export function makeMiniatureGeometry(spec: MiniatureSpec): THREE.BufferGeometry
     }
   } else {
     const count = spec.type === 'recon' ? Math.min(2, Math.ceil(spec.tier / 2)) : spec.tier;
-    for (let i = 0; i < count; i++) {
-      const [x, z, ry] = slots[i % slots.length];
-      parts.push(...place(vehicleFor(spec.type, spec.faction), x, z, ry, spec.disorganized && i === 0 ? 0.06 : 0));
-    }
+    heroSlots = heroFormation(count, spec.disorganized);
+    // Foot elements move to the rear-left quarter, which the echelon leaves
+    // open — at hero scale they no longer fit between the vehicles.
     if (spec.type === 'mechanized' && spec.tier >= 2 && !spec.disorganized) {
-      // Dismounts beside the vehicles.
-      parts.push(...place(figure(), -0.02, -0.18));
-      parts.push(...place(figure(), 0.07, -0.2, 0.4));
+      parts.push(...place(figure(), -0.262, -0.142, 0.3));
+      parts.push(...place(figure(), -0.309, -0.196, 0.62));
     }
     if (spec.type === 'recon') {
-      parts.push(...place(droneMast(spec.faction), -0.18, -0.12));
-      parts.push(...place(figure(), -0.12, -0.18, 0.2));
+      // The hero recon carries its own sensor mast, so the separate
+      // droneMast prop is gone; one dismounted scout stays for scale.
+      parts.push(...place(figure(), -0.256, -0.166, 0.2));
     }
     if (spec.type === 'artillery' && spec.tier >= 2) {
-      parts.push(...place(lightTruck(spec.faction), -0.18, 0.16, 0.25)); // limber
+      // Limber parked behind the gun line (guns fire toward +x).
+      parts.push(...place(lightTruck(spec.faction), -0.284, -0.164, 0.25));
     }
   }
 
@@ -113,9 +159,13 @@ export function makeMiniatureGeometry(spec: MiniatureSpec): THREE.BufferGeometry
     parts.push(...smokePuffs());
   }
 
-  const merged = mergeGeometries(parts)!;
-  cache.set(key, merged);
-  return merged;
+  const build: MiniatureBuild = {
+    props: parts.length > 0 ? mergeGeometries(parts) : null,
+    heroType,
+    heroSlots,
+  };
+  cache.set(key, build);
+  return build;
 }
 
 // Earthworks growing with entrenchment 0..4 (v2-vision §4.3): scrape ->

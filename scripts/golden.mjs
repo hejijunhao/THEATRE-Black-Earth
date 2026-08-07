@@ -63,6 +63,29 @@ const closeFile = 'closeup-front.png';
 await page.screenshot({ path: path.join(CUR_DIR, closeFile) });
 shots.push(closeFile);
 
+// Close-up of an actual formation. `closeup-front.png` above happens to land
+// on empty ground, so until this shot the miniatures — the most detailed art
+// in the game — had no golden coverage at all. The roster is deterministic
+// for a fixed seed; sort by strength with an id tiebreak so the subject never
+// depends on object key order.
+const roster = await page.evaluate(() => window.__TBE_DEBUG__.units());
+const subject = roster
+  .filter((u) => u.faction === 'UA' && u.type === 'armored')
+  .sort((a, b) => b.strength - a.strength || a.id.localeCompare(b.id))[0];
+if (subject) {
+  await page.evaluate(
+    (u) => window.__TBE_CAMERA__.set(u.wx, 4.6, u.wz + 6.2, u.wx, u.wz),
+    subject,
+  );
+  await sleep(1500);
+  const formationFile = 'closeup-formation.png';
+  await page.screenshot({ path: path.join(CUR_DIR, formationFile) });
+  shots.push(formationFile);
+} else {
+  console.error('no UA armored formation in roster — closeup-formation skipped');
+  errors.push('closeup-formation subject missing');
+}
+
 await browser.close();
 
 if (errors.length) {

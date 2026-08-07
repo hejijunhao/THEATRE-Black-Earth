@@ -206,7 +206,15 @@ export function makeHeroMaterial(): THREE.MeshStandardMaterial {
         '#include <begin_vertex>',
         `#include <begin_vertex>
         vMat = aMat;
-        vObjM = position / ${HERO_SCALE};
+        #ifdef USE_INSTANCING
+          // A formation draws one geometry several times. Offsetting the
+          // noise field by the instance's ground position — in metres, like
+          // every other frequency here — stops four tanks on one base plate
+          // from carrying an identical set of streaks, dust and rust.
+          vObjM = (position + vec3(instanceMatrix[3][0], 0.0, instanceMatrix[3][2])) / ${HERO_SCALE};
+        #else
+          vObjM = position / ${HERO_SCALE};
+        #endif
         vNrmObj = normal;`,
       );
     shader.fragmentShader = shader.fragmentShader

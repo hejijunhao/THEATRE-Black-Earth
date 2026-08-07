@@ -13,7 +13,7 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useStore } from '../game/state/store';
-import { IntelRecord, Unit } from '../game/types';
+import { FactionId, IntelRecord, Unit } from '../game/types';
 import { tileWorldById } from '../game/hex';
 import {
   counterKey, CounterSpec, makeCounterTexture,
@@ -21,8 +21,9 @@ import {
 } from './textures';
 import { tileGroundY } from './terrain/heightfield';
 import {
-  makeEarthworksGeometry, makeMiniatureGeometry, tierFromStrength,
+  makeEarthworksGeometry, makeMiniatureBuild, tierFromStrength,
 } from '../assets/units';
+import { HeroFormation } from './HeroFormation';
 import { hashSeed } from '../game/rng';
 import { FACTION_STRONG } from './palette';
 
@@ -32,6 +33,9 @@ import { FACTION_STRONG } from './palette';
 const fadeState = { value: 0 };
 const COUNTER_ZOOM_IN = 24;  // camera.y where counters start fading in
 const COUNTER_ZOOM_FULL = 34;
+
+// Peak-to-peak heading spread of a formation on its base plate, in radians.
+const UNIT_FACING_JITTER = 0.2;
 
 function useCrossfade() {
   const counterMode = useStore((s) => s.counterMode);
@@ -64,9 +68,9 @@ function UnitMiniature({ unit, selected }: { unit: Unit; selected: boolean }) {
   const pulseRef = useRef<THREE.Mesh>(null);
 
   const tier = tierFromStrength(unit.strength);
-  const geometry = useMemo(
+  const build = useMemo(
     () =>
-      makeMiniatureGeometry({
+      makeMiniatureBuild({
         type: unit.type,
         faction: unit.faction,
         tier,
@@ -97,8 +101,12 @@ function UnitMiniature({ unit, selected }: { unit: Unit; selected: boolean }) {
 
   const { wx, wz } = tileWorldById(unit.tile);
   const y = tileGroundY(unit.tile);
-  // Deterministic facing jitter per formation.
-  const facing = ((hashSeed(unit.id) % 100) / 100 - 0.5) * 0.5;
+  // Deterministic facing jitter per formation. The base plate does not turn
+  // with the vehicles, so this is bounded by how far a full hero echelon can
+  // swing before its outer elements hang off the plate — see the step
+  // constants in assets/units.ts. It was ±0.25 when the vehicles were
+  // 84-triangle wedges a third the size.
+  const facing = ((hashSeed(unit.id) % 100) / 100 - 0.5) * UNIT_FACING_JITTER;
 
   useEffect(() => {
     target.current.set(wx, y, wz);
@@ -149,9 +157,13 @@ function UnitMiniature({ unit, selected }: { unit: Unit; selected: boolean }) {
           emissiveIntensity={selected ? 0.55 : 0}
         />
       </mesh>
-      {/* The machines. */}
+      {/* The machines: hero vehicles as instances, everything else — foot
+          elements, logistics, muzzle smoke — merged into one props mesh. */}
       <group rotation={[0, facing, 0]} position={[0, 0.032, 0]}>
-        <mesh geometry={geometry} material={MINI_MATERIAL} castShadow />
+        {build.props && <mesh geometry={build.props} material={MINI_MATERIAL} castShadow />}
+        {build.heroType && (
+          <HeroFormation type={build.heroType} faction={unit.faction} slots={build.heroSlots} />
+        )}
       </group>
       {/* Earthworks grow with entrenchment. */}
       {earthworks && <mesh geometry={earthworks} material={MINI_MATERIAL} position={[0, 0.005, 0]} />}

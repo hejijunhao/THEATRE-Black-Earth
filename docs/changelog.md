@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.4](#024--2026-08-07--hero-tier-in-the-game) | 2026-08-07 | Hero tier in the game | hero models replace the low-poly vehicles on the map, instanced formations, echelon layout, per-instance weathering, formation golden shot |
 | [0.2.3](#023--2026-08-07--hero-tier-sweep-mech-arty-recon) | 2026-08-07 | Hero tier sweep — mech, arty, recon | shared assemblies, tracked IFV, towed 155 firing pose, 4×4 recon with sensor mast, review-unit cycler, shared hero material |
 | [0.2.2](#022--2026-08-07--hero-asset-tier-panzer) | 2026-08-07 | Hero asset tier — panzer | inspector-grade MBT, metre-scale kit, per-link tracks, aMat material attributes, procedural weathering shader, studio review rig, map-LOD split |
 | [eval-01](#eval-01--2026-08-05--img2threejs-tooling-evaluation-no-code-change) | 2026-08-05 | Tooling evaluation — img2threejs | image→procedural Three.js, Panzer IV trial, blockout render, emitter defects, verdict: rejected for runtime geometry |
@@ -20,6 +21,59 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.4] — 2026-08-07 · Hero tier in the game
+
+0.2.2 and 0.2.3 built the hero factories but only wired them to the `#assets`
+review route; the map still drew the 84-triangle wedges from `vehicles.ts`.
+This promotes the whole tier to `runtime`. Armored, mechanized, artillery and
+recon formations are now built from `panzerHero` / `mechHero` /
+`artilleryHero` / `reconHero` everywhere a formation is drawn — the map, the
+unit-panel viewport, and the review turntables. Infantry is unchanged and
+still on the `parts.ts` figures; it has no hero factory yet.
+
+- **Composition splits in two.** `makeMiniatureGeometry` became
+  `makeMiniatureBuild`, returning `{ props, heroType, heroSlots }`: the
+  vertex-coloured extras (foot elements, supply truck, replacement column,
+  muzzle smoke) still merge to one geometry, while the fighting vehicles come
+  back as instance transforms. Merging hero vehicles the way the old ones were
+  merged was the obvious route and the wrong one — a tier-4 armored formation
+  is 4 × 31k vertices, ≈ 6 MB baked into a cache key that never evicts, and
+  the key has 1280 combinations.
+- **One geometry per (type, faction), instanced per element.** New
+  `assets/heroFleet.ts` is the registry; new `map/HeroFormation.tsx` draws a
+  formation as a single `InstancedMesh` and is shared by the map, the HUD
+  viewport and `#assets`, so the review rig cannot drift from what ships.
+  Eight geometries cover the campaign; a full formation is one draw call.
+- **Per-instance weathering.** The weathering shader offsets its noise field
+  by the instance's ground position (`instanceMatrix[3]`, converted to metres
+  like every other frequency), so four tanks on one plate do not carry an
+  identical set of streaks, dust and rust.
+- **Echelon layout, sized to the plate.** A hero hull with its gun reaches
+  ~0.32 across a 0.74 plate, so the old four-slot cluster interpenetrated
+  badly. Formations are now symmetric echelons — how armour actually moves —
+  which also frees the off-diagonal corners for the supply truck and the
+  replacement column. Foot elements, the artillery limber and the scout moved
+  to the rear-left quarter; `reconHero` carries its own sensor mast, so the
+  separate `droneMast` prop is gone.
+- **Facing jitter cut from ±0.25 rad to ±0.10.** The base plate does not turn
+  with the vehicles. At the old spread a full hero echelon swung its outer
+  elements clean off the plate; the constants in `assets/units.ts` now carry
+  the arithmetic that bounds them.
+- **The miniatures got golden coverage.** `closeup-front.png` happens to land
+  on empty ground, so the most detailed art in the game had none. `golden.mjs`
+  gained `closeup-formation.png`, parked on a deterministic formation via
+  `__TBE_CAMERA__` — it reproduces at 0.00% diff, against ~0.45% rasteriser
+  noise on the wheel-zoomed shots. `__TBE_DEBUG__` gained `units()` (roster
+  with world positions from `tileWorldById`) and `focusCamera()` to support
+  it. The six existing baselines were left as they were; only the new shot
+  was blessed.
+- Measured on the review rig: no frame-time change at any zoom (vsync-locked
+  8.3 ms median, p95 ≤ 9.2 ms, no drops), because the counter crossfade
+  already hides miniatures past camera y ≈ 34 and formations frustum-cull
+  below it. `tank` / `panzer` / `ifv` / `towedGun` / `mrap` / `droneMast` are
+  now ledger status `superseded`, kept so the `#assets` toggle can show the
+  before/after.
 
 ## [0.2.3] — 2026-08-07 · Hero tier sweep (mech, arty, recon)
 

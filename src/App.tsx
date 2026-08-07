@@ -4,6 +4,7 @@
 import { useEffect, useRef } from 'react';
 import { audio } from './audio/audio';
 import { attackableTargets as attackableTargetsForDebug } from './game/rules/movement';
+import { tileWorldById } from './game/hex';
 import { useStore } from './game/state/store';
 import { MapScene } from './map/MapScene';
 import { AIOverlay } from './ui/AIOverlay';
@@ -170,6 +171,22 @@ function useDebugHook() {
       endTurn: () => useStore.getState().requestEndTurn(),
       confirmEndTurn: () => useStore.getState().confirmEndTurn(),
       setAISpeed: (ms: number) => useStore.getState().setAISpeed(ms),
+      // Roster + camera focus, so visual harnesses can aim at a real
+      // formation instead of guessing at world coordinates. World positions
+      // come from tileWorldById so the hex maths stays in one place.
+      units: () => {
+        const s = useStore.getState();
+        if (!s.game) return [];
+        return Object.values(s.game.units).map((u) => ({
+          id: u.id,
+          type: u.type,
+          faction: u.faction,
+          tile: u.tile,
+          strength: u.strength,
+          ...tileWorldById(u.tile),
+        }));
+      },
+      focusCamera: (tile: string) => useStore.getState().focusCamera(tile),
       summary: () => {
         const s = useStore.getState();
         if (!s.game) return null;
