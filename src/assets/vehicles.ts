@@ -7,7 +7,7 @@
 
 import * as THREE from 'three';
 import { FactionId } from '../game/types';
-import { cbox, ccyl, ccone, csphere } from './parts';
+import { cbox, ccyl, ccone, csphere, ctrap } from './parts';
 
 // Muted paint. UA leans grey-green, RU leans earth-olive — silhouette-level.
 const PAINT: Record<FactionId, { hull: string; dark: string; accent: string }> = {
@@ -39,6 +39,118 @@ export function tank(faction: FactionId): THREE.BufferGeometry[] {
   }
   // Gun
   parts.push(ccyl(0.006, 0.006, 0.13, BARREL, 0.075, 0.08, 0, 'x'));
+  return parts;
+}
+
+// High-detail modern German-pattern MBT (Leopard-family idiom, class-level:
+// wedge appliqué turret, long thermal-sleeved smoothbore, seven road wheels,
+// raked glacis, side skirts). Still archetypal — no insignia, no unit
+// markings; faction identity stays on the base plate. Recessed and lower
+// surfaces are painted a step darker, top plates a step lighter: baked
+// ambient occlusion is what makes a flat-shaded miniature read at this
+// scale. ~85 parts / ~1.4k triangles, merging to one draw call like every
+// other factory. Ledger status: review.
+export function panzer(faction: FactionId): THREE.BufferGeometry[] {
+  const p = PAINT[faction];
+  const RUBBER = '#33352c';
+  const WHEEL = '#3f4239';
+  const SLEEVE = '#484b41';
+  const OPTIC = '#3f4a47';
+  const STEEL = '#4a4a42';
+  const parts: THREE.BufferGeometry[] = [];
+
+  // --- Running gear (per side) -------------------------------------------
+  for (const s of [1, -1] as const) {
+    // Lower track run and the dark track body behind the wheels.
+    parts.push(cbox(0.186, 0.007, 0.026, TRACK, -0.002, 0.0035, s * 0.041));
+    parts.push(cbox(0.18, 0.026, 0.018, TRACK, -0.002, 0.016, s * 0.037));
+    // Seven road wheels, drive sprocket aft, idler forward.
+    for (let i = 0; i < 7; i++) {
+      parts.push(ccyl(0.0125, 0.0125, 0.009, WHEEL, -0.075 + i * 0.024, 0.0125, s * 0.0455, 'z', 8));
+    }
+    parts.push(ccyl(0.0115, 0.0115, 0.01, WHEEL, -0.092, 0.013, s * 0.0455, 'z', 8));
+    parts.push(ccyl(0.0105, 0.0105, 0.009, WHEEL, 0.086, 0.014, s * 0.0455, 'z', 8));
+    // Skirts: heavy ballistic block over the front third, rubber aft, with
+    // proud seam strips marking the panel divisions.
+    parts.push(cbox(0.058, 0.026, 0.008, p.hull, 0.066, 0.041, s * 0.0555));
+    parts.push(cbox(0.132, 0.022, 0.005, RUBBER, -0.03, 0.041, s * 0.055));
+    for (const xk of [-0.066, -0.03, 0.006]) {
+      parts.push(cbox(0.0022, 0.02, 0.002, p.dark, xk, 0.041, s * 0.0575));
+    }
+    parts.push(cbox(0.005, 0.016, 0.024, RUBBER, -0.1005, 0.032, s * 0.041)); // mud flap
+    parts.push(cbox(0.02, 0.004, 0.024, p.accent, 0.09, 0.05, s * 0.043)); // front fender
+  }
+
+  // --- Hull ---------------------------------------------------------------
+  parts.push(cbox(0.192, 0.024, 0.054, p.dark, 0, 0.032, 0)); // tub between tracks
+  // Sponson body with slightly sloped sides.
+  parts.push(ctrap(0.128, 0.104, 0.126, 0.098, 0.018, p.hull, -0.036, 0.046, 0, -0.001, 0));
+  // The long raked glacis, nose plate below it.
+  parts.push(ctrap(0.072, 0.104, 0.008, 0.096, 0.0175, p.accent, 0.064, 0.046, 0, -0.032, 0));
+  parts.push(ctrap(0.008, 0.088, 0.008, 0.1, 0.016, p.hull, 0.092, 0.03, 0, 0.006, 0));
+  parts.push(cbox(0.006, 0.0035, 0.02, p.dark, 0.04, 0.0645, 0.02)); // driver periscopes
+  // Engine deck: raised plate with two dark intake louvre fields.
+  parts.push(cbox(0.07, 0.005, 0.092, p.accent, -0.062, 0.0655, 0));
+  parts.push(cbox(0.022, 0.0025, 0.08, p.dark, -0.048, 0.0685, 0));
+  parts.push(cbox(0.022, 0.0025, 0.08, p.dark, -0.078, 0.0685, 0));
+  parts.push(cbox(0.004, 0.014, 0.02, p.dark, -0.1005, 0.052, 0.03)); // exhaust grilles
+  parts.push(cbox(0.004, 0.014, 0.02, p.dark, -0.1005, 0.052, -0.03));
+  parts.push(ccyl(0.0013, 0.0013, 0.075, STEEL, -0.02, 0.065, 0.048, 'x', 5)); // tow cable
+
+  // --- Turret -------------------------------------------------------------
+  parts.push(ctrap(0.092, 0.068, 0.084, 0.058, 0.03, p.hull, -0.018, 0.064, 0, -0.002, 0));
+  parts.push(cbox(0.08, 0.0025, 0.054, p.accent, -0.02, 0.0945, 0)); // roof plate
+  // The signature wedge: two spaced appliqué slabs meeting at a forward apex;
+  // the gap behind them stays open — that hollow *is* the spaced armour.
+  parts.push(cbox(0.05, 0.026, 0.007, p.hull, 0.041, 0.078, 0.0188, 0.795));
+  parts.push(cbox(0.05, 0.026, 0.007, p.hull, 0.041, 0.078, -0.0188, -0.795));
+  parts.push(cbox(0.016, 0.018, 0.022, p.dark, 0.032, 0.078, 0)); // mantlet in the gap
+
+  // Smoothbore in five sections: base tube, thermal sleeves either side of
+  // the bore evacuator, bare muzzle, reference-sensor block on top.
+  parts.push(ccyl(0.0048, 0.0048, 0.026, BARREL, 0.053, 0.079, 0, 'x', 8));
+  parts.push(ccyl(0.0058, 0.0058, 0.034, SLEEVE, 0.083, 0.079, 0, 'x', 8));
+  parts.push(ccyl(0.0072, 0.0072, 0.015, BARREL, 0.1075, 0.079, 0, 'x', 8));
+  parts.push(ccyl(0.0056, 0.0056, 0.042, SLEEVE, 0.136, 0.079, 0, 'x', 8));
+  parts.push(ccyl(0.0044, 0.0044, 0.02, BARREL, 0.167, 0.079, 0, 'x', 8));
+  parts.push(cbox(0.005, 0.0045, 0.0045, p.dark, 0.1745, 0.0835, 0));
+
+  // Roof fit: gunner's primary sight, hatch rings, panoramic sight pedestal,
+  // loader's MG, crosswind mast. Optics get a muted glass chip, never a glow.
+  parts.push(cbox(0.013, 0.006, 0.012, p.dark, 0.01, 0.0965, 0.016));
+  parts.push(cbox(0.01, 0.0025, 0.009, OPTIC, 0.0145, 0.097, 0.016));
+  parts.push(ccyl(0.0088, 0.0088, 0.003, p.accent, -0.034, 0.0965, 0.0155, 'y', 8));
+  parts.push(ccyl(0.007, 0.007, 0.002, p.hull, -0.034, 0.0985, 0.0155, 'y', 8));
+  parts.push(ccyl(0.0082, 0.0082, 0.003, p.accent, -0.03, 0.0965, -0.017, 'y', 8));
+  parts.push(ccyl(0.003, 0.003, 0.008, p.dark, -0.048, 0.098, 0.004, 'y', 6));
+  parts.push(cbox(0.007, 0.0075, 0.006, p.dark, -0.048, 0.1055, 0.004));
+  parts.push(cbox(0.0015, 0.004, 0.0045, OPTIC, -0.0445, 0.1055, 0.004));
+  parts.push(ccyl(0.0012, 0.0012, 0.02, BARREL, -0.018, 0.1005, -0.021, 'x', 5));
+  parts.push(cbox(0.002, 0.005, 0.002, p.dark, -0.026, 0.0985, -0.021));
+  parts.push(ccyl(0.0011, 0.0011, 0.015, p.dark, -0.058, 0.1015, 0, 'y', 5));
+
+  // Bustle rack: floor, rails, two canvas stowage lumps; whip antennas.
+  parts.push(cbox(0.018, 0.0025, 0.052, p.dark, -0.073, 0.0765, 0));
+  parts.push(cbox(0.0025, 0.009, 0.052, p.dark, -0.0835, 0.0815, 0));
+  parts.push(cbox(0.018, 0.009, 0.0025, p.dark, -0.073, 0.0815, 0.0255));
+  parts.push(cbox(0.018, 0.009, 0.0025, p.dark, -0.073, 0.0815, -0.0255));
+  parts.push(cbox(0.013, 0.008, 0.019, '#5b5443', -0.072, 0.082, 0.011));
+  parts.push(cbox(0.012, 0.007, 0.016, '#544e3e', -0.072, 0.0815, -0.012));
+  parts.push(ccyl(0.0008, 0.0008, 0.024, p.dark, -0.06, 0.106, 0.024, 'y', 4));
+  parts.push(ccyl(0.0008, 0.0008, 0.024, p.dark, -0.06, 0.106, -0.024, 'y', 4));
+  parts.push(cbox(0.02, 0.014, 0.005, p.accent, -0.044, 0.079, 0.0335)); // side stowage bin
+
+  // Smoke-discharger banks, three tubes a side, splayed forward and up.
+  for (const s of [1, -1] as const) {
+    for (let i = 0; i < 3; i++) {
+      const t = ccyl(0.0024, 0.0024, 0.01, p.dark, 0, 0, 0, 'x', 5);
+      t.applyMatrix4(new THREE.Matrix4().makeRotationZ(0.5));
+      t.applyMatrix4(new THREE.Matrix4().makeRotationY(s * -0.7));
+      t.applyMatrix4(new THREE.Matrix4().makeTranslation(0.02 - i * 0.0065, 0.083, s * (0.0335 + i * 0.0012)));
+      parts.push(t);
+    }
+  }
+
   return parts;
 }
 

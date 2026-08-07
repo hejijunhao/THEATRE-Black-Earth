@@ -9,6 +9,8 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.3](#023--2026-08-07--hero-tier-sweep-mech-arty-recon) | 2026-08-07 | Hero tier sweep — mech, arty, recon | shared assemblies, tracked IFV, towed 155 firing pose, 4×4 recon with sensor mast, review-unit cycler, shared hero material |
+| [0.2.2](#022--2026-08-07--hero-asset-tier-panzer) | 2026-08-07 | Hero asset tier — panzer | inspector-grade MBT, metre-scale kit, per-link tracks, aMat material attributes, procedural weathering shader, studio review rig, map-LOD split |
 | [eval-01](#eval-01--2026-08-05--img2threejs-tooling-evaluation-no-code-change) | 2026-08-05 | Tooling evaluation — img2threejs | image→procedural Three.js, Panzer IV trial, blockout render, emitter defects, verdict: rejected for runtime geometry |
 | [0.2.1](#021--2026-08-04--hud-material-polish) | 2026-08-04 | HUD material polish | map-table textures, panel field grain, brass corner ticks, plate buttons, menu ornament, command-bar SVG icons, instrument bars |
 | [0.2.0-F](#020-f--2026-08-03--v2-phase-f-presentation) | 2026-08-03 | v2 Phase F — Presentation | map modes as renderers, parchment political, supply flow, battle wear, combat moment, landmarks, SAVE_VERSION 3, colour-space fix |
@@ -18,6 +20,101 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.3] — 2026-08-07 · Hero tier sweep (mech, arty, recon)
+
+Extends the 0.2.2 hero tier to every vehicle class except infantry
+(deferred to a future sweep). Armored remains covered by `panzerHero`,
+which serves both factions through the paint split; an eastern-pattern
+armored variant is an open follow-up. All three new factories follow the
+panzer's doctrine exactly: metres, class-archetypal silhouettes, one merged
+draw call, the shared weathering material, ledger status `review`.
+
+- **Shared infrastructure** — `heroParts.ts` now owns the tier palette
+  (`HERO_PAINT` / `heroMats()`) and a shared material singleton
+  (`getHeroMaterial()`, one shader compile for the whole tier).
+  `heroAssemblies.ts` parameterises the running gear: `trackWheel`
+  (tire/rim/hub/cap/bolt circle), `treadWheel` (blocked road tire, dished
+  rim), and `linkRun` (per-link track runs with guide horns and hinge end
+  connectors along a bottom run plus wrap arcs). `panzerHero` keeps its
+  reviewed inline build but was moved onto the shared palette/material.
+- **`heroMech.ts`** — tracked IFV, Marder-family idiom: six road-wheel
+  stations, forward drive sprockets with teeth, shallow hanging skirts,
+  long lower glacis with splash board, compact autocannon turret with coax,
+  smoke banks and sight, louvred powerpack deck front-right with side
+  exhaust, twin troop hatches, stowage bins, rear ramp with seams, handle
+  and convoy kit.
+- **`heroArtillery.ts`** — towed 155-class howitzer, FH70-family idiom, in
+  firing pose: the elevating mass (breech block and screw, ring, three
+  tapered tube sections, double-baffle muzzle brake, recuperators, recoil
+  sleigh) is authored around the trunnion and rotated by one elevation
+  constant; carriage with trunnion cheeks, equilibrators, elevation rack,
+  spoked handwheels, crew seats, small shields; auxiliary-power nose box
+  with dolly wheels; split trails spread with spades, clamp blocks, tow
+  lugs and aiming stakes.
+- **`heroRecon.ts`** — 4×4 reconnaissance vehicle, Fennek-family idiom:
+  blocked-tread tires on coil-spring axles with differentials and drive
+  shaft, v-flared tub, long sloped bonnet, raked windshield with wipers,
+  door seams and vision blocks, brush bar, roof MG ring, stowage basket,
+  and the class signature — a two-stage elevating sensor mast with a panned
+  optics head; spare wheel, jerry cans and ladder rungs on the rear face.
+- **Review rig** — the `#assets` review column gained a `review unit`
+  cycler (panzer / mech / arty / recon); the `hero / map LOD` toggle now
+  compares each hero against its map counterpart (`panzer`/`ifv`/
+  `towedGun`/`mrap`).
+
+## [0.2.2] — 2026-08-07 · Hero asset tier (panzer)
+
+Introduces a second, inspector-grade fidelity tier above the map miniatures,
+opened with a modern German-pattern MBT (Leopard-family idiom, class-level —
+no insignia, no catalogued marks). Consistent with [eval-01]: models stay
+CODE — deterministic, zero binaries, no runtime network — pushed to ~20k+
+triangles in one merged draw call instead of a new pipeline.
+
+### Hero part kit — `src/assets/heroParts.ts`
+
+- Metre-scale part helpers (`hbox`/`hcyl`/`hsphere`/`htorus`/`htrap`) that
+  carry an `aMat` per-vertex attribute (roughness / metalness / wear)
+  alongside vertex colour, plus optional vertical albedo gradients.
+- `mergeHero()` — a merger that preserves `aMat`; geomUtils'
+  `mergeGeometries` would silently drop it (it also drops the triangles of
+  any non-indexed part, which is why every helper emits indexed geometry).
+- `makeHeroMaterial()` — one `MeshStandardMaterial` finished by
+  `onBeforeCompile` with position-based (UV-free, deterministic) weathering:
+  paint mottle, fine grain, dust that pools low and settles on up-facing
+  plates, rust speckle on bare steel, noise-broken edge wear on handled
+  parts, rain streaking gated to near-vertical plates, and a micro-normal
+  "orange peel" so painted armour doesn't shade dead flat. Restraint is
+  deliberate: field dust, never wreck spectacle (asset-ledger §1.4).
+
+### The vehicle — `src/assets/panzerHero.ts`
+
+Authored in real metres (hull 7.7 m), scaled by `HERO_SCALE` onto the
+miniature base plates. Full running gear: individually placed track links
+with guide horns and hinge end connectors, road wheels with rubber tires,
+painted rims, steel hubs, hub caps and eight hub bolts each, toothed drive
+sprockets, swing arms, idlers; heavy ballistic skirt blocks with mounting
+bolts forward, six hanging rubber panels with seeded jitter aft. Hull:
+raked glacis with splash board and weld beads, driver periscopes, guarded
+headlights, folding mirrors, tow shackles, louvred radiator fields,
+exhaust grilles, grab rails, tow cable, pioneer tools, spare links,
+tail-light clusters, infantry telephone. Turret: bolted spaced-armour wedge,
+five-section L55-class smoothbore with tapered thermal sleeves, clamp rings
+and muzzle collar, armoured gunner's sight, panoramic sight, hatches with
+periscope rings, loader's MG, smoke-discharger banks, laden bustle rack,
+panel seams, coil-spring antenna bases, lifting eyes.
+
+### Review rig — `src/ui/AssetsView.tsx`
+
+The `#assets` review column gained studio image-based lighting (bundled
+`RoomEnvironment` through PMREM — no network), a key/fill/rim light set, a
+soft contact shadow, and a `hero / map LOD` toggle. The map keeps
+`vehicles.ts panzer()` as its LOD; both are ledger status `review`.
+
+Known limit, recorded deliberately: further realism would need baked
+texture maps (decals, hand-painted grime) — excluded by the no-binaries
+rule — or a UV/normal-map workflow, which is an architecture decision, not
+a polish pass.
 
 ## [eval-01] — 2026-08-05 · img2threejs tooling evaluation (no code change)
 

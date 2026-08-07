@@ -57,6 +57,41 @@ export function csphere(
   return paint(g, color);
 }
 
+// Flat-shaded frustum box: a bottom w×d rectangle at (x, y, z) rising h to a
+// top wT×dT rectangle offset by (shiftX, shiftZ). The sloped-armour workhorse
+// — glacis, sponsons and turret sides read as raked plate, not stacked
+// bricks. Indexed on purpose: geomUtils' mergeGeometries only remaps indexed
+// triangles, so a non-indexed part would merge into nothing.
+export function ctrap(
+  w: number, d: number, wT: number, dT: number, h: number, color: string,
+  x = 0, y = 0, z = 0, shiftX = 0, shiftZ = 0, ry = 0,
+): THREE.BufferGeometry {
+  const hw = w / 2, hd = d / 2, hwT = wT / 2, hdT = dT / 2;
+  const b0 = [hw, 0, -hd], b1 = [hw, 0, hd], b2 = [-hw, 0, hd], b3 = [-hw, 0, -hd];
+  const t0 = [shiftX + hwT, h, shiftZ - hdT], t1 = [shiftX + hwT, h, shiftZ + hdT];
+  const t2 = [shiftX - hwT, h, shiftZ + hdT], t3 = [shiftX - hwT, h, shiftZ - hdT];
+  // Outward-wound quads: top, bottom, front (+x), rear, +z, -z.
+  const quads = [
+    [t3, t2, t1, t0], [b0, b1, b2, b3],
+    [b1, b0, t0, t1], [b3, b2, t2, t3],
+    [b2, b1, t1, t2], [b0, b3, t3, t0],
+  ];
+  const pos: number[] = [];
+  const idx: number[] = [];
+  for (const q of quads) {
+    const base = pos.length / 3;
+    for (const v of q) pos.push(v[0], v[1], v[2]);
+    idx.push(base, base + 1, base + 2, base, base + 2, base + 3);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(pos), 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  if (ry) g.rotateY(ry);
+  g.translate(x, y, z);
+  return paint(g, color);
+}
+
 // Transform a list of parts as one rigid piece.
 export function place(
   parts: THREE.BufferGeometry[],

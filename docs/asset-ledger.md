@@ -10,6 +10,11 @@ no spectacle.
 | Factory | File | Status | Reference | Tone check | Last review |
 | --- | --- | --- | --- | --- | --- |
 | `tank` (MBT, UA angular / RU low-round turret) | `src/assets/vehicles.ts` | runtime | archetypal MBT silhouettes, class-level | ✓ no insignia, muted paint | 2026-08-03 |
+| `panzer` (high-detail modern German-pattern MBT: wedge turret, sleeved smoothbore, 7 road wheels, skirts) | `src/assets/vehicles.ts` | review | Leopard-family *class* silhouette, no catalogued marks | ✓ no insignia, muted paint, optics matte | 2026-08-07 |
+| `panzerHero` (inspector-grade panzer: ~20k tri, per-link tracks, bolted wheels, procedural weathering shader) | `src/assets/panzerHero.ts` + `heroParts.ts` | review | same class silhouette at showcase density; map keeps `panzer` as LOD; covers the Armored class for both factions (paint split) | ✓ no insignia, weathering restrained (field dust, no wreck spectacle) | 2026-08-07 |
+| `mechHero` (inspector-grade tracked IFV: front sprocket, per-link tracks, autocannon turret, rear ramp) | `src/assets/heroMech.ts` + `heroAssemblies.ts` | review | Marder-family *class* silhouette; map keeps `ifv` as LOD | ✓ no insignia, muted paint | 2026-08-07 |
+| `artilleryHero` (inspector-grade towed 155: split trails, spades, elevated tube, muzzle brake, handwheels) | `src/assets/heroArtillery.ts` | review | FH70-family *class* silhouette, firing pose; map keeps `towedGun` as LOD | ✓ no insignia, muted paint | 2026-08-07 |
+| `reconHero` (inspector-grade 4×4 recon: tread tires, sloped bonnet, sensor mast, spare wheel) | `src/assets/heroRecon.ts` | review | Fennek-family *class* silhouette; map keeps `mrap` as LOD | ✓ no insignia, muted paint, optics matte | 2026-08-07 |
 | `ifv` (tracked IFV + autocannon) | `src/assets/vehicles.ts` | runtime | archetypal IFV/APC class | ✓ | 2026-08-03 |
 | `lightTruck` (soft-skin, canvas bed) | `src/assets/vehicles.ts` | runtime | utility truck class | ✓ | 2026-08-03 |
 | `supplyTruck` (truck + fuel drums) | `src/assets/vehicles.ts` | runtime | logistics element; drums signal supply state | ✓ | 2026-08-03 |
