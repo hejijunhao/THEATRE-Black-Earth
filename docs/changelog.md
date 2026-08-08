@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.5](#025--2026-08-08--hero-terrain-tier-ground) | 2026-08-08 | Hero terrain tier (ground) | five diorama ground tiles, blade-geometry grass, soil strata, analytic AO, aTer channels, map vegetation layer from geodata fractions |
 | [0.2.4](#024--2026-08-07--hero-tier-in-the-game) | 2026-08-07 | Hero tier in the game | hero models replace the low-poly vehicles on the map, instanced formations, echelon layout, per-instance weathering, formation golden shot |
 | [0.2.3](#023--2026-08-07--hero-tier-sweep-mech-arty-recon) | 2026-08-07 | Hero tier sweep — mech, arty, recon | shared assemblies, tracked IFV, towed 155 firing pose, 4×4 recon with sensor mast, review-unit cycler, shared hero material |
 | [0.2.2](#022--2026-08-07--hero-asset-tier-panzer) | 2026-08-07 | Hero asset tier — panzer | inspector-grade MBT, metre-scale kit, per-link tracks, aMat material attributes, procedural weathering shader, studio review rig, map-LOD split |
@@ -21,6 +22,112 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.5] — 2026-08-08 · Hero terrain tier (ground)
+
+Applies the hero-tier doctrine to the other half of the theatre. 0.2.2–0.2.4
+took the *things on* the ground to inspector grade and left the ground itself
+as painted albedo on a displaced plane. This adds a terrain counterpart —
+five ground classes built as cut-earth hex dioramas — and then ports what
+survives the distance to the campaign map as a ground-cover layer.
+
+The two halves ship at different statuses on purpose, and the reason is the
+whole shape of this release: the dioramas are 29k–107k triangles *each*, and
+the map draws 987 hexes. The tiles are the design reference and stay
+`review`; the map gets `Vegetation`, a separate LOD built from the same blade
+primitives, at `runtime`.
+
+### The tiles — `src/assets/terrainHero.ts`
+
+Pointy-top hex dioramas authored in metres (5.2 m across the flats, 0.9 m of
+cut earth below), one merged indexed draw call each, deterministic from a
+mulberry32 seed per kind plus position-hash value noise. Rocks, trees and
+relief features are deliberately out of scope — this is core ground.
+
+- **Surface** — six subdivided corner sectors sharing deduped vertices, so
+  normals smooth across the whole hex and the boundary lands exactly on the
+  wall-top parameterisation (no seam, no crack). Ambient occlusion, local
+  relief and a moisture term are sampled from the *height function* at two
+  ring radii rather than from mesh neighbours, so shading quality is
+  independent of tessellation and costs nothing at runtime.
+- **Walls** — the black-earth profile the project is named after: humus over
+  chernozem over a mottled transition into pale loess, with crumb
+  displacement that bulges in the topsoil and calms toward the clay. Sand
+  gets cross-bedding, marsh gets peat over grey-green gley.
+- **Vegetation** — individually curved blade ribbons (9 vertices, 7 triangles
+  each), placed on a jittered grid gated by clump noise, with per-blade hue
+  jitter, a dry fraction, wind-biased lean and optional feather-grass seed
+  heads. No cards, no alpha, no texture.
+- **The five kinds** — `meadow` (two blade populations over dark humus),
+  `steppe` (sparse dry feather-grass over cracked bare soil), `field`
+  (ploughed chernozem: wobbling furrow waves, two octaves of clod relief,
+  straw stubble rows on the crests, scattered lying straw), `sand`
+  (skew-crested wind ripples over dune swell), `marsh` (hummock grass around
+  standing water with cattail reeds on the shoreline).
+- Counts: meadow 107,483 tris · steppe 58,632 · sand 37,158 · marsh 34,150 ·
+  field 29,058.
+
+### The ground material
+
+One shared `MeshStandardMaterial` finished by `onBeforeCompile`, same
+approach as `heroParts.ts` but with a second per-vertex channel. `aMat`
+carries roughness / metalness / wear; the new `aTer` carries sway weight,
+sparkle and wetness.
+
+- Multi-scale albedo mottle, grain glints on sand, duckweed flecks on wet
+  surfaces, and micro-normal relief — all derived from object-space position,
+  so it survives the merge and needs no UVs anywhere.
+- The sway weight doubles as a vegetation mask: anything that sways is a
+  blade and keeps its smooth ribbon normal, while ground takes the full
+  bump. One attribute, two jobs.
+- A `uTime` uniform drives a two-harmonic wind sway phase-offset per blade
+  position.
+
+### Review rig — `src/ui/AssetsView.tsx`
+
+The `review unit` cycler became `review subject` and now runs the four hero
+vehicles followed by the five tiles. Terrain gets a slower turntable, a low
+warm raking key light (furrows and ripples vanish under top light alone) and
+the frame clock wired to `uTime`.
+
+### Map integration — `src/map/Vegetation.tsx`
+
+A new runtime layer: one merged static geometry, 151,816 triangles / ~21,700
+blades over the whole map, rebuilt only when the scenario changes.
+
+- **Placement follows the geodata, not the terrain enum.** Hexes whose crop
+  fraction exceeds 0.45 get straw stubble clumps on three seeded parallel
+  rows — worked fields read as worked from altitude. Marsh terrain or a
+  wetland fraction above 0.3 gets wet-green tufts plus a few taller reeds.
+  Everything else open gets sparse dry steppe clumps, denser where partial
+  crop cover exists. Forest, urban and water hexes are skipped and left to
+  the existing decorations. Placement reads the same `hexFracs` the albedo
+  painter uses, so the cover agrees with the paint underneath it.
+- Clumps of 3–4 blades, not single blades — a lone blade is sub-pixel at
+  campaign altitude. Tile centres are kept clear so units never stand in a
+  bush; blades below the shoreline are dropped.
+- Comes off the map in the parchment political mode with the rest of the 3D
+  clutter, and retints under snow like the forests.
+- Deliberately **static and non-casting**: no `uTime` (the map layer takes a
+  plain vertex-coloured material), and `receiveShadow` without `castShadow` —
+  152k triangles in the sun's 4096² shadow map is not worth what it buys at
+  this distance.
+
+### Verification
+
+`tsc --noEmit` clean; 16/16 rule tests; `playtest.mjs` through selection →
+attack → end turn → a full AI turn with zero page errors. **All seven golden
+baselines pass unchanged** (0.48–0.53% against ~0.45% rasteriser noise,
+formation shot 0.05%) — the layer adds texture at close range without moving
+the theatre's overall tone, which is the restrained treatment the editorial
+stance asks for. One visual iteration: the first pass was invisible at the
+closest camera, so clump heights and blade widths went up ~40% at unchanged
+geometry cost.
+
+Known limits, recorded deliberately: the dioramas have no runtime consumer
+and exist as the design reference plus the `#assets` review subject; the map
+layer does not sway; and infantry-scale ground detail (tracks, spoil, wear
+around positions) remains on the `BattleWear` layer, untouched here.
 
 ## [0.2.4] — 2026-08-07 · Hero tier in the game
 

@@ -13,6 +13,7 @@ import { BattleWear, CombatMoment, Landmarks, SupplyFlow } from './Presentation'
 import { TerrainMesh } from './terrain/TerrainMesh';
 import { RiverRibbons, Sea } from './terrain/Water';
 import { Units } from './Units';
+import { Vegetation } from './Vegetation';
 import { WeatherParticles } from './Weather';
 import { PostFX } from './postfx/PostFX';
 import { WEATHER_ENV } from './palette';
@@ -106,6 +107,7 @@ export function MapScene() {
       <Sea />
       <RiverRibbons />
       <Frontline />
+      {!paper && <Vegetation />}
       {!paper && <Forests />}
       {!paper && <UrbanBlocks />}
       {!paper && <Fortifications />}

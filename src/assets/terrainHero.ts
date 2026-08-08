@@ -96,10 +96,10 @@ for (let k = 0; k < 6; k++) {
 // aTer (sway/sparkle/wet) carried per vertex alongside colour.
 // ---------------------------------------------------------------------------
 
-interface VertMat { r: number; m: number; w?: number }
-interface VertTer { sway?: number; sp?: number; wet?: number }
+export interface VertMat { r: number; m: number; w?: number }
+export interface VertTer { sway?: number; sp?: number; wet?: number }
 
-class GeoBuilder {
+export class GeoBuilder {
   pos: number[] = [];
   col: number[] = [];
   amat: number[] = [];
@@ -331,7 +331,7 @@ function buildWalls(b: GeoBuilder, sec: number, hFn: HeightFn, look: WallLookFn)
 
 const BLADE_TS = [0, 0.3, 0.6, 0.85];
 
-interface BladeSpec {
+export interface BladeSpec {
   x: number; z: number; ground: number;
   H: number; wBase: number;
   tipX: number; tipZ: number;         // horizontal tip drift, metres
@@ -340,7 +340,7 @@ interface BladeSpec {
   sway: number;                       // tip sway amplitude, metres
 }
 
-function pushBlade(b: GeoBuilder, s: BladeSpec): void {
+export function pushBlade(b: GeoBuilder, s: BladeSpec): void {
   const drift = Math.hypot(s.tipX, s.tipZ);
   let sx: number;
   let sz: number;
