@@ -35,42 +35,56 @@ const fadeState = { value: 0 };
 const COUNTER_ZOOM_IN = 20;  // counters (and their stamps) come in earlier
 const COUNTER_ZOOM_FULL = 30;
 
-// ONE selected language: a thick parchment washer with an ink rim so it
-// silhouettes on pale terrain (cream-on-cream was invisible at campaign
-// zoom). Can-attack is an amber chevron with the same ink edge — a
-// different silhouette, not a second ring. Contact-only and threatened
-// live on the plate texture, not here.
-const SELECT_INK = new THREE.RingGeometry(1.15, 2.35, 6);
-SELECT_INK.rotateX(-Math.PI / 2);
-const SELECT_PAPER = new THREE.RingGeometry(1.28, 2.18, 6);
-SELECT_PAPER.rotateX(-Math.PI / 2);
-const CHEV_INK = new THREE.CircleGeometry(1.28, 3);
-const CHEV_PAPER = new THREE.CircleGeometry(1.08, 3);
-
-function AgencyMarks({ chrome, selected }: { chrome: BoardChrome; selected: boolean }) {
+// ONE selected language: a camera-facing parchment mat with an ink rim,
+// sitting behind the plate / standard so it frames the token. Ground
+// washers vanished — cream-on-cream plus the billboard covering them.
+// Can-attack is an amber chevron on the same billboard (screen-right),
+// a different silhouette. Contact-only and threatened stay on the plate.
+function AgencyMarks({
+  chrome,
+  selected,
+  width,
+  height,
+  y,
+}: {
+  chrome: BoardChrome;
+  selected: boolean;
+  width: number;
+  height: number;
+  y: number;
+}) {
+  const inkW = width * 1.48;
+  const inkH = height * 1.62;
+  const paperW = width * 1.28;
+  const paperH = height * 1.38;
+  const chevR = height * 0.72;
   return (
-    <group>
+    <Billboard position={[0, y, 0]} follow>
       {selected && (
         <group>
-          <mesh position={[0, 0.04, 0]} geometry={SELECT_INK}>
+          <mesh position={[0, 0, -0.02]}>
+            <planeGeometry args={[inkW, inkH]} />
             <meshBasicMaterial color="#1e1b14" depthWrite={false} />
           </mesh>
-          <mesh position={[0, 0.055, 0]} geometry={SELECT_PAPER}>
+          <mesh position={[0, 0, -0.01]}>
+            <planeGeometry args={[paperW, paperH]} />
             <meshBasicMaterial color="#efe6d0" depthWrite={false} />
           </mesh>
         </group>
       )}
       {chrome.canAttack && (
-        <group position={[2.55, 0.06, 0]} rotation={[-Math.PI / 2, 0, -Math.PI / 2]}>
-          <mesh geometry={CHEV_INK}>
+        <group position={[inkW * 0.5 + chevR * 0.72, 0, -0.01]}>
+          <mesh>
+            <circleGeometry args={[chevR, 3]} />
             <meshBasicMaterial color="#1e1b14" depthWrite={false} />
           </mesh>
-          <mesh position={[0, 0, 0.012]} geometry={CHEV_PAPER}>
+          <mesh position={[0, 0, 0.004]} scale={0.78}>
+            <circleGeometry args={[chevR, 3]} />
             <meshBasicMaterial color="#d4b05a" depthWrite={false} />
           </mesh>
         </group>
       )}
-    </group>
+    </Billboard>
   );
 }
 
@@ -229,7 +243,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
           <meshBasicMaterial color="#b04a3a" transparent opacity={0.4} depthWrite={false} />
         </mesh>
       )}
-      <AgencyMarks chrome={chrome} selected={selected} />
+      <AgencyMarks chrome={chrome} selected={selected} width={0.92} height={0.64} y={0.14} />
       {/* The standard. */}
       <Billboard position={[0, 0.5, 0]} follow>
         <mesh>
@@ -327,7 +341,7 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
           emissiveIntensity={selected ? 0.5 : chrome.threatened ? 0.26 : 0}
         />
       </mesh>
-      <AgencyMarks chrome={chrome} selected={selected} />
+      <AgencyMarks chrome={chrome} selected={selected} width={2.05} height={1.28} y={0.70} />
       <Billboard position={[0, 0.78, 0]} follow>
         <mesh>
           <planeGeometry args={[2.05, 1.28]} />
