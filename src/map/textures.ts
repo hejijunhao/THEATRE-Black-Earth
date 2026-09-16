@@ -156,19 +156,32 @@ function drawContactBlade(
   ctx.fill();
 }
 
-/** Selected tab across the top of the plate — a bookmark, not a ring. */
-function drawSelectedTab(
+/** Heavy parchment corner ticks — selected language, not a ring. */
+function drawCornerTicks(
   ctx: CanvasRenderingContext2D,
   w: number,
+  h: number,
+  color: string,
+  weight = 8,
+  arm = 28,
 ): void {
-  ctx.fillStyle = '#efe6d0';
-  ctx.beginPath();
-  ctx.moveTo(18, 0);
-  ctx.lineTo(w - 18, 0);
-  ctx.lineTo(w - 36, 18);
-  ctx.lineTo(36, 18);
-  ctx.closePath();
-  ctx.fill();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = weight;
+  ctx.lineCap = 'square';
+  const inset = 12;
+  const corners: Array<[number, number, number, number, number, number]> = [
+    [inset, inset + arm, inset, inset, inset + arm, inset],
+    [w - inset - arm, inset, w - inset, inset, w - inset, inset + arm],
+    [inset, h - inset - arm, inset, h - inset, inset + arm, h - inset],
+    [w - inset - arm, h - inset, w - inset, h - inset, w - inset, h - inset - arm],
+  ];
+  for (const [ax, ay, bx, by, cx, cy] of corners) {
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.lineTo(bx, by);
+    ctx.lineTo(cx, cy);
+    ctx.stroke();
+  }
 }
 
 // Renders a unit counter to a canvas texture (320×192) — agency is the
@@ -206,15 +219,15 @@ export function makeCounterTexture(spec: CounterSpec): THREE.CanvasTexture {
     ctx.fill();
   }
 
-  if (spec.selected) drawSelectedTab(ctx, w);
+  if (spec.selected) drawCornerTicks(ctx, w, h, '#efe6d0', 9, 32);
   if (!spec.ghost) {
     if (spec.canAttack) drawContactBlade(ctx, h, '#d4b05a');
-    else if (spec.inContact) drawContactBlade(ctx, h, 'rgba(201, 163, 82, 0.45)');
+    else if (spec.inContact && !spec.selected) drawContactBlade(ctx, h, 'rgba(201, 163, 82, 0.45)');
   }
 
   const hasStamp = !spec.ghost && spec.movementMax != null && spec.movement != null;
   const fx = 48;
-  const fy = spec.selected ? 28 : 20;
+  const fy = 20;
   const fw = hasStamp ? 168 : 220;
   const fh = 88;
   ctx.strokeStyle = edge;
@@ -360,9 +373,9 @@ export function makeStandardTexture(spec: StandardSpec): THREE.CanvasTexture {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.38)';
     ctx.fill();
   }
-  if (spec.selected) drawSelectedTab(ctx, w);
+  if (spec.selected) drawCornerTicks(ctx, w, h, '#efe6d0', 7, 20);
   if (spec.canAttack) drawContactBlade(ctx, h, '#d4b05a');
-  else if (spec.inContact) drawContactBlade(ctx, h, 'rgba(201, 163, 82, 0.45)');
+  else if (spec.inContact && !spec.selected) drawContactBlade(ctx, h, 'rgba(201, 163, 82, 0.45)');
 
   drawSymbol(ctx, spec.type, 16, 18, 48, 40, spec.spent ? '#8a8474' : '#e8e2d2');
 

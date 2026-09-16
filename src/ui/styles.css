@@ -1701,6 +1701,15 @@ button {
   text-align: right;
 }
 .outliner-row.contact .or-kind { color: var(--gold); }
+.outliner-row .or-kind.assault {
+  padding: 1px 4px;
+  border: 1px solid rgba(201, 163, 82, 0.45);
+  cursor: pointer;
+}
+.outliner-row .or-kind.assault:hover {
+  background: rgba(201, 163, 82, 0.14);
+  border-color: var(--gold);
+}
 
 /* ----------------------------------------------------- bound journal
    Week, weather, engagements with dice. A book, not a toast strip. */

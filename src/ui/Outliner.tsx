@@ -42,6 +42,7 @@ export function Outliner() {
   const selectUnit = useStore((s) => s.selectUnit);
   const focusCamera = useStore((s) => s.focusCamera);
   const hoverTile = useStore((s) => s.hoverTile);
+  const setPendingAttack = useStore((s) => s.setPendingAttack);
 
   if (!game || game.phase !== 'player' || lastCombat) return null;
 
@@ -96,9 +97,23 @@ export function Outliner() {
                   </span>
                   <span className="or-mp">{orders.mp.toFixed(0)}</span>
                   <span className={`or-dot ${unit.supply}`} title={unit.supply} />
-                  <span className="or-kind">
-                    {kind === 'contact' ? `${orders.contacts.length}×` : ''}
-                  </span>
+                  {kind === 'contact' && orders.contacts[0] ? (
+                    <span
+                      className="or-kind assault"
+                      role="button"
+                      title="Open the staff estimate"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        selectUnit(unit.id);
+                        focusCamera(unit.tile);
+                        setPendingAttack(orders.contacts[0].id);
+                      }}
+                    >
+                      {orders.contacts.length}×
+                    </span>
+                  ) : (
+                    <span className="or-kind" />
+                  )}
                 </button>
               ))}
             </div>

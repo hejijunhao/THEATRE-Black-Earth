@@ -85,6 +85,11 @@ export const LEXICON = {
     doctrine:
       'Vehicles, guns, matériel. Mechanised and armoured formations drink this. Income is per week; a reconstitution binge will empty the depot.',
   },
+  terrain: {
+    title: 'Terrain',
+    doctrine:
+      'The hex under the formation. Plains are cheap to walk and poor to hold. Forest and urban multiply defence and cost the attacker, especially armour. Marsh is slow and pinches supply. Roads ignore most of the month. The type’s printed attack is only the start — this is the multiplier.',
+  },
   weather: {
     title: 'Weather',
     doctrine:

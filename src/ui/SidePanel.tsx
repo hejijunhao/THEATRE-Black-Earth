@@ -101,7 +101,12 @@ function UnitDetails({ unit }: { unit: Unit }) {
             <span className={`v ${unit.movement <= 0 ? 'bad' : ''}`}>{unit.movement.toFixed(1)}/{def.movement}</span>
           </div>
         </LexiconTip>
-        <div className="stat"><span className="k">Terrain</span><span className="v">{TERRAIN_DEFS[tile.terrain].label}</span></div>
+        <LexiconTip
+          id="terrain"
+          now={`${TERRAIN_DEFS[tile.terrain].label}${tile.road ? ' · road' : ''} — defence ×${TERRAIN_DEFS[tile.terrain].defense.toFixed(1)}.`}
+        >
+          <div className="stat"><span className="k">Terrain</span><span className="v">{TERRAIN_DEFS[tile.terrain].label}</span></div>
+        </LexiconTip>
       </div>
 
       <p className="hint">
@@ -127,7 +132,9 @@ function TileDetails() {
     <>
       <div className="unit-heading">
         <div>
-          <div className="type">{terrain.label}{tile.road ? ' · road' : ''}{tile.rail ? ' · rail' : ''}</div>
+          <LexiconTip id="terrain" now={`${terrain.label} — move ${tile.road || tile.rail ? 1 : terrain.moveCost}, defence ×${terrain.defense.toFixed(1)}.`}>
+            <div className="type">{terrain.label}{tile.road ? ' · road' : ''}{tile.rail ? ' · rail' : ''}</div>
+          </LexiconTip>
           <div className="name">{city ? city.name : `Sector ${tileId}`}</div>
         </div>
       </div>

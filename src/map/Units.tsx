@@ -38,18 +38,12 @@ const COUNTER_ZOOM_FULL = 30;
 
 // Solid marks, not hairline rings. A filled tab/blade reads at campaign zoom;
 // a 0.2-wide ring on a NATO flag does not.
-const TAB_GEO = new THREE.PlaneGeometry(1.85, 0.7);
 const BLADE_GEO = new THREE.CircleGeometry(0.72, 3);
 const NOTCH_GEO = new THREE.CircleGeometry(0.4, 3);
 
-function AgencyMarks({ chrome, selected }: { chrome: BoardChrome; selected: boolean }) {
+function AgencyMarks({ chrome }: { chrome: BoardChrome }) {
   return (
     <group>
-      {selected && (
-        <mesh position={[0, 0.02, 0.95]} rotation={[-Math.PI / 2, 0, 0]} geometry={TAB_GEO}>
-          <meshBasicMaterial color="#efe6d0" depthWrite={false} />
-        </mesh>
-      )}
       {chrome.canAttack && (
         <mesh position={[0.95, 0.024, 0]} rotation={[-Math.PI / 2, 0, -Math.PI / 2]} geometry={BLADE_GEO}>
           <meshBasicMaterial color="#d4b05a" depthWrite={false} />
@@ -60,7 +54,6 @@ function AgencyMarks({ chrome, selected }: { chrome: BoardChrome; selected: bool
           <meshBasicMaterial color="#c9a352" depthWrite={false} />
         </mesh>
       )}
-      {/* Threatened is a parchment edge on the enemy plate — not a ring twin. */}
     </group>
   );
 }
@@ -220,7 +213,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
           <meshBasicMaterial color="#b04a3a" transparent opacity={0.4} depthWrite={false} />
         </mesh>
       )}
-      <AgencyMarks chrome={chrome} selected={selected} />
+      <AgencyMarks chrome={chrome} />
       {/* The standard. */}
       <Billboard position={[0, 0.5, 0]} follow>
         <mesh>
@@ -318,7 +311,7 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
           emissiveIntensity={selected ? 0.5 : chrome.threatened ? 0.38 : chrome.canAttack ? 0.3 : 0}
         />
       </mesh>
-      <AgencyMarks chrome={chrome} selected={selected} />
+      <AgencyMarks chrome={chrome} />
       <Billboard position={[0, 0.78, 0]} follow>
         <mesh>
           <planeGeometry args={[2.05, 1.28]} />

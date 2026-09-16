@@ -56,8 +56,15 @@ export function VictoryClock() {
         </div>
       </Tip>
       <div className="clock-needles">
-        <Tip lexicon block title={LEXICON.cities.title} text={LEXICON.cities.doctrine} now={`${b.cities.label} VP · ${b.cities.sub}`}>
-          <Dial label="Cities" value={b.cities.value} max={b.cities.max} numeral={b.cities.label} sub={b.cities.sub} tone={b.cities.tone} />
+        <Tip lexicon block title={LEXICON.cities.title} text={LEXICON.cities.doctrine} now={`${b.cities.decisiveHeld}/${b.cities.decisiveTotal} decisive · ${b.cities.held} VP (${b.cities.delta >= 0 ? '+' : ''}${b.cities.delta}).`}>
+          <Dial
+            label="Decisive"
+            value={b.cities.decisiveHeld}
+            max={Math.max(1, b.cities.decisiveTotal)}
+            numeral={`${b.cities.decisiveHeld}/${b.cities.decisiveTotal}`}
+            sub={`${b.cities.held} VP ${b.cities.delta >= 0 ? '+' : ''}${b.cities.delta}`}
+            tone={b.cities.tone}
+          />
         </Tip>
         <Tip lexicon block title={LEXICON.warSupport.title} text={LEXICON.warSupport.doctrine} now={`${b.support.label} · ${b.support.sub}`}>
           <Dial label="Support" value={b.support.value} max={100} numeral={b.support.label} sub={b.support.sub} tone={b.support.tone} />

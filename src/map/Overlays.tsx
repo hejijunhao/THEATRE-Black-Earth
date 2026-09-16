@@ -9,6 +9,7 @@ import { validateOpTarget } from '../game/rules/ops';
 import { validDeployTiles } from '../game/rules/turn';
 import { OPERATION_DEFS } from '../game/data/defs';
 import { tileWorldById } from '../game/hex';
+import { threatenedIds } from '../ui/boardChrome';
 import { tileGroundY } from './terrain/heightfield';
 
 function useHexShapes() {
@@ -97,6 +98,19 @@ export function Overlays() {
                 opacity={r.entersZOC ? 0.34 : 0.24}
                 depthWrite={false}
               />
+            </mesh>
+          );
+        })}
+
+      {/* Threatened hex wash — parchment on the ground, not a ring twin. */}
+      {selectedUnit && game.phase === 'player' &&
+        [...threatenedIds(game, selectedUnitId)].map((id) => {
+          const unit = game.units[id];
+          if (!unit) return null;
+          const { wx, wz } = tileWorldById(unit.tile);
+          return (
+            <mesh key={`threat-${id}`} geometry={disc} position={[wx, tileY(tiles, unit.tile), wz]}>
+              <meshBasicMaterial color="#efe6d0" transparent opacity={0.22} depthWrite={false} />
             </mesh>
           );
         })}

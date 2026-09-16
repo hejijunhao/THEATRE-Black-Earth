@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildInitialState } from '../../game/scenarios/build';
 import { agencyKind, boardChrome } from '../boardChrome';
-import { armyNow, citiesNow, movementNow, strengthNow, warSupportNow } from '../lexicon';
+import { armyNow, citiesNow, LEXICON, movementNow, strengthNow, warSupportNow } from '../lexicon';
 import { theatreBalance } from '../theatreBalance';
 
 describe('encyclopedia now-lines', () => {
@@ -29,6 +29,12 @@ describe('encyclopedia now-lines', () => {
     expect(citiesNow(40, 50, 0, 3).tone).toBe('bad');
     expect(citiesNow(50, 50, 3, 3).tone).toBe('good');
     expect(citiesNow(50, 50, 1, 3).tone).toBe('even');
+  });
+
+  it('ships doctrine entries for the staff terms, not one-line tips', () => {
+    for (const id of ['strength', 'movement', 'odds', 'terrain', 'supply'] as const) {
+      expect(LEXICON[id].doctrine.split(' ').length).toBeGreaterThan(20);
+    }
   });
 
   it('calls a hollow army when the body ratio collapses', () => {
