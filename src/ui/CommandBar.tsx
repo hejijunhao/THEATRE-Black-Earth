@@ -1,11 +1,13 @@
-// Bottom command bar: unit orders, strategic operations, reserves, end turn.
-// Map modes live in their own cluster bottom-left.
+// Command bench: the selected formation's legal orders as plates, plus
+// theatre actions (operations, reserves, end week). Half-disabled global
+// toolbar is gone — a plate is present only when the order is legal.
 
 import { useState } from 'react';
 import { OPERATION_DEFS, UNIT_DEFS } from '../game/data/defs';
 import { canUseOperation } from '../game/rules/ops';
 import { MapMode, useStore } from '../game/state/store';
 import { OperationId } from '../game/types';
+import { unitOrders } from './boardChrome';
 import { Ico } from './icons';
 import { Tip } from './Tip';
 
@@ -45,86 +47,165 @@ const OP_ORDER: OperationId[] = [
   'fortify_position',
 ];
 
+function Plate({
+  eyebrow,
+  title,
+  line,
+  icon,
+  tip,
+  onClick,
+  active,
+  tone,
+}: {
+  eyebrow: string;
+  title: string;
+  line: string;
+  icon: string;
+  tip: string;
+  onClick?: () => void;
+  active?: boolean;
+  tone?: 'contact' | 'spent' | 'stat';
+}) {
+  const cls = `bench-plate${active ? ' active' : ''}${tone ? ` ${tone}` : ''}${onClick ? '' : ' inert'}`;
+  const body = (
+    <>
+      <span className="ico"><Ico name={icon} size={16} /></span>
+      <span className="copy">
+        <span className="eye">{eyebrow}</span>
+        <span className="ttl">{title}</span>
+        <span className="ln">{line}</span>
+      </span>
+    </>
+  );
+  return (
+    <Tip title={`${eyebrow} · ${title}`} text={tip} block>
+      {onClick ? (
+        <button type="button" className={cls} onClick={onClick}>{body}</button>
+      ) : (
+        <div className={cls}>{body}</div>
+      )}
+    </Tip>
+  );
+}
+
 export function CommandBar() {
   const game = useStore((s) => s.game);
   const selectedUnitId = useStore((s) => s.selectedUnitId);
+  const pendingAttackId = useStore((s) => s.pendingAttackId);
   const toggleReinforce = useStore((s) => s.toggleReinforce);
   const orderEntrench = useStore((s) => s.orderEntrench);
   const beginOperation = useStore((s) => s.beginOperation);
   const beginDeploy = useStore((s) => s.beginDeploy);
   const requestEndTurn = useStore((s) => s.requestEndTurn);
+  const setPendingAttack = useStore((s) => s.setPendingAttack);
   const pendingOp = useStore((s) => s.pendingOp);
+  const lastCombat = useStore((s) => s.lastCombat);
   const [showOps, setShowOps] = useState(false);
   const [showReserves, setShowReserves] = useState(false);
 
-  if (!game || game.phase !== 'player') return null;
+  if (!game || game.phase !== 'player' || lastCombat || pendingAttackId) return null;
 
   const unit = selectedUnitId ? game.units[selectedUnitId] : null;
   const faction = game.factions[game.playerFaction];
+  const orders = unit ? unitOrders(game, unit) : null;
+  const def = unit ? UNIT_DEFS[unit.type] : null;
 
   return (
     <>
-      <div className="command-bar panel">
-        <div className="group">
-          <Tip
-            title="Reinforce"
-            text="Order the selected formation to absorb replacements. Consumes manpower and equipment each turn; works best in supply and away from the front."
-          >
-            <button
-              className={`cmd-btn ${unit?.reinforcing ? 'active' : ''}`}
-              disabled={!unit || unit.strength >= 98}
-              onClick={toggleReinforce}
-            >
-              <span className="ico"><Ico name="reinforce" size={16} /></span>
-              Reinforce
-            </button>
-          </Tip>
-          <Tip
-            title="Entrench"
-            text="Spend the formation's remaining movement to dig in immediately (+1 entrenchment). Entrenchment also grows passively for stationary units."
-          >
-            <button
-              className="cmd-btn"
-              disabled={!unit || unit.movement <= 0}
-              onClick={orderEntrench}
-            >
-              <span className="ico"><Ico name="entrench" size={16} /></span>
-              Entrench
-            </button>
-          </Tip>
+      <div className="command-bench panel">
+        <div className="bench-formation">
+          {unit && orders && def ? (
+            <>
+              <div className="bench-who">
+                <span className="eye">{def.label}</span>
+                <span className="ttl">{unit.name}</span>
+              </div>
+              <div className="bench-plates">
+                <Plate
+                  eyebrow="March"
+                  title={orders.canMove ? `${orders.mp.toFixed(1)} MP` : 'No march'}
+                  line={orders.canMove ? `of ${orders.mpMax}` : 'spent'}
+                  icon="trend"
+                  tip="Click a highlighted hex to move. Roads are faster; forests, marsh and river crossings are slow. Moving next to the enemy ends the march."
+                  tone="stat"
+                />
+                {orders.contacts.length > 0 && (
+                  <Plate
+                    eyebrow={orders.isFires ? 'Fires' : 'Assault'}
+                    title={`${orders.contacts.length} in contact`}
+                    line="open briefing"
+                    icon={orders.isFires ? 'artillery' : 'threat'}
+                    tip="Click to open the staff estimate against the first adjacent enemy. You can also click the enemy counter on the board."
+                    onClick={() => setPendingAttack(orders.contacts[0].id)}
+                    active={Boolean(pendingAttackId)}
+                    tone="contact"
+                  />
+                )}
+                {orders.canEntrench && (
+                  <Plate
+                    eyebrow="Field"
+                    title="Entrench"
+                    line="+1 now"
+                    icon="entrench"
+                    tip="Spend the formation's remaining movement to dig in immediately (+1 entrenchment). Entrenchment also grows passively for stationary units."
+                    onClick={orderEntrench}
+                  />
+                )}
+                {orders.canReinforce && (
+                  <Plate
+                    eyebrow="Depot"
+                    title={orders.reinforcing ? 'Receiving' : 'Reinforce'}
+                    line={`${def.reinforceCost.manpower} MP · ${def.reinforceCost.equipment} EQ`}
+                    icon="reinforce"
+                    tip="Order the selected formation to absorb replacements. Consumes manpower and equipment each turn; works best in supply and away from the front."
+                    onClick={toggleReinforce}
+                    active={orders.reinforcing}
+                  />
+                )}
+                {orders.spent && (
+                  <Plate
+                    eyebrow="Week"
+                    title="Spent"
+                    line={orders.hasAttacked ? 'has engaged' : 'no march left'}
+                    icon="cooldown"
+                    tip="This formation has no movement remaining. Select another, or end the week."
+                    tone="spent"
+                  />
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="bench-who empty">
+              <span className="eye">Orders</span>
+              <span className="ttl">Select a formation</span>
+            </div>
+          )}
         </div>
 
-        <div className="group">
-          <Tip
-            title="Strategic operations"
-            text="Limited theatre capabilities paid with command points: reconnaissance, fires, air support, resupply and engineering."
-          >
-            <button
-              className={`cmd-btn ${showOps || pendingOp ? 'active' : ''}`}
+        <div className="bench-theatre">
+          <div className="bench-plates">
+            <Plate
+              eyebrow="Theatre"
+              title="Operations"
+              line={`${faction.command}/${faction.commandMax} CMD`}
+              icon="operations"
+              tip="Limited theatre capabilities paid with command points: reconnaissance, fires, air support, resupply and engineering."
               onClick={() => { setShowOps(!showOps); setShowReserves(false); }}
-            >
-              <span className="ico"><Ico name="operations" size={16} /></span>
-              Operations
-            </button>
-          </Tip>
-          <Tip
-            title="Reserves"
-            text="Uncommitted formations. Deploy them at supplied hub cities — filling a gap now may cost you the counterattack later."
-          >
-            <button
-              className={`cmd-btn ${showReserves ? 'active' : ''}`}
+              active={showOps || Boolean(pendingOp)}
+            />
+            <Plate
+              eyebrow="Theatre"
+              title="Reserves"
+              line={`${faction.reserves.length} waiting`}
+              icon="reserves"
+              tip="Uncommitted formations. Deploy them at supplied hub cities — filling a gap now may cost you the counterattack later."
               onClick={() => { setShowReserves(!showReserves); setShowOps(false); }}
-            >
-              <span className="ico"><Ico name="reserves" size={16} /></span>
-              Reserves ({faction.reserves.length})
-            </button>
-          </Tip>
-        </div>
-
-        <div className="group">
-          <Tip title="End turn" text="Commit your orders and hand the initiative to the enemy. You will be warned about idle formations and unresolved decisions.">
+              active={showReserves}
+            />
+          </div>
+          <Tip title="End week" text="Commit your orders and hand the initiative to the enemy. You will be warned about idle formations and unresolved decisions.">
             <button className="end-turn-btn" onClick={requestEndTurn}>
-              End Turn
+              End Week
             </button>
           </Tip>
         </div>
@@ -133,7 +214,7 @@ export function CommandBar() {
       {showOps && (
         <div
           className="panel panel-framed"
-          style={{ position: 'absolute', bottom: 118, left: '50%', transform: 'translateX(-50%)', width: 460, zIndex: 25 }}
+          style={{ position: 'absolute', bottom: 140, left: '50%', transform: 'translateX(-50%)', width: 460, zIndex: 25 }}
         >
           <div className="panel-title">
             Strategic Operations
@@ -141,10 +222,10 @@ export function CommandBar() {
           </div>
           <div style={{ padding: 10 }}>
             {OP_ORDER.map((opId) => {
-              const def = OPERATION_DEFS[opId];
+              const opDef = OPERATION_DEFS[opId];
               const check = canUseOperation(game, game.playerFaction, opId);
               return (
-                <Tip key={opId} title={def.name} text={def.description} block>
+                <Tip key={opId} title={opDef.name} text={opDef.description} block>
                   <button
                     className="option-btn op-row"
                     disabled={!check.ok}
@@ -156,9 +237,9 @@ export function CommandBar() {
                   >
                     <span className="op-ico"><Ico name={opId} size={16} /></span>
                     <span className="op-copy">
-                      <span className="label">{def.name}</span>
+                      <span className="label">{opDef.name}</span>
                       <span className="desc">
-                        {def.cost[game.playerFaction]} CMD · cooldown {def.cooldown}t
+                        {opDef.cost[game.playerFaction]} CMD · cooldown {opDef.cooldown}t
                         {!check.ok && check.reason ? ` — ${check.reason}` : ''}
                       </span>
                     </span>
@@ -173,7 +254,7 @@ export function CommandBar() {
       {showReserves && (
         <div
           className="panel"
-          style={{ position: 'absolute', bottom: 118, left: '50%', transform: 'translateX(-50%)', width: 380, zIndex: 25 }}
+          style={{ position: 'absolute', bottom: 140, left: '50%', transform: 'translateX(-50%)', width: 380, zIndex: 25 }}
         >
           <div className="panel-title">Reserve Formations</div>
           <div style={{ padding: 10 }}>

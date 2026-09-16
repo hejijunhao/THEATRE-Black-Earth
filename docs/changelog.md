@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.7](#027--2026-09-16--ui-hardening-cut) | 2026-09-16 | UI hardening cut | board chrome (MP / spent / contact), assault briefing card, command bench plates, dispatch paper, strength lexicon |
 | [0.2.6](#026--2026-09-16--readable-engagements) | 2026-09-16 | Readable engagements | explicit 2d6 per side, attack/defence rolls decide damage given/taken, after-action report, combat unit tests |
 | [0.2.5](#025--2026-08-08--hero-terrain-tier-ground) | 2026-08-08 | Hero terrain tier (ground) | five diorama ground tiles, blade-geometry grass, soil strata, analytic AO, aTer channels, map vegetation layer from geodata fractions |
 | [0.2.4](#024--2026-08-07--hero-tier-in-the-game) | 2026-08-07 | Hero tier in the game | hero models replace the low-poly vehicles on the map, instanced formations, echelon layout, per-instance weathering, formation golden shot |
@@ -23,6 +24,34 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.7] — 2026-09-16 · UI hardening cut
+
+A presentation pass on the combat / orders loop. Rules are unchanged (PC2
+2d6, same power model). The board and the bench now say who can still act.
+
+- **Board chrome.** Counters are frames: abbreviated name, a brass MP box,
+  ATK if the formation has engaged, supply pip. Spent plates dim hard.
+  Contact (adjacent) is a dim gold ring; can-attack is a bright one.
+  Selected is a parchment outer ring. Spent fades. A selected unit's legal
+  targets get a parchment edge. Tab-forced counters and miniature LOD share
+  the same read.
+- **Assault briefing.** The preview is no longer a 320px dock. It is a
+  centered staff paper — verdict as headline, named sides, odds, expected
+  losses, factor ledger — then Commit the roll. Esc withdraws. The side
+  panel yields the stage.
+- **Command bench.** The selected formation's *legal* orders appear as
+  plates (March / Assault / Entrench / Reinforce). Theatre plates
+  (Operations, Reserves, End Week) sit to the right. No half-disabled
+  global toolbar. The Assault plate opens the briefing against first contact.
+- **Dispatch material + one lexicon tip.** Briefing and after-action share a
+  paper/ink wash and a stamped mark. Hover Strength for a short doctrine
+  paragraph and why the colour is what it is *now*.
+- **Outliner (start).** Left rail of every friendly formation, sorted
+  contact → can march → spent. Click selects and focuses the camera. Header
+  counts who can still act. Not a Vic 3 country list.
+
+The campaign, map, AI, supply and combat math are unchanged.
 
 ## [0.2.6] — 2026-09-16 · Readable engagements
 

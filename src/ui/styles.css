@@ -266,7 +266,7 @@ button {
   top: 58px;
   right: 12px;
   width: 320px;
-  max-height: calc(100% - 210px);
+  max-height: calc(100% - 250px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -411,7 +411,151 @@ button {
 
 .btn-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
 
-/* --------------------------------------------------------- command bar */
+/* --------------------------------------------------------- command bench
+   Selected formation's legal orders as plates. Theatre actions stay
+   on the right. No half-disabled global toolbar. */
+
+.command-bench {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: 0;
+  min-height: 86px;
+  max-width: min(1080px, calc(100vw - 248px));
+  border-radius: 2px;
+  z-index: 16;
+}
+
+.bench-formation {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.bench-who {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+.bench-who .eye {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.bench-who .ttl {
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--ink-bright);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bench-who.empty .ttl { color: var(--ink-dim); font-style: italic; }
+
+.bench-theatre {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 8px 12px;
+  border-left: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(201, 163, 82, 0.04), transparent);
+}
+
+.bench-plates {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.bench-plate {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  min-width: 102px;
+  max-width: 148px;
+  flex: 0 1 auto;
+  padding: 6px 8px 7px;
+  text-align: left;
+  color: var(--ink);
+  background:
+    linear-gradient(180deg, rgba(38, 36, 30, 0.55), rgba(16, 16, 18, 0.7)),
+    var(--tex-plate);
+  background-size: auto, 100% 100%;
+  background-blend-mode: soft-light, normal;
+  border: 1px solid var(--line);
+  box-shadow:
+    inset 0 1px 0 rgba(230, 220, 190, 0.06),
+    0 1px 4px rgba(0, 0, 0, 0.28);
+  transition: border-color 0.12s, color 0.12s, box-shadow 0.12s, background 0.12s;
+}
+.bench-plate .ico {
+  color: var(--ink-dim);
+  margin-top: 2px;
+}
+.bench-plate .copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.bench-plate .eye {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.bench-plate .ttl {
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--ink-bright);
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bench-plate .ln {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-dim);
+  margin-top: 1px;
+}
+.bench-plate:hover:not(.inert) {
+  border-color: var(--line-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 170, 0.08),
+    0 0 12px rgba(201, 163, 82, 0.08);
+}
+.bench-plate:hover:not(.inert) .ico { color: var(--gold); }
+.bench-plate.active {
+  border-color: rgba(201, 163, 82, 0.7);
+  color: var(--gold);
+  box-shadow: 0 0 12px rgba(201, 163, 82, 0.1);
+}
+.bench-plate.active .ico,
+.bench-plate.active .ttl { color: var(--gold); }
+.bench-plate.contact {
+  border-color: rgba(201, 163, 82, 0.55);
+}
+.bench-plate.contact .eye { color: var(--gold); }
+.bench-plate.spent {
+  opacity: 0.72;
+  border-style: dashed;
+}
+.bench-plate.stat { cursor: default; }
+.bench-plate.inert { cursor: default; }
 
 .command-bar {
   position: absolute;
@@ -477,6 +621,13 @@ button {
   box-shadow: 0 0 10px rgba(201, 163, 82, 0.08);
 }
 .cmd-btn.active .ico { color: var(--gold); }
+
+.command-bench .end-turn-btn {
+  align-self: stretch;
+  margin: 4px 4px 4px 2px;
+  padding: 0 18px;
+  min-height: 64px;
+}
 
 .end-turn-btn {
   background:
@@ -572,7 +723,7 @@ button {
 .notifications {
   position: absolute;
   left: 12px;
-  bottom: 190px;
+  bottom: 220px;
   width: 320px;
   display: flex;
   flex-direction: column-reverse;
@@ -638,6 +789,71 @@ button {
     radial-gradient(ellipse at 50% 42%, rgba(18, 16, 12, 0.35), rgba(6, 7, 9, 0.82) 70%);
 }
 .aar { width: 620px; padding-top: 8px; }
+
+/* Paper / ink wash shared by the assault briefing and the after-action dispatch. */
+.dispatch {
+  background:
+    linear-gradient(180deg, rgba(46, 40, 28, 0.42), rgba(16, 14, 12, 0.72)),
+    repeating-linear-gradient(
+      180deg,
+      rgba(201, 163, 82, 0.035) 0 1px,
+      transparent 1px 28px
+    ),
+    var(--tex-field),
+    var(--panel);
+  background-size: auto, auto, 192px 192px, auto;
+  background-blend-mode: normal, multiply, soft-light, normal;
+}
+.dispatch::before {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(40, 28, 16, 0.035) 0 1px,
+      transparent 1px 3px
+    ),
+    radial-gradient(ellipse at 50% 0%, rgba(201, 163, 82, 0.06), transparent 55%);
+}
+
+.stamp {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: rgba(176, 74, 58, 0.88);
+  border: 1.5px solid rgba(176, 74, 58, 0.62);
+  padding: 4px 9px;
+  transform: rotate(7deg);
+  text-transform: uppercase;
+  box-shadow:
+    1px 1px 0 rgba(176, 74, 58, 0.25),
+    inset 0 0 8px rgba(176, 74, 58, 0.08);
+  background: rgba(48, 22, 18, 0.25);
+  z-index: 3;
+}
+
+.assault-brief,
+.aar.dispatch {
+  overflow-x: hidden;
+}
+.assault-brief { width: min(640px, calc(100vw - 48px)); }
+.assault-brief .aar-headline { font-size: 28px; }
+.assault-brief .aar-detail { font-size: 14px; max-width: 38em; }
+.brief-bill {
+  border: 1px solid var(--line);
+  padding: 8px 12px;
+  margin: 0 0 10px;
+  background: rgba(0, 0, 0, 0.18);
+}
+.factor-ledger {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px 22px;
+  margin: 8px 0 6px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(190, 180, 150, 0.22);
+}
 .aar-head { padding: 22px 22px 4px; text-align: center; }
 .aar-kicker {
   font-family: var(--font-mono);
@@ -825,7 +1041,7 @@ button {
 /* Orders whisper above the command bench. */
 .orders-hint {
   position: absolute;
-  bottom: 76px;
+  bottom: 112px;
   left: 50%;
   transform: translateX(-50%);
   max-width: min(640px, calc(100vw - 280px));
@@ -1095,12 +1311,30 @@ button {
     inset 0 1px 0 rgba(230, 220, 190, 0.06);
 }
 .tooltip .tt-title { font-weight: 600; color: var(--ink-bright); margin-bottom: 3px; }
+.tooltip.lexicon {
+  max-width: 340px;
+  padding: 10px 12px;
+}
+.tooltip.lexicon .tt-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tooltip.lexicon p { margin: 0 0 8px; }
+.tooltip.lexicon p:last-child { margin-bottom: 0; }
+.tooltip.lexicon .tt-now {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 0.04em;
+}
 
 /* ----------------------------------------------------------- tutorial */
 
 .tutorial-prompt {
   position: absolute;
-  bottom: 84px;
+  bottom: 118px;
   left: 50%;
   transform: translateX(-50%);
   width: 460px;
@@ -1114,6 +1348,112 @@ button {
 .tutorial-prompt a { color: var(--ink-dim); font-size: 11px; cursor: pointer; text-decoration: underline; }
 .tutorial-prompt a:hover { color: var(--ink-bright); }
 
+/* ------------------------------------------------------------- outliner
+   Army at a glance: who can still act this week. Click selects + focuses.
+   A start — not Vic 3's country list. */
+
+.outliner {
+  position: absolute;
+  top: 58px;
+  left: 12px;
+  width: 196px;
+  max-height: calc(100% - 340px);
+  display: flex;
+  flex-direction: column;
+  z-index: 14;
+  overflow: hidden;
+}
+.outliner-head {
+  padding: 8px 10px 6px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.outliner-head .ttl {
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-bright);
+}
+.outliner-head .sub {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+}
+.outliner-list {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(190, 180, 150, 0.25) transparent;
+  padding: 4px 0;
+}
+.outliner-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 10px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-left: 2px solid transparent;
+  color: var(--ink);
+  font-size: 11px;
+}
+.outliner-row:hover {
+  background: rgba(201, 163, 82, 0.07);
+  color: var(--ink-bright);
+}
+.outliner-row.selected {
+  background: rgba(201, 163, 82, 0.1);
+  border-left-color: var(--gold);
+  color: var(--ink-bright);
+}
+.outliner-row.contact { border-left-color: var(--gold); }
+.outliner-row.spent { opacity: 0.48; }
+.outliner-row .or-name {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.outliner-row .or-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.outliner-row .or-mp {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+.outliner-row.spent .or-mp { color: var(--ink-dim); }
+.outliner-row .or-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+}
+.outliner-row .or-dot.strained,
+.outliner-row .or-dot.low { background: var(--amber); }
+.outliner-row .or-dot.isolated { background: var(--red); }
+.outliner-row .or-kind {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  min-width: 1.6em;
+  text-align: right;
+}
+.outliner-row.contact .or-kind { color: var(--gold); }
+
 /* ----------------------------------------------------- journal rail
    Vic3's best UI idea (§7.2): a right-hand card stack for the campaign's
    live concerns. Plain treatment — the subject panel outranks it. */
@@ -1121,7 +1461,7 @@ button {
 .journal {
   position: absolute;
   right: 12px;
-  bottom: 76px;
+  bottom: 118px;
   width: 236px;
   display: flex;
   flex-direction: column;

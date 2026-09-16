@@ -13,6 +13,7 @@ export function OrdersHint() {
   const interactionMode = useStore((s) => s.interactionMode);
 
   if (!game || game.phase !== 'player' || lastCombat) return null;
+  if (pendingAttackId) return null;
 
   let eyebrow = 'Orders';
   let line = 'Select a formation to move or attack.';
@@ -28,8 +29,8 @@ export function OrdersHint() {
     const def = game.units[pendingAttackId];
     eyebrow = UNIT_DEFS[atk?.type ?? 'infantry']?.support ? 'Fires' : 'Assault';
     line = atk && def
-      ? `${atk.name} against ${def.name} — confirm in the panel, or Esc to cancel.`
-      : 'Confirm the engagement in the panel.';
+      ? `${atk.name} against ${def.name} — confirm the briefing, or Esc to withdraw.`
+      : 'Confirm the engagement on the briefing, or Esc to withdraw.';
   } else if (selectedUnitId && game.units[selectedUnitId]) {
     const unit = game.units[selectedUnitId];
     const targets = attackableTargets(game, unit);
