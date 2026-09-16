@@ -1027,19 +1027,19 @@ button {
   width: 520px;
   max-width: calc(100vw - 320px);
   background:
-    linear-gradient(180deg, rgba(78, 66, 44, 0.32), rgba(28, 22, 16, 0.44)),
+    linear-gradient(180deg, rgba(198, 178, 138, 0.28), rgba(42, 32, 22, 0.48)),
     repeating-linear-gradient(
       180deg,
-      rgba(201, 163, 82, 0.055) 0 1px,
+      rgba(90, 60, 28, 0.07) 0 1px,
       transparent 1px 26px
     ),
     var(--tex-field);
   background-size: auto, auto, 192px 192px;
   background-blend-mode: normal, multiply, soft-light;
-  backdrop-filter: blur(2px) saturate(1.04);
+  backdrop-filter: blur(1.5px) saturate(1.02);
   box-shadow:
-    0 16px 40px rgba(0, 0, 0, 0.38),
-    inset 0 1px 0 rgba(230, 220, 190, 0.14);
+    0 16px 40px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(240, 224, 180, 0.2);
 }
 .brief-sheet::after {
   content: '';
@@ -1939,7 +1939,7 @@ button {
    Week, weather, engagements with dice. A book, not a toast strip. */
 
 .bound-journal.tucked {
-  opacity: 0.28;
+  opacity: 0;
   pointer-events: none;
 }
 .bound-journal {
