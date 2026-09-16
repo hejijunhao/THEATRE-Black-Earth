@@ -1,14 +1,34 @@
 // Headless playtest: drives a real browser through unit selection, movement,
 // an attack with preview, operations and a full AI turn, capturing
 // screenshots and console errors along the way.
+import { existsSync } from 'node:fs';
 import puppeteer from 'puppeteer-core';
 
 const OUT = process.env.OUT_DIR ?? 'scripts/out';
 const URL = 'http://localhost:5199';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+function chromePath() {
+  if (process.env.CHROME_PATH) return process.env.CHROME_PATH;
+  const candidates = [
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable',
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser',
+    '/snap/bin/chromium',
+  ];
+  return candidates.find((p) => existsSync(p));
+}
+
+const executablePath = chromePath();
+if (!executablePath) {
+  console.error('FAIL: no Chrome/Chromium found. Set CHROME_PATH.');
+  process.exit(1);
+}
+
 const browser = await puppeteer.launch({
-  executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  executablePath,
   headless: 'new',
   args: ['--no-sandbox', '--use-angle=metal', '--window-size=1600,1000'],
   defaultViewport: { width: 1600, height: 1000 },
@@ -83,6 +103,26 @@ if (hasHook) {
   });
   await sleep(700);
   await page.screenshot({ path: `${OUT}/12-attack-result.png` });
+  const combat = await page.evaluate(() => window.__TBE_DEBUG__.summary()?.lastCombat);
+  console.log('combat result:', JSON.stringify(combat));
+  if (!combat) {
+    console.error('FAIL: attack produced no lastCombat');
+    process.exitCode = 1;
+  } else {
+    const rollOk = combat.attackerRoll >= 2 && combat.attackerRoll <= 12;
+    const defOk = combat.defenderRoll == null
+      || (combat.defenderRoll >= 2 && combat.defenderRoll <= 12);
+    if (!rollOk || !defOk) {
+      console.error('FAIL: combat rolls out of 2d6 range', combat);
+      process.exitCode = 1;
+    }
+    const aar = await page.$('.aar');
+    console.log('after-action report visible:', Boolean(aar));
+    if (!aar) {
+      console.error('FAIL: after-action report not in the DOM');
+      process.exitCode = 1;
+    }
+  }
 }
 
 // End turn (confirm through warnings if shown).

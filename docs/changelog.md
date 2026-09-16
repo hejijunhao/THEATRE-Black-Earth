@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.6](#026--2026-09-16--readable-engagements) | 2026-09-16 | Readable engagements | explicit 2d6 per side, attack/defence rolls decide damage given/taken, after-action report, combat unit tests |
 | [0.2.5](#025--2026-08-08--hero-terrain-tier-ground) | 2026-08-08 | Hero terrain tier (ground) | five diorama ground tiles, blade-geometry grass, soil strata, analytic AO, aTer channels, map vegetation layer from geodata fractions |
 | [0.2.4](#024--2026-08-07--hero-tier-in-the-game) | 2026-08-07 | Hero tier in the game | hero models replace the low-poly vehicles on the map, instanced formations, echelon layout, per-instance weathering, formation golden shot |
 | [0.2.3](#023--2026-08-07--hero-tier-sweep-mech-arty-recon) | 2026-08-07 | Hero tier sweep — mech, arty, recon | shared assemblies, tracked IFV, towed 155 firing pose, 4×4 recon with sensor mast, review-unit cycler, shared hero material |
@@ -22,6 +23,30 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.6] — 2026-09-16 · Readable engagements
+
+The simulation already had a complete loop (select → move → attack → AI turn →
+victory). Fortune was a hidden ±10% swing and the result card listed raw
+loss numbers. This cut makes the engagement *readable* without rewriting the
+power model.
+
+- **2d6 per side.** Attack roll scales damage given; defence roll scales
+  damage taken. A 7 is average (fortune ×1.00); 2 is ×0.70; 12 is ×1.30.
+  Odds still come from `attackPower` / `defensePower` so the preview stays
+  honest. Retreat and advance use the post-dice ratio.
+- **After-action report.** Named formations, odds, stamped dice, fortune,
+  damage given/taken, strength before → after, held / fell back / destroyed /
+  ground captured. Esc dismisses. Preview now shows odds and estimated
+  losses before the roll.
+- **Journal and AI banner** print the dice and the exchange, so an enemy
+  assault is as legible as the player's.
+- **Tests.** `combat.test.ts` covers fortune mapping, exchange direction
+  (hot attack roll does not change damage taken), recorded 2d6, bombardment
+  fire-roll. `playtest.mjs` asserts `lastCombat` rolls and that the report
+  is in the DOM; Chrome path is portable via `CHROME_PATH`.
+
+The campaign, map, AI, supply and presentation stack are unchanged.
 
 ## [0.2.5] — 2026-08-08 · Hero terrain tier (ground)
 

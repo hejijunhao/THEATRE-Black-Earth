@@ -213,7 +213,7 @@ function AttackPreview() {
       {!isArtillery && (
         <Tip
           title="Expected result"
-          text="A qualitative estimate from relative combat power. A small random swing applies at resolution — decisions dominate, not dice."
+          text="Odds from relative combat power, before dice. Each side then rolls 2d6: your attack roll scales damage given, their defence roll scales damage taken. A 7 is average; 12 presses the assault, 2 falters. Decisions still dominate a 2:1 fight."
           block
         >
           <div className={`verdict ${preview.verdict}`}>{VERDICT_LABEL[preview.verdict]}</div>
@@ -224,6 +224,10 @@ function AttackPreview() {
       )}
 
       <div className="kv-line">
+        <span className="k">Odds</span>
+        <span className="v">{preview.oddsLabel}</span>
+      </div>
+      <div className="kv-line">
         <span className="k">Attack power</span>
         <span className="v">{preview.attackPower.toFixed(1)}</span>
       </div>
@@ -231,6 +235,12 @@ function AttackPreview() {
         <span className="k">Defence power</span>
         <span className="v">{observed ? preview.defensePower.toFixed(1) : `~${preview.defensePower.toFixed(0)} (est.)`}</span>
       </div>
+      {!isArtillery && (
+        <div className="kv-line">
+          <span className="k">Est. losses (before dice)</span>
+          <span className="v">−{Math.round(preview.expectedDefenderLoss)} / −{Math.round(preview.expectedAttackerLoss)} str</span>
+        </div>
+      )}
       {!observed && (
         <p className="hint">The defender is not fully observed — estimates may be wrong. A Reconnaissance Sweep would sharpen this preview.</p>
       )}
@@ -251,8 +261,10 @@ function AttackPreview() {
         </button>
         <button className="btn" onClick={() => setPendingAttack(null)}>Cancel</button>
       </div>
-      {isArtillery && (
-        <p className="hint">Bombardment degrades strength, readiness and entrenchment but does not capture ground.</p>
+      {isArtillery ? (
+        <p className="hint">Bombardment degrades strength, readiness and entrenchment but does not capture ground. The battery rolls 2d6 for effect.</p>
+      ) : (
+        <p className="hint">Confirm to roll 2d6 each. Attack roll = damage given; defence roll = damage taken.</p>
       )}
     </>
   );

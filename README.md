@@ -25,19 +25,32 @@ Built to the product brief in [`docs/archive/v1-briefing.md`](docs/archive/v1-br
 
 ```bash
 npm install
-npm run dev        # development server
+npm run dev        # development server (http://localhost:5173)
 npm run build      # production build (dist/)
 npm run test       # rule tests (vitest)
+npx tsc --noEmit   # strict typecheck
 ```
 
 No backend, accounts or external services. Saves live in `localStorage`.
 
-Optional headless checks (require a local Chrome install):
+### First session (the playable loop)
+
+1. **New campaign** as Ukraine (tutorial on). Skip guidance if you already know the board.
+2. Click a friendly formation — movement range highlights.
+3. Click a highlighted hex to **move**, or an adjacent enemy to **preview** an attack.
+4. Confirm the attack. Each side rolls **2d6**. Read the after-action report (Esc to dismiss).
+5. **End turn** (`Shift+Enter` or the command bar). Watch the enemy act, then the week resolves.
+6. The campaign ends on decisive objectives, war-support collapse, army destruction, or turn 36.
+
+Browser smokes (need a local Chrome/Chromium; playtest/golden hardcode port **5199**):
 
 ```bash
-node scripts/playtest.mjs                      # drives a real browser through a turn
+npm run dev -- --port 5199
+node scripts/playtest.mjs                      # select → attack with 2d6 → end turn → AI
 BALANCE=1 npx vitest run src/game/__tests__/balance.test.ts   # AI-vs-AI campaign
 ```
+
+`CHROME_PATH` overrides the browser binary if it is not in a default location.
 
 ## Controls
 
@@ -47,8 +60,9 @@ BALANCE=1 npx vitest run src/game/__tests__/balance.test.ts   # AI-vs-AI campaig
 | Right-drag | Tilt / rotate (limited) |
 | Click own formation | Select it (movement range appears) |
 | Click highlighted hex | Move there (capturing ground you pass through) |
-| Click adjacent enemy | Open the combat preview; confirm to attack |
-| `Esc` | Cancel targeting / deselect |
+| Click adjacent enemy | Open the combat preview; confirm to attack (2d6 each) |
+| After-action report | Dice, damage given/taken, strength before → after |
+| `Esc` | Dismiss report / cancel targeting / deselect |
 | `Shift+Enter` | End turn |
 | `Tab` | Toggle miniatures / classic counters |
 
@@ -83,9 +97,12 @@ Almost every value has an explanatory tooltip.
   weather adds friction, river edges cost extra except at bridges). Entering an
   enemy zone of control costs +1 MP and ends movement.
 - **Combat**: effective power = base stat × strength × readiness × morale ×
-  supply × terrain/support modifiers, with a small seeded swing (±10%).
-  Defenders usually degrade and retreat rather than die; units that cannot
-  retreat risk destruction — encirclement works.
+  supply × terrain/support modifiers. Confirming an attack rolls **2d6** for
+  each side: the attack roll decides damage given, the defence roll decides
+  damage taken (a 7 is average). The after-action report shows the dice,
+  odds, and strength before → after. Defenders usually degrade and retreat
+  rather than die; units that cannot retreat risk destruction — encirclement
+  works.
 - **Artillery** supports attacks from adjacent hexes and can bombard directly
   (degrading, never capturing).
 - **Supply states** (full → supplied → strained → low → isolated) scale

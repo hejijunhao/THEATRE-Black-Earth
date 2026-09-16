@@ -67,40 +67,135 @@ export function EndTurnDialog() {
   );
 }
 
+function Die({ value }: { value: number }) {
+  return <span className="die" aria-label={`d6 showing ${value}`}>{value}</span>;
+}
+
+function RollRow({ label, roll, hint }: { label: string; roll: { dice: number[]; total: number; fortune: number }; hint: string }) {
+  return (
+    <div className="aar-roll">
+      <div className="aar-roll-meta">
+        <span className="k">{label}</span>
+        <span className="hint">{hint}</span>
+      </div>
+      <div className="aar-dice">
+        {roll.dice.map((d, i) => <Die key={i} value={d} />)}
+        <span className="aar-total">= {roll.total}</span>
+        <span className={`aar-fortune ${roll.fortune >= 1 ? 'pos' : 'neg'}`}>
+          ×{roll.fortune.toFixed(2)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function CombatResultPanel() {
   const game = useStore((s) => s.game);
   const result = useStore((s) => s.lastCombat);
   const dismissCombat = useStore((s) => s.dismissCombat);
   if (!game || !result || game.phase !== 'player') return null;
 
-  const attacker = game.units[result.attackerId];
+  const isFire = result.kind === 'bombardment';
+  const outcome = result.defenderDestroyed
+    ? 'The defending formation was destroyed.'
+    : result.defenderRetreated
+      ? 'The defenders fell back.'
+      : isFire
+        ? 'The fires mission landed. Ground is not taken by bombardment.'
+        : 'The line held. Repeated pressure may still break it.';
+  const outcomeCls = result.defenderDestroyed
+    ? 'bad'
+    : result.defenderRetreated
+      ? 'warn'
+      : '';
 
   return (
-    <div
-      className="panel"
-      style={{ position: 'absolute', top: 58, left: 12, width: 300, zIndex: 22 }}
-    >
-      <div className="panel-title">
-        Engagement Result
-        <span className="sub">Turn {game.turn}</span>
-      </div>
-      <div style={{ padding: '10px 14px' }}>
-        <div className="kv-line"><span className="k">Attacker losses</span><span className="v">−{Math.round(result.attackerLoss)} str</span></div>
-        <div className="kv-line"><span className="k">Defender losses</span><span className="v">−{Math.round(result.defenderLoss)} str</span></div>
-        <div className="kv-line"><span className="k">Readiness</span><span className="v">−{Math.round(result.attackerReadinessLoss)} / −{Math.round(result.defenderReadinessLoss)}</span></div>
-        <div className="kv-line"><span className="k">Morale</span><span className="v">−{Math.round(result.attackerMoraleLoss)} / −{Math.round(result.defenderMoraleLoss)}</span></div>
-        <hr className="divider" />
-        {result.defenderDestroyed && <p style={{ color: 'var(--red)', margin: '4px 0' }}>The defending formation was destroyed.</p>}
-        {result.defenderRetreated && !result.defenderDestroyed && <p style={{ color: 'var(--amber)', margin: '4px 0' }}>The defenders fell back.</p>}
-        {result.tileCaptured && <p style={{ color: 'var(--gold)', margin: '4px 0' }}>Ground captured.</p>}
-        {!result.defenderRetreated && !result.defenderDestroyed && <p style={{ margin: '4px 0' }}>The line held. Repeated pressure may still break it.</p>}
-        {attacker && (
-          <p className="hint">
-            {attacker.name}: {Math.round(attacker.strength)}% strength, {Math.round(attacker.readiness)}% readiness.
-          </p>
-        )}
-        <div className="btn-row">
-          <button className="btn" onClick={dismissCombat}>Dismiss</button>
+    <div className="modal-backdrop aar-backdrop" onClick={dismissCombat}>
+      <div
+        className="modal panel panel-framed aar"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-labelledby="aar-title"
+      >
+        <div className="stamp">{isFire ? 'Fires' : 'After Action'}</div>
+        <div className="panel-title" id="aar-title">
+          {isFire ? 'Fire Mission' : 'Engagement'}
+          <span className="sub">Turn {game.turn}</span>
+        </div>
+        <div className="body">
+          <div className="aar-matchup">
+            <div className="aar-side">
+              <div className="type">Attacker</div>
+              <div className="name">{result.attackerName}</div>
+              <div className="aar-str">
+                {Math.round(result.attackerStrengthBefore)}%
+                <span className="arrow">→</span>
+                {Math.round(result.attackerStrengthAfter)}%
+              </div>
+            </div>
+            <div className="aar-odds">
+              <div className={`verdict ${result.resolvedVerdict}`}>
+                {result.resolvedVerdict}
+              </div>
+              <div className="aar-odds-n">
+                {result.baseRatio >= 1
+                  ? `${result.baseRatio.toFixed(1)} : 1`
+                  : `1 : ${(1 / Math.max(result.baseRatio, 0.01)).toFixed(1)}`}
+                <span className="k"> before dice</span>
+              </div>
+            </div>
+            <div className="aar-side right">
+              <div className="type">Defender</div>
+              <div className="name">{result.defenderName}</div>
+              <div className="aar-str">
+                {Math.round(result.defenderStrengthBefore)}%
+                <span className="arrow">→</span>
+                {Math.round(result.defenderStrengthAfter)}%
+              </div>
+            </div>
+          </div>
+
+          <RollRow
+            label={isFire ? 'Fire roll (2d6)' : 'Attack roll (2d6)'}
+            roll={result.attackerRoll}
+            hint={isFire ? 'Scales effect of the mission' : 'Decides damage given'}
+          />
+          {result.defenderRoll && (
+            <RollRow
+              label="Defence roll (2d6)"
+              roll={result.defenderRoll}
+              hint="Decides damage taken"
+            />
+          )}
+
+          <div className="aar-exchange">
+            <div className="kv-line">
+              <span className="k">Damage given</span>
+              <span className="v">−{Math.round(result.defenderLoss)} str · −{Math.round(result.defenderReadinessLoss)} rdy · −{Math.round(result.defenderMoraleLoss)} mor</span>
+            </div>
+            <div className="kv-line">
+              <span className="k">Damage taken</span>
+              <span className="v">
+                {isFire
+                  ? '— (fires do not expose the battery)'
+                  : `−${Math.round(result.attackerLoss)} str · −${Math.round(result.attackerReadinessLoss)} rdy · −${Math.round(result.attackerMoraleLoss)} mor`}
+              </span>
+            </div>
+          </div>
+
+          <p className={`aar-outcome ${outcomeCls}`}>{outcome}</p>
+          {result.tileCaptured && (
+            <p className="aar-outcome gold">Ground captured. The attacker advanced.</p>
+          )}
+          {!isFire && result.previewVerdict !== result.resolvedVerdict && (
+            <p className="hint">
+              Preview was {result.previewVerdict}; the dice made it {result.resolvedVerdict}.
+            </p>
+          )}
+
+          <div className="btn-row">
+            <button className="btn primary" onClick={dismissCombat}>Continue (Esc)</button>
+          </div>
         </div>
       </div>
     </div>

@@ -14,6 +14,14 @@ export function AIOverlay() {
     <div className="ai-banner panel">
       <span className="label pulse">Enemy Operations</span>
       <span className="action">{lastAILog?.text ?? 'The enemy command is issuing orders…'}</span>
+      {lastAILog?.combat && (
+        <span className="ai-combat">
+          2d6 {lastAILog.combat.attackerRoll.total}
+          {lastAILog.combat.defenderRoll ? ` vs ${lastAILog.combat.defenderRoll.total}` : ''}
+          {' · '}−{Math.round(lastAILog.combat.defenderLoss)} given
+          {lastAILog.combat.kind === 'assault' ? ` / −${Math.round(lastAILog.combat.attackerLoss)} taken` : ''}
+        </span>
+      )}
       {aiSpeed > 100 && (
         <button className="btn small" onClick={() => setAISpeed(80)}>
           Skip

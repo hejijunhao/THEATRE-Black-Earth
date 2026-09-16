@@ -6,7 +6,7 @@ import { create } from 'zustand';
 import { produce } from 'immer';
 import { aiTurnDone, planAIQueue, stepAI } from '../ai/ai';
 import { UNIT_DEFS, TERRAIN_DEFS } from '../data/defs';
-import { computePreview, resolveBombardment, resolveCombat } from '../rules/combat';
+import { computePreview, describeEngagement, resolveBombardment, resolveCombat } from '../rules/combat';
 import { recomputeFog } from '../rules/fog';
 import { applyMove, attackableTargets, unitOnTile } from '../rules/movement';
 import { applyOperation, canUseOperation, validateOpTarget } from '../rules/ops';
@@ -271,16 +271,16 @@ export const useStore = create<StoreState>((set, get) => {
       let result: CombatResult | null = null;
       const next = produce(game, (draft) => {
         const defenderRef = draft.units[defenderId];
-        result = isArtillery
+        const resolved = isArtillery
           ? resolveBombardment(draft, selectedUnitId, defenderId)
           : resolveCombat(draft, selectedUnitId, defenderId);
-        if (result.defenderDestroyed && defenderRef) noteUnitDestroyed(draft, defenderRef);
-        if (result.tileCaptured) {
-          const cityId = draft.tiles[result.tile].cityId;
+        result = resolved;
+        if (resolved.defenderDestroyed && defenderRef) noteUnitDestroyed(draft, defenderRef);
+        if (resolved.tileCaptured) {
+          const cityId = draft.tiles[resolved.tile].cityId;
           if (cityId) noteCityCapture(draft, cityId, draft.playerFaction);
         }
-        const verb = isArtillery ? 'bombards' : 'attacks';
-        pushNote(draft, 'combat', `${attacker.name} ${verb} ${defender.name}.`);
+        pushNote(draft, 'combat', describeEngagement(resolved));
         recomputeFog(draft);
       });
       set({ game: next, lastCombat: result, interactionMode: 'idle', pendingAttackId: null });
