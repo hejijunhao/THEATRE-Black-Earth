@@ -45,6 +45,9 @@ A presentation pass on the combat / orders loop. Rules are unchanged (PC2
 - **Dispatch material + one lexicon tip.** Briefing and after-action share a
   paper/ink wash and a stamped mark. Hover Strength for a short doctrine
   paragraph and why the colour is what it is *now*.
+- **Outliner (start).** Left rail of every friendly formation, sorted
+  contact → can march → spent. Click selects and focuses the camera. Header
+  counts who can still act. Not a Vic 3 country list.
 
 The campaign, map, AI, supply and combat math are unchanged.
 

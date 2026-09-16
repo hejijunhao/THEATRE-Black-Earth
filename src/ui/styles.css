@@ -1348,6 +1348,112 @@ button {
 .tutorial-prompt a { color: var(--ink-dim); font-size: 11px; cursor: pointer; text-decoration: underline; }
 .tutorial-prompt a:hover { color: var(--ink-bright); }
 
+/* ------------------------------------------------------------- outliner
+   Army at a glance: who can still act this week. Click selects + focuses.
+   A start — not Vic 3's country list. */
+
+.outliner {
+  position: absolute;
+  top: 58px;
+  left: 12px;
+  width: 196px;
+  max-height: calc(100% - 340px);
+  display: flex;
+  flex-direction: column;
+  z-index: 14;
+  overflow: hidden;
+}
+.outliner-head {
+  padding: 8px 10px 6px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.outliner-head .ttl {
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-bright);
+}
+.outliner-head .sub {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+}
+.outliner-list {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(190, 180, 150, 0.25) transparent;
+  padding: 4px 0;
+}
+.outliner-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 10px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-left: 2px solid transparent;
+  color: var(--ink);
+  font-size: 11px;
+}
+.outliner-row:hover {
+  background: rgba(201, 163, 82, 0.07);
+  color: var(--ink-bright);
+}
+.outliner-row.selected {
+  background: rgba(201, 163, 82, 0.1);
+  border-left-color: var(--gold);
+  color: var(--ink-bright);
+}
+.outliner-row.contact { border-left-color: var(--gold); }
+.outliner-row.spent { opacity: 0.48; }
+.outliner-row .or-name {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.outliner-row .or-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.outliner-row .or-mp {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+.outliner-row.spent .or-mp { color: var(--ink-dim); }
+.outliner-row .or-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+}
+.outliner-row .or-dot.strained,
+.outliner-row .or-dot.low { background: var(--amber); }
+.outliner-row .or-dot.isolated { background: var(--red); }
+.outliner-row .or-kind {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  min-width: 1.6em;
+  text-align: right;
+}
+.outliner-row.contact .or-kind { color: var(--gold); }
+
 /* ----------------------------------------------------- journal rail
    Vic3's best UI idea (§7.2): a right-hand card stack for the campaign's
    live concerns. Plain treatment — the subject panel outranks it. */

@@ -95,6 +95,12 @@ if (!bench || !/Assault|Fires|Entrench|March/i.test(bench)) {
   console.error('FAIL: command bench missing legal-order plates');
   process.exitCode = 1;
 }
+const outliner = await page.$eval('.outliner', (el) => el.innerText).catch(() => '');
+console.log('outliner:\n', outliner.slice(0, 220));
+if (!outliner || !/contact/i.test(outliner)) {
+  console.error('FAIL: outliner missing or empty');
+  process.exitCode = 1;
+}
 
 if (hasHook) {
   const info = await page.evaluate(() => window.__TBE_DEBUG__.summary());

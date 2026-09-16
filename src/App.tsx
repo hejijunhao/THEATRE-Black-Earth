@@ -11,6 +11,7 @@ import { AIOverlay } from './ui/AIOverlay';
 import { AssaultBriefing } from './ui/AssaultBriefing';
 import { CommandBar, MapModes } from './ui/CommandBar';
 import { OrdersHint } from './ui/OrdersHint';
+import { Outliner } from './ui/Outliner';
 import { MainMenu } from './ui/MainMenu';
 import {
   CombatResultPanel,
@@ -254,6 +255,7 @@ export default function App() {
       <MapScene />
       <div className="hud">
         <TopBar />
+        <Outliner />
         <SidePanel />
         <CommandBar />
         <OrdersHint />
