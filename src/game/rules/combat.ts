@@ -1,20 +1,21 @@
 // Combat: effective power = base stat x strength x readiness x morale x
-// supply x terrain/support modifiers, with a small seeded random swing at
-// resolution time. The preview and the resolution share the same power
-// computation so the preview is honest.
+// supply x terrain/support modifiers. Preview and resolution share the same
+// power computation so the preview is honest. Fortune is an explicit 2d6
+// per side: the attack roll scales damage given, the defence roll scales
+// damage taken. A 7 is average (fortune 1.0); 2 is 0.70; 12 is 1.30.
 
 import { TERRAIN_DEFS, UNIT_DEFS, WEATHER_DEFS } from '../data/defs';
 import { neighborIds } from '../hex';
-import { drawRange } from '../rng';
+import { rollDice } from '../rng';
 import { isEnemyZOC, riverBetween, unitOnTile } from './movement';
 import { unitSupplyFactor } from './supply';
 import {
   CombatFactor,
   CombatPreview,
   CombatResult,
+  CombatRoll,
   CombatVerdict,
   GameState,
-  opposing,
   Unit,
 } from '../types';
 
@@ -179,19 +180,90 @@ export function verdictFromRatio(ratio: number): CombatVerdict {
   return 'severe';
 }
 
+/** 2d6 total 2..12 → fortune 0.70..1.30, with 7 → 1.00. */
+export function fortuneFrom2d6(total: number): number {
+  return 0.7 + (total - 2) * 0.06;
+}
+
+export function formatOdds(ratio: number): string {
+  if (!Number.isFinite(ratio) || ratio <= 0) return '—';
+  if (ratio >= 1) return `${ratio.toFixed(1)} : 1`;
+  return `1 : ${(1 / ratio).toFixed(1)}`;
+}
+
+export interface ExchangeLosses {
+  attackerLoss: number;
+  defenderLoss: number;
+  attackerReadinessLoss: number;
+  defenderReadinessLoss: number;
+  attackerMoraleLoss: number;
+  defenderMoraleLoss: number;
+}
+
+// Attack roll scales damage given; defence roll scales damage taken.
+// Odds (ratio) set the base exchange; dice decide the swing.
+export function exchangeLosses(
+  ratio: number,
+  attackerFortune: number,
+  defenderFortune: number,
+  defenderEntrenchment: number,
+): ExchangeLosses {
+  const defenderLoss = Math.min(32, Math.max(4, (7 + 11 * (ratio - 0.75)) * attackerFortune));
+  let attackerLoss = Math.min(30, Math.max(3, (7 + 11 * (1 / Math.max(ratio, 0.15) - 0.85)) * defenderFortune));
+  attackerLoss *= 1 + defenderEntrenchment * 0.06;
+
+  return {
+    attackerLoss,
+    defenderLoss,
+    attackerReadinessLoss: Math.min(35, 16 + attackerLoss * 0.5),
+    defenderReadinessLoss: Math.min(30, 12 + defenderLoss * 0.6),
+    defenderMoraleLoss: Math.min(25, 6 + defenderLoss * 0.5),
+    attackerMoraleLoss: ratio < 0.8 ? Math.min(20, 8 + attackerLoss * 0.4) : 4,
+  };
+}
+
+function take2d6(state: GameState): CombatRoll {
+  const roll = rollDice(state.rngState, 2, 6);
+  state.rngState = roll.next;
+  return {
+    dice: roll.values,
+    total: roll.total,
+    fortune: fortuneFrom2d6(roll.total),
+  };
+}
+
+export function describeEngagement(result: CombatResult): string {
+  const outcome = result.defenderDestroyed
+    ? 'defender destroyed'
+    : result.defenderRetreated
+      ? result.tileCaptured
+        ? 'defenders fell back, ground taken'
+        : 'defenders fell back'
+      : 'the line held';
+  if (result.kind === 'bombardment') {
+    return `${result.attackerName} bombards ${result.defenderName} · 2d6 ${result.attackerRoll.total} · −${Math.round(result.defenderLoss)} str · ${outcome}`;
+  }
+  const defDie = result.defenderRoll ? result.defenderRoll.total : '—';
+  return `${result.attackerName} vs ${result.defenderName} · 2d6 ${result.attackerRoll.total}–${defDie} · −${Math.round(result.defenderLoss)} / −${Math.round(result.attackerLoss)} str · ${outcome}`;
+}
+
 export function computePreview(state: GameState, attacker: Unit, defender: Unit): CombatPreview {
   const ap = attackPower(state, attacker, defender);
   const dp = defensePower(state, defender, attacker);
   const ratio = ap.power / Math.max(dp.power, 0.01);
+  const expected = exchangeLosses(ratio, 1, 1, defender.entrenchment);
   return {
     attackerId: attacker.id,
     defenderId: defender.id,
     attackPower: ap.power,
     defensePower: dp.power,
     ratio,
+    oddsLabel: formatOdds(ratio),
     verdict: verdictFromRatio(ratio),
     factors: [...ap.factors, ...dp.factors],
     riverCrossing: riverBetween(state, attacker.tile, defender.tile) !== 'none',
+    expectedAttackerLoss: expected.attackerLoss,
+    expectedDefenderLoss: expected.defenderLoss,
   };
 }
 
@@ -223,30 +295,34 @@ export function resolveCombat(state: GameState, attackerId: string, defenderId: 
   const attacker = state.units[attackerId];
   const defender = state.units[defenderId];
   const defenderTile = defender.tile;
+  const attackerName = attacker.name;
+  const defenderName = defender.name;
+  const attackerStrengthBefore = attacker.strength;
+  const defenderStrengthBefore = defender.strength;
 
   const ap = attackPower(state, attacker, defender);
   const dp = defensePower(state, defender, attacker);
+  const baseRatio = ap.power / Math.max(dp.power, 0.01);
+  const previewVerdict = verdictFromRatio(baseRatio);
 
-  // Seeded swing: +-10% on each side.
-  const swingA = drawRange(state.rngState, 0.9, 1.1);
-  state.rngState = swingA.next;
-  const swingD = drawRange(state.rngState, 0.9, 1.1);
-  state.rngState = swingD.next;
+  const attackerRoll = take2d6(state);
+  const defenderRoll = take2d6(state);
+  const finalRatio = baseRatio * (attackerRoll.fortune / defenderRoll.fortune);
 
-  const finalA = ap.power * swingA.value;
-  const finalD = dp.power * swingD.value;
-  const ratio = finalA / Math.max(finalD, 0.01);
-
-  // Losses: pressure-based degradation, not annihilation.
-  let defenderLoss = Math.min(32, Math.max(4, 7 + 11 * (ratio - 0.75)));
-  let attackerLoss = Math.min(30, Math.max(3, 7 + 11 * (1 / Math.max(ratio, 0.15) - 0.85)));
-  // Entrenched defenders bleed attackers.
-  attackerLoss *= 1 + defender.entrenchment * 0.06;
-
-  const defenderReadinessLoss = Math.min(30, 12 + defenderLoss * 0.6);
-  const attackerReadinessLoss = Math.min(35, 16 + attackerLoss * 0.5);
-  const defenderMoraleLoss = Math.min(25, 6 + defenderLoss * 0.5);
-  const attackerMoraleLoss = ratio < 0.8 ? Math.min(20, 8 + attackerLoss * 0.4) : 4;
+  const exchange = exchangeLosses(
+    baseRatio,
+    attackerRoll.fortune,
+    defenderRoll.fortune,
+    defender.entrenchment,
+  );
+  const {
+    attackerLoss,
+    defenderLoss,
+    attackerReadinessLoss,
+    defenderReadinessLoss,
+    attackerMoraleLoss,
+    defenderMoraleLoss,
+  } = exchange;
 
   attacker.strength = Math.max(0, attacker.strength - attackerLoss);
   defender.strength = Math.max(0, defender.strength - defenderLoss);
@@ -274,7 +350,7 @@ export function resolveCombat(state: GameState, attackerId: string, defenderId: 
 
   const mustRetreat =
     defender.strength <= 0 ||
-    (ratio >= 1.6 && defender.strength < 55) ||
+    (finalRatio >= 1.6 && defender.strength < 55) ||
     defender.strength < 30 ||
     defender.morale < 25;
 
@@ -301,7 +377,7 @@ export function resolveCombat(state: GameState, attackerId: string, defenderId: 
   }
 
   // Attacker advances into a vacated tile, capturing it.
-  if ((defenderRetreated || defenderDestroyed) && ratio >= 1) {
+  if ((defenderRetreated || defenderDestroyed) && finalRatio >= 1) {
     const tile = state.tiles[defenderTile];
     tile.controller = attacker.faction;
     tile.fortified = false;
@@ -316,14 +392,29 @@ export function resolveCombat(state: GameState, attackerId: string, defenderId: 
   }
 
   return {
+    kind: 'assault',
     attackerId,
     defenderId,
+    attackerName,
+    defenderName,
+    attackPower: ap.power,
+    defensePower: dp.power,
+    baseRatio,
+    finalRatio,
+    previewVerdict,
+    resolvedVerdict: verdictFromRatio(finalRatio),
+    attackerRoll,
+    defenderRoll,
     attackerLoss,
     defenderLoss,
     attackerReadinessLoss,
     defenderReadinessLoss,
     attackerMoraleLoss,
     defenderMoraleLoss,
+    attackerStrengthBefore,
+    defenderStrengthBefore,
+    attackerStrengthAfter: attacker.strength,
+    defenderStrengthAfter: defenderDestroyed ? 0 : defender.strength,
     defenderRetreated,
     defenderDestroyed,
     tileCaptured,
@@ -336,12 +427,16 @@ export function resolveCombat(state: GameState, attackerId: string, defenderId: 
 export function resolveBombardment(state: GameState, attackerId: string, defenderId: string): CombatResult {
   const attacker = state.units[attackerId];
   const defender = state.units[defenderId];
-  const draw = drawRange(state.rngState, 0.85, 1.15);
-  state.rngState = draw.next;
+  const attackerName = attacker.name;
+  const defenderName = defender.name;
+  const attackerStrengthBefore = attacker.strength;
+  const defenderStrengthBefore = defender.strength;
+  const defenderTile = defender.tile;
 
-  const power = UNIT_DEFS[attacker.type].support * (attacker.strength / 100) * condition(attacker) * draw.value;
-  const strengthLoss = Math.min(10, 2 + power * 0.55);
-  const readinessLoss = Math.min(25, 8 + power * 1.4);
+  const attackerRoll = take2d6(state);
+  const power = UNIT_DEFS[attacker.type].support * (attacker.strength / 100) * condition(attacker);
+  const strengthLoss = Math.min(10, (2 + power * 0.55) * attackerRoll.fortune);
+  const readinessLoss = Math.min(25, (8 + power * 1.4) * attackerRoll.fortune);
 
   defender.strength = Math.max(0, defender.strength - strengthLoss);
   defender.readiness = Math.max(0, defender.readiness - readinessLoss);
@@ -354,19 +449,36 @@ export function resolveBombardment(state: GameState, attackerId: string, defende
   const destroyed = defender.strength <= 0;
   if (destroyed) delete state.units[defenderId];
 
+  const ratio = power / Math.max(8, 0.01);
+
   return {
+    kind: 'bombardment',
     attackerId,
     defenderId,
+    attackerName,
+    defenderName,
+    attackPower: power,
+    defensePower: 0,
+    baseRatio: ratio,
+    finalRatio: ratio * attackerRoll.fortune,
+    previewVerdict: 'even',
+    resolvedVerdict: destroyed ? 'decisive' : 'even',
+    attackerRoll,
+    defenderRoll: null,
     attackerLoss: 0,
     defenderLoss: strengthLoss,
     attackerReadinessLoss: 0,
     defenderReadinessLoss: readinessLoss,
     attackerMoraleLoss: 0,
     defenderMoraleLoss: 5,
+    attackerStrengthBefore,
+    defenderStrengthBefore,
+    attackerStrengthAfter: attacker.strength,
+    defenderStrengthAfter: destroyed ? 0 : defender.strength,
     defenderRetreated: false,
     defenderDestroyed: destroyed,
     tileCaptured: false,
-    tile: defender.tile,
+    tile: defenderTile,
     factors: [{ label: 'Bombardment', value: 0, side: 'attacker' }],
   };
 }

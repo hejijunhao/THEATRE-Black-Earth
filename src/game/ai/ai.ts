@@ -242,7 +242,7 @@ function runUnitStep(state: GameState, unitId: string): AIActionLog | null {
       recomputeFog(state);
       return {
         kind: 'attack',
-        text: `${unit.name} bombards ${describeTile(state, result.tile)}.`,
+        text: `${unit.name} bombards ${describeTile(state, result.tile)} · 2d6 ${result.attackerRoll.total} · −${Math.round(result.defenderLoss)} str.`,
         focusTile: result.tile,
         combat: result,
       };
@@ -287,10 +287,10 @@ function runUnitStep(state: GameState, unitId: string): AIActionLog | null {
         : result.defenderRetreated
           ? 'the defenders fall back'
           : 'the line holds';
-      pushNote(state, 'combat', `${unit.name} attacks ${targetName} near ${describeTile(state, result.tile)} — ${outcome}.`);
+      pushNote(state, 'combat', `${unit.name} attacks ${targetName} near ${describeTile(state, result.tile)} — 2d6 ${result.attackerRoll.total} vs ${result.defenderRoll?.total ?? '—'}, ${outcome}.`);
       return {
         kind: 'attack',
-        text: `${unit.name} assaults ${describeTile(state, result.tile)} — ${outcome}.`,
+        text: `${unit.name} assaults ${describeTile(state, result.tile)} — 2d6 ${result.attackerRoll.total} vs ${result.defenderRoll?.total ?? '—'}, ${outcome}.`,
         focusTile: result.tile,
         combat: result,
       };

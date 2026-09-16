@@ -132,6 +132,8 @@ describe('combat', () => {
     const preview = computePreview(state, state.units.u3, state.units.r1);
     expect(preview.factors.length).toBeGreaterThan(0);
     expect(['decisive', 'favourable', 'even', 'risky', 'severe']).toContain(preview.verdict);
+    expect(preview.oddsLabel).toMatch(/:/);
+    expect(preview.expectedDefenderLoss).toBeGreaterThan(0);
   });
 });
 

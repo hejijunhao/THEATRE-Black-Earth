@@ -133,7 +133,7 @@ export function CommandBar() {
       {showOps && (
         <div
           className="panel panel-framed"
-          style={{ position: 'absolute', bottom: 76, left: '50%', transform: 'translateX(-50%)', width: 460, zIndex: 25 }}
+          style={{ position: 'absolute', bottom: 118, left: '50%', transform: 'translateX(-50%)', width: 460, zIndex: 25 }}
         >
           <div className="panel-title">
             Strategic Operations
@@ -173,7 +173,7 @@ export function CommandBar() {
       {showReserves && (
         <div
           className="panel"
-          style={{ position: 'absolute', bottom: 76, left: '50%', transform: 'translateX(-50%)', width: 380, zIndex: 25 }}
+          style={{ position: 'absolute', bottom: 118, left: '50%', transform: 'translateX(-50%)', width: 380, zIndex: 25 }}
         >
           <div className="panel-title">Reserve Formations</div>
           <div style={{ padding: 10 }}>

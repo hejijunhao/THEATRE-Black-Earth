@@ -149,20 +149,48 @@ export interface CombatPreview {
   attackPower: number;
   defensePower: number;
   ratio: number;
+  oddsLabel: string;
   verdict: CombatVerdict;
   factors: CombatFactor[];
   riverCrossing: boolean;
+  /** Expected strength losses at an average 2d6 (total 7, fortune 1.0). */
+  expectedAttackerLoss: number;
+  expectedDefenderLoss: number;
 }
 
+export interface CombatRoll {
+  dice: number[];
+  total: number;
+  fortune: number;
+}
+
+export type CombatKind = 'assault' | 'bombardment';
+
 export interface CombatResult {
+  kind: CombatKind;
   attackerId: string;
   defenderId: string;
+  attackerName: string;
+  defenderName: string;
+  attackPower: number;
+  defensePower: number;
+  baseRatio: number;
+  finalRatio: number;
+  previewVerdict: CombatVerdict;
+  resolvedVerdict: CombatVerdict;
+  attackerRoll: CombatRoll;
+  /** Null on a fires mission — only the firing battery rolls. */
+  defenderRoll: CombatRoll | null;
   attackerLoss: number;
   defenderLoss: number;
   attackerReadinessLoss: number;
   defenderReadinessLoss: number;
   attackerMoraleLoss: number;
   defenderMoraleLoss: number;
+  attackerStrengthBefore: number;
+  defenderStrengthBefore: number;
+  attackerStrengthAfter: number;
+  defenderStrengthAfter: number;
   defenderRetreated: boolean;
   defenderDestroyed: boolean;
   tileCaptured: boolean;

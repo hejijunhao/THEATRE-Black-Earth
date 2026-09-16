@@ -5,17 +5,10 @@ import { TERRAIN_DEFS, UNIT_DEFS } from '../game/data/defs';
 import { computePreview } from '../game/rules/combat';
 import { supplyStateFromLevel } from '../game/rules/supply';
 import { useStore } from '../game/state/store';
-import { CombatVerdict, Unit } from '../game/types';
+import { Unit } from '../game/types';
+import { VERDICT_LABEL } from './combatChrome';
 import { MiniViewport } from './MiniViewport';
 import { Tip } from './Tip';
-
-const VERDICT_LABEL: Record<CombatVerdict, string> = {
-  decisive: 'Decisive advantage',
-  favourable: 'Favourable',
-  even: 'Even engagement',
-  risky: 'Risky',
-  severe: 'Severe disadvantage',
-};
 
 function pct(v: number): string {
   return `${Math.round(v)}%`;
@@ -203,17 +196,29 @@ function AttackPreview() {
 
   return (
     <>
-      <div className="unit-heading">
-        <div>
-          <div className="type">{isArtillery ? 'Bombardment' : 'Assault'} preview</div>
-          <div className="name">{attacker.name} → {defender.name}</div>
+      <div className="preview-duel">
+        <div className="pd-side">
+          <div className="type">Attacker</div>
+          <div className="name">{attacker.name}</div>
+          <div className="pd-pow">atk {preview.attackPower.toFixed(1)}</div>
+        </div>
+        <div className="pd-odds">
+          <div className="pd-ratio">{preview.oddsLabel}</div>
+          <div className="pd-vs">odds</div>
+        </div>
+        <div className="pd-side right">
+          <div className="type">Defender</div>
+          <div className="name">{defender.name}</div>
+          <div className="pd-pow">
+            def {observed ? preview.defensePower.toFixed(1) : `~${preview.defensePower.toFixed(0)}`}
+          </div>
         </div>
       </div>
 
       {!isArtillery && (
         <Tip
           title="Expected result"
-          text="A qualitative estimate from relative combat power. A small random swing applies at resolution — decisions dominate, not dice."
+          text="Odds from relative combat power, before dice. Each side then rolls 2d6: your attack roll scales damage given, their defence roll scales damage taken. A 7 is average; 12 presses the assault, 2 falters. Decisions still dominate a 2:1 fight."
           block
         >
           <div className={`verdict ${preview.verdict}`}>{VERDICT_LABEL[preview.verdict]}</div>
@@ -223,14 +228,15 @@ function AttackPreview() {
         <div className="verdict even">Fires mission</div>
       )}
 
-      <div className="kv-line">
-        <span className="k">Attack power</span>
-        <span className="v">{preview.attackPower.toFixed(1)}</span>
-      </div>
-      <div className="kv-line">
-        <span className="k">Defence power</span>
-        <span className="v">{observed ? preview.defensePower.toFixed(1) : `~${preview.defensePower.toFixed(0)} (est.)`}</span>
-      </div>
+      {!isArtillery && (
+        <div className="preview-bill">
+          <div className="kv-line">
+            <span className="k">Est. losses (before dice)</span>
+            <span className="v">−{Math.round(preview.expectedDefenderLoss)} / −{Math.round(preview.expectedAttackerLoss)} str</span>
+          </div>
+          <p className="hint">They lose the first number; you lose the second. Dice swing both.</p>
+        </div>
+      )}
       {!observed && (
         <p className="hint">The defender is not fully observed — estimates may be wrong. A Reconnaissance Sweep would sharpen this preview.</p>
       )}
@@ -251,8 +257,10 @@ function AttackPreview() {
         </button>
         <button className="btn" onClick={() => setPendingAttack(null)}>Cancel</button>
       </div>
-      {isArtillery && (
-        <p className="hint">Bombardment degrades strength, readiness and entrenchment but does not capture ground.</p>
+      {isArtillery ? (
+        <p className="hint">Bombardment degrades strength, readiness and entrenchment but does not capture ground. The battery rolls 2d6 for effect.</p>
+      ) : (
+        <p className="hint">Confirm to roll 2d6 each. Attack roll = damage given; defence roll = damage taken.</p>
       )}
     </>
   );
@@ -265,9 +273,11 @@ export function SidePanel() {
   const pendingAttackId = useStore((s) => s.pendingAttackId);
   const interactionMode = useStore((s) => s.interactionMode);
   const pendingOp = useStore((s) => s.pendingOp);
+  const lastCombat = useStore((s) => s.lastCombat);
   const cancelInteraction = useStore((s) => s.cancelInteraction);
 
   if (!game) return null;
+  if (lastCombat && game.phase === 'player') return null;
 
   let content: JSX.Element | null = null;
   let title = 'Theatre';
