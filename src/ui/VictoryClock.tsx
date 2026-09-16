@@ -52,6 +52,7 @@ export function VictoryClock() {
         <div className={`clock-head ${b.headline.toLowerCase()}`}>
           <span className="clock-kicker">Theatre</span>
           <span className="clock-headline">{b.headline}</span>
+          <span className="clock-why">{b.line}</span>
         </div>
       </Tip>
       <div className="clock-needles">

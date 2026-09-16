@@ -17,7 +17,8 @@ import { IntelRecord, Unit } from '../game/types';
 import { tileWorldById } from '../game/hex';
 import { BoardChrome, boardChrome, threatenedIds } from '../ui/boardChrome';
 import {
-  counterKey, CounterSpec, makeCounterTexture,
+  agencyBadgeKey, AgencyBadgeSpec, counterKey, CounterSpec,
+  makeAgencyBadgeTexture, makeCounterTexture,
   makeStandardTexture, standardKey, StandardSpec,
 } from './textures';
 import { tileGroundY } from './terrain/heightfield';
@@ -37,36 +38,36 @@ const COUNTER_ZOOM_FULL = 30;
 
 // Solid marks, not hairline rings. A filled tab/blade reads at campaign zoom;
 // a 0.2-wide ring on a NATO flag does not.
-const TAB_GEO = new THREE.PlaneGeometry(1.05, 0.42);
-const BLADE_GEO = new THREE.CircleGeometry(0.38, 3);
-const NOTCH_GEO = new THREE.CircleGeometry(0.22, 3);
-const BAR_GEO = new THREE.PlaneGeometry(0.92, 0.22);
+const TAB_GEO = new THREE.PlaneGeometry(1.85, 0.7);
+const BLADE_GEO = new THREE.CircleGeometry(0.72, 3);
+const NOTCH_GEO = new THREE.CircleGeometry(0.4, 3);
+const BAR_GEO = new THREE.PlaneGeometry(1.5, 0.36);
 
 function AgencyMarks({ chrome, selected }: { chrome: BoardChrome; selected: boolean }) {
   return (
     <group>
       {selected && (
-        <mesh position={[0, 0.02, 0.62]} rotation={[-Math.PI / 2, 0, 0]} geometry={TAB_GEO}>
+        <mesh position={[0, 0.02, 0.95]} rotation={[-Math.PI / 2, 0, 0]} geometry={TAB_GEO}>
           <meshBasicMaterial color="#efe6d0" depthWrite={false} />
         </mesh>
       )}
       {chrome.canAttack && (
-        <mesh position={[0.68, 0.024, 0]} rotation={[-Math.PI / 2, 0, -Math.PI / 2]} geometry={BLADE_GEO}>
+        <mesh position={[0.95, 0.024, 0]} rotation={[-Math.PI / 2, 0, -Math.PI / 2]} geometry={BLADE_GEO}>
           <meshBasicMaterial color="#d4b05a" depthWrite={false} />
         </mesh>
       )}
       {chrome.inContact && !chrome.canAttack && (
-        <mesh position={[0.58, 0.022, 0]} rotation={[-Math.PI / 2, 0, -Math.PI / 2]} geometry={NOTCH_GEO}>
+        <mesh position={[0.82, 0.022, 0]} rotation={[-Math.PI / 2, 0, -Math.PI / 2]} geometry={NOTCH_GEO}>
           <meshBasicMaterial color="#c9a352" depthWrite={false} />
         </mesh>
       )}
       {chrome.threatened && (
-        <mesh position={[0.68, 0.024, 0]} rotation={[-Math.PI / 2, 0, -Math.PI / 2]} geometry={BLADE_GEO}>
+        <mesh position={[0.95, 0.024, 0]} rotation={[-Math.PI / 2, 0, -Math.PI / 2]} geometry={BLADE_GEO}>
           <meshBasicMaterial color="#efe6d0" depthWrite={false} />
         </mesh>
       )}
       {chrome.spent && !selected && (
-        <mesh position={[0, 0.016, 0.55]} rotation={[-Math.PI / 2, 0, 0]} geometry={BAR_GEO}>
+        <mesh position={[0, 0.016, 0.85]} rotation={[-Math.PI / 2, 0, 0]} geometry={BAR_GEO}>
           <meshBasicMaterial color="#1a1a18" depthWrite={false} />
         </mesh>
       )}
@@ -330,8 +331,54 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
       <AgencyMarks chrome={chrome} selected={selected} />
       <Billboard position={[0, 0.78, 0]} follow>
         <mesh>
-          <planeGeometry args={[1.46, 0.92]} />
+          <planeGeometry args={[2.05, 1.28]} />
           <meshBasicMaterial ref={plateMatRef} map={texture} transparent depthWrite={false} />
+        </mesh>
+      </Billboard>
+    </group>
+  );
+}
+
+function AgencyBadge({ unit, chrome, selected }: { unit: Unit; chrome: BoardChrome; selected: boolean }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const target = useRef(new THREE.Vector3());
+  const spec: AgencyBadgeSpec = {
+    mp: chrome.mp,
+    selected,
+    spent: chrome.spent,
+    canAttack: chrome.canAttack,
+    hasAttacked: chrome.hasAttacked,
+  };
+  const texture = useMemo(() => makeAgencyBadgeTexture(spec), [agencyBadgeKey(spec)]);
+  useEffect(() => () => texture.dispose(), [texture]);
+
+  const { wx, wz } = tileWorldById(unit.tile);
+  const y = tileGroundY(unit.tile);
+  useEffect(() => {
+    target.current.set(wx, y, wz);
+    if (groupRef.current && groupRef.current.position.lengthSq() === 0) {
+      groupRef.current.position.copy(target.current);
+    }
+  }, [wx, wz, y]);
+  const badgeRef = useRef<THREE.Mesh>(null);
+  useFrame(({ camera }, delta) => {
+    const g = groupRef.current;
+    if (!g) return;
+    if (g.position.distanceTo(target.current) > 0.002) {
+      g.position.lerp(target.current, Math.min(1, delta * 7));
+    }
+    // Grow with camera height: a postage stamp near, a plate at campaign zoom.
+    const t = THREE.MathUtils.smoothstep(camera.position.y, 14, 36);
+    const s = THREE.MathUtils.lerp(0.2, 1.35, t);
+    if (badgeRef.current) badgeRef.current.scale.setScalar(s);
+  });
+
+  return (
+    <group ref={groupRef}>
+      <Billboard position={[0.95, 1.25, 0]} follow>
+        <mesh ref={badgeRef}>
+          <planeGeometry args={[1.55, 1.55]} />
+          <meshBasicMaterial map={texture} transparent depthWrite={false} />
         </mesh>
       </Billboard>
     </group>
@@ -410,6 +457,11 @@ export function Units() {
       {shown.map((u) => {
         const chrome = boardChrome(game, u, threatened.has(u.id));
         return <UnitCounter key={`c-${u.id}`} unit={u} selected={u.id === selectedUnitId} chrome={chrome} />;
+      })}
+      {shown.map((u) => {
+        const chrome = boardChrome(game, u, threatened.has(u.id));
+        if (!chrome.showMp) return null;
+        return <AgencyBadge key={`b-${u.id}`} unit={u} selected={u.id === selectedUnitId} chrome={chrome} />;
       })}
       {ghosts.map((r) => (
         <GhostMarker key={`ghost-${r.unitId}`} rec={r} />

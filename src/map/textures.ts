@@ -449,3 +449,57 @@ export function makeLabelTexture(name: string, size: CitySize, faction: 'UA' | '
   texture.anisotropy = 4;
   return { texture, aspect: canvas.width / canvas.height };
 }
+
+// ---------------------------------------------------------------- agency badge
+// A 128² stamp that survives campaign zoom: one numeral, one word.
+// The NATO plate cannot — at y=38 it is ~50px and the in-plate MP box is ~12.
+
+export interface AgencyBadgeSpec {
+  mp: number;
+  selected: boolean;
+  spent: boolean;
+  canAttack: boolean;
+  hasAttacked: boolean;
+}
+
+export function agencyBadgeKey(s: AgencyBadgeSpec): string {
+  return ['badge', s.mp.toFixed(1), s.selected ? 1 : 0, s.spent ? 1 : 0, s.canAttack ? 1 : 0, s.hasAttacked ? 1 : 0].join('|');
+}
+
+export function makeAgencyBadgeTexture(spec: AgencyBadgeSpec): THREE.CanvasTexture {
+  const w = 128;
+  const h = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d')!;
+
+  const bg = spec.spent ? '#161614' : spec.canAttack ? '#3a3018' : spec.selected ? '#3a3428' : '#2a2418';
+  const edge = spec.selected ? '#efe6d0' : spec.canAttack ? '#d4b05a' : spec.spent ? '#5a5648' : '#c9a352';
+  ctx.fillStyle = bg;
+  ctx.strokeStyle = edge;
+  ctx.lineWidth = 10;
+  ctx.beginPath();
+  ctx.roundRect(6, 6, w - 12, h - 12, 10);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = spec.spent ? '#8a8474' : '#f3ead0';
+  ctx.font = font(MONO, 58, 700);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(mpLabel(spec.mp), w / 2, h * 0.42);
+
+  ctx.fillStyle = spec.canAttack ? '#d4b05a' : spec.spent ? '#6d6858' : '#c9a352';
+  ctx.font = font(MONO, 18, 700);
+  ctx.fillText(
+    spec.spent ? (spec.hasAttacked ? 'ATK' : 'SPENT') : spec.canAttack ? 'FIGHT' : 'MP',
+    w / 2,
+    h * 0.76,
+  );
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.anisotropy = 4;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}

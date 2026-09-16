@@ -5,7 +5,6 @@ import { WEATHER_DEFS } from '../game/data/defs';
 import { useStore } from '../game/state/store';
 import { formatTurnDate } from '../game/rules/weather';
 import { LexiconTip } from './Tip';
-import { VictoryClock } from './VictoryClock';
 
 function Delta({ value }: { value: number }) {
   const cls = value > 0 ? '' : value < 0 ? 'neg' : 'zero';
@@ -62,8 +61,6 @@ export function TopBar() {
           <Delta value={f.commandRegen} />
         </div>
       </LexiconTip>
-
-      <VictoryClock />
 
       <div className="spacer" />
       <button className="menu-btn" onClick={() => setShowSettings(true)}>Settings</button>

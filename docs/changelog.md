@@ -30,7 +30,7 @@ add a row for them here.
 
 Presentation only. Rules are unchanged (PC2 2d6, same power model). Cut #2's rings did not survive campaign zoom; this cut replaces decoration with command furniture.
 
-- **Squint-readable agency.** Counters carry a brass MP stamp (~1/3 of the plate) and a solid contact blade. Selected is a parchment tab, not a hairline ring. Spent plates stay readable (no 50% fade). Ground marks are filled tabs/blades. Counters come in earlier so the stamp is the operational read.
+- **Squint-readable agency.** Counters carry a brass MP stamp and a solid contact blade. Selected is a parchment tab, not a hairline ring. Spent plates stay readable (no 50% fade). Ground marks are filled tabs/blades. A camera-scaled MP/FIGHT/SPENT badge sits on every friendly plate — postage-stamp near the lens, a readable numeral at campaign zoom. The NATO flag alone cannot carry week-state at operational height.
 - **Encyclopedia tooltips.** Hover Strength, Readiness, Morale, Attack, Defence, Movement, Supply, the clock needles, and the bench plates for a doctrine paragraph plus *why this colour now*.
 - **Command bench.** Legal orders as milled plates: engraved label, large numeral, no icon chips. Nameplate with MP pips. Assault is a gold-inlaid plate. Theatre plates and End Week sit to the right.
 - **Victory clock.** Cities / war support / army as three dials and a headline (Holding / Pressing / Slipping / Breaking). Replaces the ledger cells for VP, score and support.
