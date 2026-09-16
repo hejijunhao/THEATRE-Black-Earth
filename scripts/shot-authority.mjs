@@ -53,6 +53,20 @@ await page.keyboard.press('Tab');
 await sleep(900);
 await page.screenshot({ path: join(OUT, '01-campaign-zoom-agency.png') });
 
+// Counter-LOD close enough to judge silhouette, still past COUNTER_ZOOM_IN.
+await page.evaluate((u) => {
+  const cam = window.__TBE_CAMERA__;
+  if (cam) cam.set(u.wx, 24, u.wz + 12, u.wx, u.wz);
+}, u3);
+await sleep(700);
+await page.screenshot({ path: join(OUT, '01b-counter-lod-chrome.png') });
+
+await page.evaluate((u) => {
+  const cam = window.__TBE_CAMERA__;
+  if (cam) cam.set(u.wx, 38, u.wz + 18, u.wx, u.wz);
+}, u3);
+await sleep(400);
+
 // Hover Strength for the encyclopedia card.
 const str = await page.$('.side-panel .k');
 if (str) {

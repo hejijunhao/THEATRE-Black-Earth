@@ -35,26 +35,40 @@ const fadeState = { value: 0 };
 const COUNTER_ZOOM_IN = 20;  // counters (and their stamps) come in earlier
 const COUNTER_ZOOM_FULL = 30;
 
-// ONE selected language: a thick opaque parchment annulus sitting outside
-// the counter plate so it still halos at campaign zoom. Can-attack is an
-// amber chevron — a different silhouette, not a second ring. Contact-only
-// and threatened live on the plate texture, not here.
-const SELECT_ANNULUS = new THREE.RingGeometry(1.05, 1.72, 6);
-SELECT_ANNULUS.rotateX(-Math.PI / 2);
-const CHEVRON_GEO = new THREE.CircleGeometry(0.95, 3);
+// ONE selected language: a thick parchment washer with an ink rim so it
+// silhouettes on pale terrain (cream-on-cream was invisible at campaign
+// zoom). Can-attack is an amber chevron with the same ink edge — a
+// different silhouette, not a second ring. Contact-only and threatened
+// live on the plate texture, not here.
+const SELECT_INK = new THREE.RingGeometry(1.15, 2.35, 6);
+SELECT_INK.rotateX(-Math.PI / 2);
+const SELECT_PAPER = new THREE.RingGeometry(1.28, 2.18, 6);
+SELECT_PAPER.rotateX(-Math.PI / 2);
+const CHEV_INK = new THREE.CircleGeometry(1.28, 3);
+const CHEV_PAPER = new THREE.CircleGeometry(1.08, 3);
 
 function AgencyMarks({ chrome, selected }: { chrome: BoardChrome; selected: boolean }) {
   return (
     <group>
       {selected && (
-        <mesh position={[0, 0.02, 0]} geometry={SELECT_ANNULUS}>
-          <meshBasicMaterial color="#efe6d0" depthWrite={false} />
-        </mesh>
+        <group>
+          <mesh position={[0, 0.04, 0]} geometry={SELECT_INK}>
+            <meshBasicMaterial color="#1e1b14" depthWrite={false} />
+          </mesh>
+          <mesh position={[0, 0.055, 0]} geometry={SELECT_PAPER}>
+            <meshBasicMaterial color="#efe6d0" depthWrite={false} />
+          </mesh>
+        </group>
       )}
       {chrome.canAttack && (
-        <mesh position={[1.95, 0.03, 0]} rotation={[-Math.PI / 2, 0, -Math.PI / 2]} geometry={CHEVRON_GEO}>
-          <meshBasicMaterial color="#d4b05a" depthWrite={false} />
-        </mesh>
+        <group position={[2.55, 0.06, 0]} rotation={[-Math.PI / 2, 0, -Math.PI / 2]}>
+          <mesh geometry={CHEV_INK}>
+            <meshBasicMaterial color="#1e1b14" depthWrite={false} />
+          </mesh>
+          <mesh position={[0, 0, 0.012]} geometry={CHEV_PAPER}>
+            <meshBasicMaterial color="#d4b05a" depthWrite={false} />
+          </mesh>
+        </group>
       )}
     </group>
   );
