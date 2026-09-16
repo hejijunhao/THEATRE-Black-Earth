@@ -13,8 +13,9 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useStore } from '../game/state/store';
-import { FactionId, IntelRecord, Unit } from '../game/types';
+import { IntelRecord, Unit } from '../game/types';
 import { tileWorldById } from '../game/hex';
+import { BoardChrome, boardChrome, threatenedIds } from '../ui/boardChrome';
 import {
   counterKey, CounterSpec, makeCounterTexture,
   makeStandardTexture, standardKey, StandardSpec,
@@ -57,7 +58,7 @@ const MINI_MATERIAL = new THREE.MeshStandardMaterial({
   transparent: true,
 });
 
-function UnitMiniature({ unit, selected }: { unit: Unit; selected: boolean }) {
+function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boolean; chrome: BoardChrome }) {
   const game = useStore((s) => s.game)!;
   const selectUnit = useStore((s) => s.selectUnit);
   const selectTile = useStore((s) => s.selectTile);
@@ -95,6 +96,11 @@ function UnitMiniature({ unit, selected }: { unit: Unit; selected: boolean }) {
     supply: unit.supply,
     experience: unit.experience,
     selected,
+    movement: chrome.showMp ? chrome.mp : undefined,
+    movementMax: chrome.showMp ? chrome.mpMax : undefined,
+    spent: chrome.spent,
+    inContact: chrome.inContact,
+    threatened: chrome.threatened,
   };
   const stdTexture = useMemo(() => makeStandardTexture(stdSpec), [standardKey(stdSpec)]);
   useEffect(() => () => stdTexture.dispose(), [stdTexture]);
@@ -150,11 +156,19 @@ function UnitMiniature({ unit, selected }: { unit: Unit; selected: boolean }) {
         <boxGeometry args={[0.74, 0.032, 0.52]} />
         <meshStandardMaterial
           ref={baseMatRef}
-          color={unit.faction === 'UA' ? '#33507a' : '#67352c'}
+          color={chrome.spent
+            ? (unit.faction === 'UA' ? '#1c2838' : '#3a201c')
+            : (unit.faction === 'UA' ? '#33507a' : '#67352c')}
           roughness={0.6}
           transparent
-          emissive={selected ? FACTION_STRONG[unit.faction] : '#000000'}
-          emissiveIntensity={selected ? 0.55 : 0}
+          emissive={
+            selected
+              ? FACTION_STRONG[unit.faction]
+              : chrome.inContact || chrome.threatened
+                ? '#c9a352'
+                : '#000000'
+          }
+          emissiveIntensity={selected ? 0.55 : chrome.threatened ? 0.4 : chrome.inContact ? 0.28 : 0}
         />
       </mesh>
       {/* The machines: hero vehicles as instances, everything else — foot
@@ -174,6 +188,18 @@ function UnitMiniature({ unit, selected }: { unit: Unit; selected: boolean }) {
           <meshBasicMaterial color="#b04a3a" transparent opacity={0.4} depthWrite={false} />
         </mesh>
       )}
+      {chrome.inContact && unit.supply !== 'isolated' && (
+        <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.40, 0.48, 24]} />
+          <meshBasicMaterial color="#c9a352" transparent opacity={0.42} depthWrite={false} />
+        </mesh>
+      )}
+      {chrome.threatened && (
+        <mesh position={[0, 0.042, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.40, 0.50, 24]} />
+          <meshBasicMaterial color="#e8dfc8" transparent opacity={0.5} depthWrite={false} />
+        </mesh>
+      )}
       {/* The standard. */}
       <Billboard position={[0, 0.5, 0]} follow>
         <mesh>
@@ -186,7 +212,7 @@ function UnitMiniature({ unit, selected }: { unit: Unit; selected: boolean }) {
 }
 
 // v1 counter plate — the far LOD and the Tab override.
-function UnitCounter({ unit, selected }: { unit: Unit; selected: boolean }) {
+function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean; chrome: BoardChrome }) {
   const game = useStore((s) => s.game)!;
   const selectUnit = useStore((s) => s.selectUnit);
   const selectTile = useStore((s) => s.selectTile);
@@ -206,6 +232,11 @@ function UnitCounter({ unit, selected }: { unit: Unit; selected: boolean }) {
     disorganized: unit.disorganized > 0,
     selected,
     ghost: false,
+    movement: chrome.showMp ? chrome.mp : undefined,
+    movementMax: chrome.showMp ? chrome.mpMax : undefined,
+    spent: chrome.spent,
+    inContact: chrome.inContact,
+    threatened: chrome.threatened,
   };
   const key = counterKey(spec);
   const texture = useMemo(() => makeCounterTexture(spec), [key]);
@@ -249,11 +280,19 @@ function UnitCounter({ unit, selected }: { unit: Unit; selected: boolean }) {
         <boxGeometry args={[0.66, 0.16, 0.46]} />
         <meshStandardMaterial
           ref={baseMatRef}
-          color={unit.faction === 'UA' ? '#33507a' : '#67352c'}
+          color={chrome.spent
+            ? (unit.faction === 'UA' ? '#1c2838' : '#3a201c')
+            : (unit.faction === 'UA' ? '#33507a' : '#67352c')}
           roughness={0.6}
           transparent
-          emissive={selected ? FACTION_STRONG[unit.faction] : '#000000'}
-          emissiveIntensity={selected ? 0.5 : 0}
+          emissive={
+            selected
+              ? FACTION_STRONG[unit.faction]
+              : chrome.inContact || chrome.threatened
+                ? '#c9a352'
+                : '#000000'
+          }
+          emissiveIntensity={selected ? 0.5 : chrome.threatened ? 0.38 : chrome.inContact ? 0.26 : 0}
         />
       </mesh>
       <Billboard position={[0, 0.78, 0]} follow>
@@ -327,14 +366,18 @@ export function Units() {
     if (!visible.has(unit.tile)) ghosts.push(rec);
   }
 
+  const threatened = threatenedIds(game, selectedUnitId);
+
   return (
     <group>
-      {shown.map((u) => (
-        <UnitMiniature key={`m-${u.id}`} unit={u} selected={u.id === selectedUnitId} />
-      ))}
-      {shown.map((u) => (
-        <UnitCounter key={`c-${u.id}`} unit={u} selected={u.id === selectedUnitId} />
-      ))}
+      {shown.map((u) => {
+        const chrome = boardChrome(game, u, threatened.has(u.id));
+        return <UnitMiniature key={`m-${u.id}`} unit={u} selected={u.id === selectedUnitId} chrome={chrome} />;
+      })}
+      {shown.map((u) => {
+        const chrome = boardChrome(game, u, threatened.has(u.id));
+        return <UnitCounter key={`c-${u.id}`} unit={u} selected={u.id === selectedUnitId} chrome={chrome} />;
+      })}
       {ghosts.map((r) => (
         <GhostMarker key={`ghost-${r.unitId}`} rec={r} />
       ))}

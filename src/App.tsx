@@ -8,6 +8,7 @@ import { tileWorldById } from './game/hex';
 import { useStore } from './game/state/store';
 import { MapScene } from './map/MapScene';
 import { AIOverlay } from './ui/AIOverlay';
+import { AssaultBriefing } from './ui/AssaultBriefing';
 import { CommandBar, MapModes } from './ui/CommandBar';
 import { OrdersHint } from './ui/OrdersHint';
 import { MainMenu } from './ui/MainMenu';
@@ -259,6 +260,7 @@ export default function App() {
         <MapModes />
         <Notifications />
         <AIOverlay />
+        <AssaultBriefing />
         <CombatResultPanel />
         <EventModal />
         <EndTurnDialog />

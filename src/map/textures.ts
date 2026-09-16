@@ -23,12 +23,22 @@ export interface CounterSpec {
   selected: boolean;
   ghost: boolean;      // outdated intel marker
   intelLevel?: number; // for enemy ghosts: 1..4
+  /** Remaining MP this week (player only). Hidden on enemy / ghosts. */
+  movement?: number;
+  movementMax?: number;
+  /** No MP left this week — dim the plate. */
+  spent?: boolean;
+  /** Legal adjacent enemy — amber contact ticks. */
+  inContact?: boolean;
+  /** Selected friendly can assault this counter. */
+  threatened?: boolean;
 }
 
 export function counterKey(s: CounterSpec): string {
   return [
     s.type, s.faction, s.name, Math.round(s.strength / 5), s.supply,
     s.entrenchment, s.reinforcing, s.disorganized, s.selected, s.ghost, s.intelLevel ?? '',
+    s.movement ?? '', s.movementMax ?? '', s.spent ? 1 : 0, s.inContact ? 1 : 0, s.threatened ? 1 : 0,
   ].join('|');
 }
 
@@ -95,6 +105,59 @@ const SUPPLY_COLOR: Record<SupplyState, string> = {
   isolated: '#b04a3a',
 };
 
+function drawMpPips(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  mp: number,
+  max: number,
+  scale: number,
+): void {
+  const n = Math.min(6, Math.max(1, Math.round(max)));
+  const w = 6 * scale;
+  const h = 10 * scale;
+  const gap = 3 * scale;
+  for (let i = 0; i < n; i++) {
+    const px = x + i * (w + gap);
+    const remain = mp - i;
+    ctx.strokeStyle = 'rgba(232, 226, 210, 0.5)';
+    ctx.lineWidth = Math.max(1.5, 1.6 * scale);
+    ctx.strokeRect(px, y, w, h);
+    if (remain >= 0.95) {
+      ctx.fillStyle = '#d4be7a';
+      ctx.fillRect(px, y, w, h);
+    } else if (remain >= 0.4) {
+      ctx.fillStyle = '#d4be7a';
+      ctx.fillRect(px, y + h / 2, w, h / 2);
+    }
+  }
+}
+
+function drawCornerTicks(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  color: string,
+): void {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 5;
+  const s = 18;
+  const inset = 10;
+  const corners: Array<[number, number, number, number, number, number]> = [
+    [inset, inset + s, inset, inset, inset + s, inset],
+    [w - inset - s, inset, w - inset, inset, w - inset, inset + s],
+    [inset, h - inset - s, inset, h - inset, inset + s, h - inset],
+    [w - inset - s, h - inset, w - inset, h - inset, w - inset, h - inset - s],
+  ];
+  for (const [ax, ay, bx, by, cx, cy] of corners) {
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.lineTo(bx, by);
+    ctx.lineTo(cx, cy);
+    ctx.stroke();
+  }
+}
+
 // Renders a unit counter to a canvas texture (256x160).
 export function makeCounterTexture(spec: CounterSpec): THREE.CanvasTexture {
   const w = 256;
@@ -108,16 +171,26 @@ export function makeCounterTexture(spec: CounterSpec): THREE.CanvasTexture {
   ctx.globalAlpha = alpha;
 
   // Plate
-  const bg = FACTION_BG[spec.faction];
-  const edge = spec.selected ? '#e8dfc8' : FACTION_EDGE[spec.faction];
+  const bg = spec.spent ? (spec.faction === 'UA' ? '#1c2838' : '#3a201c') : FACTION_BG[spec.faction];
+  const edge = spec.selected
+    ? '#e8dfc8'
+    : spec.threatened
+      ? '#e8dfc8'
+      : spec.inContact
+        ? '#c9a352'
+        : FACTION_EDGE[spec.faction];
   ctx.fillStyle = bg;
   ctx.strokeStyle = edge;
-  ctx.lineWidth = spec.selected ? 8 : 4;
+  ctx.lineWidth = spec.selected || spec.threatened ? 8 : spec.inContact ? 6 : 4;
   const r = 14;
   ctx.beginPath();
   ctx.roundRect(4, 4, w - 8, h - 8, r);
   ctx.fill();
   ctx.stroke();
+  if (spec.spent) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+    ctx.fill();
+  }
 
   // Symbol frame
   const fx = 58;
@@ -151,7 +224,7 @@ export function makeCounterTexture(spec: CounterSpec): THREE.CanvasTexture {
   if (!spec.ghost || (spec.intelLevel ?? 0) >= 3) {
     const bw = w - 60;
     const bx = 30;
-    const by = 130;
+    const by = 124;
     ctx.fillStyle = 'rgba(0,0,0,0.45)';
     ctx.fillRect(bx, by, bw, 12);
     const t = Math.max(0, Math.min(1, spec.strength / 100));
@@ -190,6 +263,14 @@ export function makeCounterTexture(spec: CounterSpec): THREE.CanvasTexture {
       ctx.textAlign = 'center';
       ctx.fillText('!', 226, 84);
     }
+    if (spec.inContact) {
+      drawCornerTicks(ctx, w, h, '#c9a352');
+    } else if (spec.threatened) {
+      drawCornerTicks(ctx, w, h, '#e8dfc8');
+    }
+    if (spec.movementMax != null && spec.movement != null) {
+      drawMpPips(ctx, 30, 142, spec.movement, spec.movementMax, 1);
+    }
   }
 
   const texture = new THREE.CanvasTexture(canvas);
@@ -211,10 +292,18 @@ export interface StandardSpec {
   supply: SupplyState;
   experience: number;  // 0..3
   selected: boolean;
+  movement?: number;
+  movementMax?: number;
+  spent?: boolean;
+  inContact?: boolean;
+  threatened?: boolean;
 }
 
 export function standardKey(s: StandardSpec): string {
-  return ['std', s.type, s.faction, s.name, s.tier, s.supply, s.experience, s.selected].join('|');
+  return [
+    'std', s.type, s.faction, s.name, s.tier, s.supply, s.experience, s.selected,
+    s.movement ?? '', s.movementMax ?? '', s.spent ? 1 : 0, s.inContact ? 1 : 0, s.threatened ? 1 : 0,
+  ].join('|');
 }
 
 // "92nd Mechanised Brigade" -> "92 MECH", "131st Reconnaissance…" -> "131 RECON"
@@ -237,15 +326,25 @@ export function makeStandardTexture(spec: StandardSpec): THREE.CanvasTexture {
   canvas.height = h;
   const ctx = canvas.getContext('2d')!;
 
-  const bg = FACTION_BG[spec.faction];
-  const edge = spec.selected ? '#e8dfc8' : FACTION_EDGE[spec.faction];
+  const bg = spec.spent ? (spec.faction === 'UA' ? '#1c2838' : '#3a201c') : FACTION_BG[spec.faction];
+  const edge = spec.selected
+    ? '#e8dfc8'
+    : spec.threatened
+      ? '#e8dfc8'
+      : spec.inContact
+        ? '#c9a352'
+        : FACTION_EDGE[spec.faction];
   ctx.fillStyle = bg;
   ctx.strokeStyle = edge;
-  ctx.lineWidth = spec.selected ? 6 : 3;
+  ctx.lineWidth = spec.selected || spec.threatened ? 6 : spec.inContact ? 5 : 3;
   ctx.beginPath();
   ctx.roundRect(3, 3, w - 6, h - 6, 10);
   ctx.fill();
   ctx.stroke();
+  if (spec.spent) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+    ctx.fill();
+  }
 
   // NATO symbol, small, left
   drawSymbol(ctx, spec.type, 14, 20, 52, 42, '#e8e2d2');
@@ -283,13 +382,17 @@ export function makeStandardTexture(spec: StandardSpec): THREE.CanvasTexture {
     ctx.lineWidth = 3;
     for (let i = 0; i < Math.min(3, spec.experience); i++) {
       const cx = 226;
-      const cy = 22 + i * 14;
+      const cy = 16 + i * 12;
       ctx.beginPath();
       ctx.moveTo(cx - 9, cy + 5);
       ctx.lineTo(cx, cy - 3);
       ctx.lineTo(cx + 9, cy + 5);
       ctx.stroke();
     }
+  }
+
+  if (spec.movementMax != null && spec.movement != null) {
+    drawMpPips(ctx, 200, 56, spec.movement, spec.movementMax, 0.7);
   }
 
   const texture = new THREE.CanvasTexture(canvas);

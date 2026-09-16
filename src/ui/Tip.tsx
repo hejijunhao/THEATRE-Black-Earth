@@ -9,9 +9,10 @@ interface TipProps {
   text: ReactNode;
   children: ReactNode;
   block?: boolean;
+  lexicon?: boolean;
 }
 
-export function Tip({ title, text, children, block }: TipProps) {
+export function Tip({ title, text, children, block, lexicon }: TipProps) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
 
   return (
@@ -25,7 +26,7 @@ export function Tip({ title, text, children, block }: TipProps) {
       {pos &&
         createPortal(
           <div
-            className="tooltip"
+            className={`tooltip${lexicon ? ' lexicon' : ''}`}
             style={{
               left: Math.min(pos.x + 14, window.innerWidth - 300),
               top: Math.min(pos.y + 16, window.innerHeight - 120),

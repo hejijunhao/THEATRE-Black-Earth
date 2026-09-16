@@ -26,17 +26,17 @@ const STEPS: StepDef[] = [
   },
   {
     title: 'Combat preview',
-    text: 'Select a formation adjacent to an enemy and click the enemy counter. The preview shows odds and expected losses. Confirm to roll 2d6 each — attack roll decides damage given, defence roll decides damage taken. Read the after-action report before you continue.',
+    text: 'Select a formation adjacent to an enemy and click the enemy counter — or the Assault plate on the command bench. The briefing shows odds and expected losses. Confirm to roll 2d6 each — attack roll decides damage given, defence roll decides damage taken. Read the after-action dispatch before you continue.',
     skippable: true,
   },
   {
     title: 'Reinforce & entrench',
-    text: 'Damaged formations recover with REINFORCE (costs manpower and equipment, best done away from the front). ENTRENCH spends movement to dig in now. Try either on the selected formation.',
+    text: 'Damaged formations recover with the Reinforce plate (costs manpower and equipment, best done away from the front). Entrench spends movement to dig in now. Only legal orders appear on the bench.',
     skippable: true,
   },
   {
     title: 'Strategic operations',
-    text: 'Open OPERATIONS in the command bar. Command points buy reconnaissance sweeps, artillery preparation, close support, emergency resupply and fortification. Open the list (and pick one if you wish).',
+    text: 'Open Operations on the command bench. Command points buy reconnaissance sweeps, artillery preparation, close support, emergency resupply and fortification. Open the list (and pick one if you wish).',
     skippable: true,
   },
   {

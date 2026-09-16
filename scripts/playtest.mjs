@@ -89,6 +89,12 @@ const hasHook = await page.evaluate(() => Boolean(window.__TBE_DEBUG__));
 console.log('debug hook available:', hasHook);
 await sleep(600);
 await page.screenshot({ path: `${OUT}/10-selected-unit.png` });
+const bench = await page.$eval('.command-bench', (el) => el.innerText).catch(() => '');
+console.log('command bench:\n', bench.slice(0, 300));
+if (!bench || !/Assault|Fires|Entrench|March/i.test(bench)) {
+  console.error('FAIL: command bench missing legal-order plates');
+  process.exitCode = 1;
+}
 
 if (hasHook) {
   const info = await page.evaluate(() => window.__TBE_DEBUG__.summary());
@@ -102,8 +108,12 @@ if (hasHook) {
     await page.evaluate((id) => window.__TBE_DEBUG__.pendingAttack(id), targets[0]);
     await sleep(500);
     await page.screenshot({ path: `${OUT}/11-attack-preview.png` });
-    const previewOdds = await page.$eval('.side-panel', (el) => el.innerText).catch(() => '');
-    console.log('preview panel:\n', previewOdds.slice(0, 400));
+    const previewOdds = await page.$eval('.assault-brief', (el) => el.innerText).catch(() => '');
+    console.log('assault briefing:\n', previewOdds.slice(0, 400));
+    if (!previewOdds) {
+      console.error('FAIL: assault briefing not in the DOM');
+      process.exitCode = 1;
+    }
     await page.evaluate((id) => window.__TBE_DEBUG__.attack(id), targets[0]);
     await sleep(700);
     await page.screenshot({ path: `${OUT}/12-attack-result.png` });

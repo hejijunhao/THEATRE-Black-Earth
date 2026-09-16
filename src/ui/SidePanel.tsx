@@ -1,12 +1,12 @@
-// Context panel: selected unit, selected tile/city, or a combat preview when
-// an attack awaits confirmation.
+// Context panel: selected unit or selected tile/city.
+// Assault preview lives on the centered briefing card.
 
+import { ReactNode } from 'react';
 import { TERRAIN_DEFS, UNIT_DEFS } from '../game/data/defs';
-import { computePreview } from '../game/rules/combat';
 import { supplyStateFromLevel } from '../game/rules/supply';
 import { useStore } from '../game/state/store';
 import { Unit } from '../game/types';
-import { VERDICT_LABEL } from './combatChrome';
+import { strengthNowCopy } from './boardChrome';
 import { MiniViewport } from './MiniViewport';
 import { Tip } from './Tip';
 
@@ -18,10 +18,10 @@ function condClass(v: number): string {
   return v > 65 ? 'good' : v > 35 ? 'warn' : 'bad';
 }
 
-function StatBar({ label, value, tip }: { label: string; value: number; tip: string }) {
+function StatBar({ label, value, tip }: { label: string; value: number; tip: ReactNode }) {
   const cls = value > 65 ? 'fill-good' : value > 35 ? 'fill-warn' : 'fill-bad';
   return (
-    <Tip title={label} text={tip} block>
+    <Tip title={label} text={tip} block lexicon={label === 'Strength'}>
       <div style={{ marginBottom: 7, width: '100%' }}>
         <div className="kv-line" style={{ padding: 0 }}>
           <span className="k">{label}</span>
@@ -85,7 +85,17 @@ function UnitDetails({ unit }: { unit: Unit }) {
         )}
       </div>
 
-      <StatBar label="Strength" value={unit.strength} tip="Remaining combat power of the formation. Restored by reinforcement; formations near zero risk destruction." />
+      <StatBar
+        label="Strength"
+        value={unit.strength}
+        tip={(
+          <>
+            <p>The fighting body of the formation — men, vehicles, cohesion. Not a hit-point bar: a brigade at 40 is still on the map but no longer a peer.</p>
+            <p className="tt-now">Now: {Math.round(unit.strength)} — {strengthNowCopy(unit.strength)}.</p>
+            <p>Restored by Reinforce (manpower + equipment). Near zero it ceases to exist. The 2d6 decide how fast this falls in a fight; the power model decides the bill.</p>
+          </>
+        )}
+      />
       <StatBar label="Readiness" value={unit.readiness} tip="Ability to conduct operations. Drains with combat and low supply; recovers when resting in supply." />
       <StatBar label="Morale" value={unit.morale} tip="Willingness to fight. Low morale formations retreat easily. Recovers in supply; drops when isolated." />
 
@@ -179,93 +189,6 @@ function TileDetails() {
   );
 }
 
-function AttackPreview() {
-  const game = useStore((s) => s.game)!;
-  const attackerId = useStore((s) => s.selectedUnitId)!;
-  const defenderId = useStore((s) => s.pendingAttackId)!;
-  const orderAttack = useStore((s) => s.orderAttack);
-  const setPendingAttack = useStore((s) => s.setPendingAttack);
-
-  const attacker = game.units[attackerId];
-  const defender = game.units[defenderId];
-  if (!attacker || !defender) return null;
-
-  const preview = computePreview(game, attacker, defender);
-  const observed = game.visibleTiles.includes(defender.tile);
-  const isArtillery = UNIT_DEFS[attacker.type].support > 0;
-
-  return (
-    <>
-      <div className="preview-duel">
-        <div className="pd-side">
-          <div className="type">Attacker</div>
-          <div className="name">{attacker.name}</div>
-          <div className="pd-pow">atk {preview.attackPower.toFixed(1)}</div>
-        </div>
-        <div className="pd-odds">
-          <div className="pd-ratio">{preview.oddsLabel}</div>
-          <div className="pd-vs">odds</div>
-        </div>
-        <div className="pd-side right">
-          <div className="type">Defender</div>
-          <div className="name">{defender.name}</div>
-          <div className="pd-pow">
-            def {observed ? preview.defensePower.toFixed(1) : `~${preview.defensePower.toFixed(0)}`}
-          </div>
-        </div>
-      </div>
-
-      {!isArtillery && (
-        <Tip
-          title="Expected result"
-          text="Odds from relative combat power, before dice. Each side then rolls 2d6: your attack roll scales damage given, their defence roll scales damage taken. A 7 is average; 12 presses the assault, 2 falters. Decisions still dominate a 2:1 fight."
-          block
-        >
-          <div className={`verdict ${preview.verdict}`}>{VERDICT_LABEL[preview.verdict]}</div>
-        </Tip>
-      )}
-      {isArtillery && (
-        <div className="verdict even">Fires mission</div>
-      )}
-
-      {!isArtillery && (
-        <div className="preview-bill">
-          <div className="kv-line">
-            <span className="k">Est. losses (before dice)</span>
-            <span className="v">−{Math.round(preview.expectedDefenderLoss)} / −{Math.round(preview.expectedAttackerLoss)} str</span>
-          </div>
-          <p className="hint">They lose the first number; you lose the second. Dice swing both.</p>
-        </div>
-      )}
-      {!observed && (
-        <p className="hint">The defender is not fully observed — estimates may be wrong. A Reconnaissance Sweep would sharpen this preview.</p>
-      )}
-
-      <hr className="divider" />
-      {preview.factors.slice(0, 9).map((f, i) => (
-        <div className="factor-line" key={i}>
-          <span className="fk">{f.label}</span>
-          <span className={`fv ${f.value >= 0 ? 'pos' : 'neg'}`}>
-            {f.value >= 0 ? '+' : ''}{Math.round(f.value * 100)}%
-          </span>
-        </div>
-      ))}
-
-      <div className="btn-row">
-        <button className="btn danger" onClick={() => orderAttack(defenderId)}>
-          {isArtillery ? 'Execute bombardment' : 'Execute attack'}
-        </button>
-        <button className="btn" onClick={() => setPendingAttack(null)}>Cancel</button>
-      </div>
-      {isArtillery ? (
-        <p className="hint">Bombardment degrades strength, readiness and entrenchment but does not capture ground. The battery rolls 2d6 for effect.</p>
-      ) : (
-        <p className="hint">Confirm to roll 2d6 each. Attack roll = damage given; defence roll = damage taken.</p>
-      )}
-    </>
-  );
-}
-
 export function SidePanel() {
   const game = useStore((s) => s.game);
   const selectedUnitId = useStore((s) => s.selectedUnitId);
@@ -278,6 +201,7 @@ export function SidePanel() {
 
   if (!game) return null;
   if (lastCombat && game.phase === 'player') return null;
+  if (pendingAttackId && game.phase === 'player') return null;
 
   let content: JSX.Element | null = null;
   let title = 'Theatre';
@@ -306,9 +230,6 @@ export function SidePanel() {
         </div>
       </>
     );
-  } else if (pendingAttackId && selectedUnitId) {
-    title = 'Combat';
-    content = <AttackPreview />;
   } else if (selectedUnitId && game.units[selectedUnitId]) {
     title = 'Formation';
     content = <UnitDetails unit={game.units[selectedUnitId]} />;
