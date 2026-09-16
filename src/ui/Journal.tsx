@@ -18,6 +18,7 @@ interface Card {
 
 export function Journal() {
   const game = useStore((s) => s.game);
+  const pendingAttackId = useStore((s) => s.pendingAttackId);
 
   const { cards, weeks } = useMemo(() => {
     if (!game) return { cards: [] as Card[], weeks: [] as ReturnType<typeof bindChronology> };
@@ -81,7 +82,7 @@ export function Journal() {
   if (!game || game.phase !== 'player') return null;
 
   return (
-    <div className="bound-journal" aria-label="Theatre journal">
+    <div className={`bound-journal${pendingAttackId ? ' tucked' : ''}`} aria-label="Theatre journal">
       <div className="bj-spine" aria-hidden>
         <i /><i /><i />
       </div>
