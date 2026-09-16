@@ -41,7 +41,6 @@ const COUNTER_ZOOM_FULL = 30;
 const TAB_GEO = new THREE.PlaneGeometry(1.85, 0.7);
 const BLADE_GEO = new THREE.CircleGeometry(0.72, 3);
 const NOTCH_GEO = new THREE.CircleGeometry(0.4, 3);
-const BAR_GEO = new THREE.PlaneGeometry(1.5, 0.36);
 
 function AgencyMarks({ chrome, selected }: { chrome: BoardChrome; selected: boolean }) {
   return (
@@ -61,16 +60,7 @@ function AgencyMarks({ chrome, selected }: { chrome: BoardChrome; selected: bool
           <meshBasicMaterial color="#c9a352" depthWrite={false} />
         </mesh>
       )}
-      {chrome.threatened && (
-        <mesh position={[0.95, 0.024, 0]} rotation={[-Math.PI / 2, 0, -Math.PI / 2]} geometry={BLADE_GEO}>
-          <meshBasicMaterial color="#efe6d0" depthWrite={false} />
-        </mesh>
-      )}
-      {chrome.spent && !selected && (
-        <mesh position={[0, 0.016, 0.85]} rotation={[-Math.PI / 2, 0, 0]} geometry={BAR_GEO}>
-          <meshBasicMaterial color="#1a1a18" depthWrite={false} />
-        </mesh>
-      )}
+      {/* Threatened is a parchment edge on the enemy plate — not a ring twin. */}
     </group>
   );
 }

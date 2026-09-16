@@ -523,6 +523,13 @@ button {
 /* --------------------------------------------------------- command bench
    Milled instrument: nameplate + engraved order plates. No icon chips. */
 
+.command-bench.dimmed,
+.outliner.dimmed {
+  opacity: 0.55;
+  pointer-events: none;
+}
+.command-bench.dimmed { pointer-events: none; }
+
 .command-bench {
   position: absolute;
   bottom: 12px;
@@ -940,6 +947,56 @@ button {
   z-index: 45;
   background:
     radial-gradient(ellipse at 50% 42%, rgba(18, 16, 12, 0.35), rgba(6, 7, 9, 0.82) 70%);
+}
+
+/* Briefing sits on the map. No curtain — outliner and bench stay dimmed-alive. */
+.brief-over {
+  position: absolute;
+  inset: 0;
+  z-index: 28;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 48%, rgba(18, 16, 12, 0.12), transparent 62%);
+}
+.brief-over > * { pointer-events: auto; }
+.brief-sheet {
+  width: 560px;
+  max-width: calc(100vw - 280px);
+  background:
+    linear-gradient(180deg, rgba(52, 46, 34, 0.55), rgba(18, 16, 14, 0.72)),
+    var(--tex-field);
+  background-size: auto, 192px 192px;
+}
+.brief-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 10px;
+}
+.brief-chip {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+.brief-chip.isolated, .brief-chip.low { border-color: rgba(176, 74, 58, 0.5); color: var(--red); }
+.brief-chip.strained { border-color: rgba(201, 163, 82, 0.5); color: var(--amber); }
+.factor-ledger.named .factor-line {
+  border-bottom: 1px solid rgba(190, 180, 150, 0.1);
+  padding: 4px 0;
+}
+.factor-ledger.named .hurts .fk { color: var(--ink); }
+.factor-ledger.named .helps .fk { color: var(--ink-bright); }
+.plate-commit {
+  min-width: 200px;
+  font-family: var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .aar { width: 620px; padding-top: 8px; }
 
@@ -1553,11 +1610,19 @@ button {
   scrollbar-color: rgba(190, 180, 150, 0.25) transparent;
   padding: 4px 0;
 }
+.outliner-kicker {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  padding: 6px 10px 2px;
+}
 .outliner-row {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: auto 1fr 36px auto auto auto;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   width: 100%;
   padding: 4px 10px;
   text-align: left;
@@ -1578,6 +1643,25 @@ button {
 }
 .outliner-row.contact { border-left-color: var(--gold); }
 .outliner-row.spent { opacity: 0.48; }
+.outliner-row .or-glyph {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-dim);
+  width: 1.4em;
+}
+.outliner-row.contact .or-glyph { color: var(--gold); }
+.outliner-row .or-str {
+  height: 5px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(190, 180, 150, 0.2);
+}
+.outliner-row .or-str i {
+  display: block;
+  height: 100%;
+  background: var(--green);
+}
+.outliner-row .or-str.warn i { background: var(--amber); }
+.outliner-row .or-str.bad i { background: var(--red); }
 .outliner-row .or-name {
   font-family: var(--font-mono);
   font-size: 11px;

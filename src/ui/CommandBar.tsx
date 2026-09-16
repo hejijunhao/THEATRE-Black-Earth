@@ -112,7 +112,7 @@ export function CommandBar() {
   const [showOps, setShowOps] = useState(false);
   const [showReserves, setShowReserves] = useState(false);
 
-  if (!game || game.phase !== 'player' || lastCombat || pendingAttackId) return null;
+  if (!game || game.phase !== 'player' || lastCombat) return null;
 
   const unit = selectedUnitId ? game.units[selectedUnitId] : null;
   const faction = game.factions[game.playerFaction];
@@ -121,7 +121,7 @@ export function CommandBar() {
 
   return (
     <>
-      <div className="command-bench panel panel-framed">
+      <div className={`command-bench panel panel-framed${pendingAttackId ? ' dimmed' : ''}`}>
         <div className="bench-formation">
           {unit && orders && def ? (
             <>

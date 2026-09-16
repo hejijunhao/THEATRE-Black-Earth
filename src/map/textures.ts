@@ -209,8 +209,7 @@ export function makeCounterTexture(spec: CounterSpec): THREE.CanvasTexture {
   if (spec.selected) drawSelectedTab(ctx, w);
   if (!spec.ghost) {
     if (spec.canAttack) drawContactBlade(ctx, h, '#d4b05a');
-    else if (spec.threatened) drawContactBlade(ctx, h, '#efe6d0');
-    else if (spec.inContact) drawContactBlade(ctx, h, 'rgba(201, 163, 82, 0.55)');
+    else if (spec.inContact) drawContactBlade(ctx, h, 'rgba(201, 163, 82, 0.45)');
   }
 
   const hasStamp = !spec.ghost && spec.movementMax != null && spec.movement != null;
@@ -363,7 +362,7 @@ export function makeStandardTexture(spec: StandardSpec): THREE.CanvasTexture {
   }
   if (spec.selected) drawSelectedTab(ctx, w);
   if (spec.canAttack) drawContactBlade(ctx, h, '#d4b05a');
-  else if (spec.threatened) drawContactBlade(ctx, h, '#efe6d0');
+  else if (spec.inContact) drawContactBlade(ctx, h, 'rgba(201, 163, 82, 0.45)');
 
   drawSymbol(ctx, spec.type, 16, 18, 48, 40, spec.spent ? '#8a8474' : '#e8e2d2');
 
