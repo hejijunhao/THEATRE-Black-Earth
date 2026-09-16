@@ -22,11 +22,11 @@ import {
 } from './ui/Modals';
 import { AssetsView } from './ui/AssetsView';
 import { Journal } from './ui/Journal';
-import { Notifications } from './ui/Notifications';
 import { SidePanel } from './ui/SidePanel';
 import { TurnCard } from './ui/TurnCard';
 import { TopBar } from './ui/TopBar';
 import { Tutorial } from './ui/Tutorial';
+import { VictoryClock } from './ui/VictoryClock';
 
 function useAIDriver() {
   const phase = useStore((s) => s.game?.phase);
@@ -255,12 +255,12 @@ export default function App() {
       <MapScene />
       <div className="hud">
         <TopBar />
+        <VictoryClock />
         <Outliner />
         <SidePanel />
         <CommandBar />
         <OrdersHint />
         <MapModes />
-        <Notifications />
         <AIOverlay />
         <AssaultBriefing />
         <CombatResultPanel />

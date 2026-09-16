@@ -1,60 +1,61 @@
-// The journal / situation rail (v2-vision §7.2): a right-hand card stack for
-// the campaign's live concerns — decisive-city progress, threatened cities,
-// isolated formations, pending decisions, operation cooldowns, war-support
-// state. Everything is derived from GameState each render; nothing scrolls
-// away the way transient notifications do.
+// Bound journal: week, weather, engagements with dice, then the live
+// concerns. Replaces the toast strip — a book, not a feed.
 
 import { useMemo } from 'react';
-import { OPERATION_DEFS } from '../game/data/defs';
+import { WEATHER_DEFS } from '../game/data/defs';
 import { neighborIds } from '../game/hex';
+import { formatTurnDate } from '../game/rules/weather';
 import { useStore } from '../game/state/store';
-import { OperationId, opposing } from '../game/types';
-import { Ico } from './icons';
+import { opposing } from '../game/types';
 
 interface Card {
   key: string;
-  icon: string;
   tone: 'gold' | 'red' | 'amber' | 'green' | '';
   title: string;
   body: string;
 }
 
+interface Engagement {
+  id: number;
+  turn: number;
+  text: string;
+  atk?: number;
+  def?: number;
+}
+
+const DICE_RE = /2d6\s+(\d+)(?:[–-](\d+)| vs (\d+))?/;
+
+function parseEngagement(text: string, id: number, turn: number): Engagement {
+  const m = text.match(DICE_RE);
+  return {
+    id,
+    turn,
+    text,
+    atk: m ? Number(m[1]) : undefined,
+    def: m ? Number(m[2] ?? m[3]) : undefined,
+  };
+}
+
 export function Journal() {
   const game = useStore((s) => s.game);
 
-  const cards = useMemo(() => {
-    if (!game) return [];
+  const { cards, engagements } = useMemo(() => {
+    if (!game) return { cards: [] as Card[], engagements: [] as Engagement[] };
     const out: Card[] = [];
     const player = game.playerFaction;
     const enemy = opposing(player);
 
-    // Decisive objectives: mine and the enemy's.
     const mine = game.scenario.decisive[player];
     const held = mine.filter((id) => game.tiles[game.cities[id].tile].controller === player);
     out.push({
       key: 'decisive',
-      icon: 'objective',
       tone: held.length === mine.length ? 'green' : 'gold',
-      title: 'Decisive objectives',
+      title: 'Decisive',
       body: mine
-        .map((id) => `${game.cities[id].name} ${game.tiles[game.cities[id].tile].controller === player ? '✓' : '—'}`)
+        .map((id) => `${game.cities[id].name} ${game.tiles[game.cities[id].tile].controller === player ? 'held' : '—'}`)
         .join(' · '),
     });
-    const theirs = game.scenario.decisive[enemy];
-    const theirHeld = theirs.filter((id) => game.tiles[game.cities[id].tile].controller === enemy);
-    if (theirHeld.length > 0) {
-      out.push({
-        key: 'decisive-enemy',
-        icon: 'threat',
-        tone: theirHeld.length === theirs.length ? 'red' : 'amber',
-        title: 'Enemy decisive progress',
-        body: theirs
-          .map((id) => `${game.cities[id].name} ${game.tiles[game.cities[id].tile].controller === enemy ? '✗' : 'safe'}`)
-          .join(' · '),
-      });
-    }
 
-    // Threatened friendly cities: enemy formation within 1 hex.
     const threatened: string[] = [];
     for (const city of Object.values(game.cities)) {
       if (game.tiles[city.tile].controller !== player || city.vp === 0) continue;
@@ -67,79 +68,82 @@ export function Journal() {
     if (threatened.length > 0) {
       out.push({
         key: 'threat',
-        icon: 'threat',
         tone: 'red',
-        title: `Threatened ${threatened.length > 1 ? 'cities' : 'city'}`,
+        title: threatened.length > 1 ? 'Threatened cities' : 'Threatened city',
         body: threatened.slice(0, 4).join(', ') + (threatened.length > 4 ? '…' : ''),
       });
     }
 
-    // Isolated / low-supply formations.
     const cut = Object.values(game.units).filter(
       (u) => u.faction === player && (u.supply === 'isolated' || u.supply === 'low'),
     );
     if (cut.length > 0) {
       out.push({
         key: 'isolated',
-        icon: 'isolated',
         tone: 'amber',
-        title: `${cut.length} formation${cut.length > 1 ? 's' : ''} cut off or low`,
+        title: `${cut.length} cut off or low`,
         body: cut.slice(0, 3).map((u) => u.name).join(', ') + (cut.length > 3 ? '…' : ''),
       });
     }
 
-    // Pending decision.
     if (game.pendingEvent) {
       out.push({
         key: 'decision',
-        icon: 'decision',
         tone: 'gold',
-        title: 'Decision awaiting answer',
+        title: 'Decision waiting',
         body: game.pendingEvent.title,
       });
     }
 
-    // Operation cooldowns.
-    const cds = Object.entries(game.factions[player].opCooldowns).filter(([, v]) => (v ?? 0) > 0);
-    if (cds.length > 0) {
-      out.push({
-        key: 'cooldowns',
-        icon: 'cooldown',
-        tone: '',
-        title: 'Operations recharging',
-        body: cds
-          .map(([id, v]) => `${OPERATION_DEFS[id as OperationId].name.split(' ')[0]} ${v}t`)
-          .join(' · '),
-      });
-    }
+    const engagements = game.notifications
+      .filter((n) => n.kind === 'combat' || n.kind === 'capture')
+      .slice(-5)
+      .reverse()
+      .map((n) => parseEngagement(n.text, n.id, n.turn));
 
-    // War-support edge.
-    const ws = game.factions[player].warSupport;
-    const ews = game.factions[enemy].warSupport;
-    out.push({
-      key: 'ws',
-      icon: 'trend',
-      tone: ws < 30 ? 'red' : ws < 45 ? 'amber' : ews < 30 ? 'green' : '',
-      title: 'War support',
-      body: `${Math.round(ws)}% vs foe ${Math.round(ews)}% — collapse below 8%`,
-    });
-
-    return out;
+    return { cards: out, engagements };
   }, [game]);
 
-  if (!game || game.phase !== 'player' || cards.length === 0) return null;
+  if (!game || game.phase !== 'player') return null;
 
   return (
-    <div className="journal">
-      {cards.map((c) => (
-        <div key={c.key} className={`journal-card ${c.tone}`}>
-          <span className="ico"><Ico name={c.icon} size={13} /></span>
-          <div>
-            <span className="jc-title">{c.title}</span>
-            <span className="jc-body">{c.body}</span>
-          </div>
+    <div className="bound-journal" aria-label="Theatre journal">
+      <div className="bj-spine" aria-hidden />
+      <div className="bj-page">
+        <div className="bj-head">
+          <span className="bj-week">Week {game.turn}</span>
+          <span className="bj-wx">{WEATHER_DEFS[game.weather].label}</span>
+          <span className="bj-date">{formatTurnDate(game)}</span>
         </div>
-      ))}
+
+        {engagements.length > 0 && (
+          <div className="bj-section">
+            <div className="bj-kicker">Engagements</div>
+            {engagements.map((e) => (
+              <div key={e.id} className="bj-fight">
+                <span className="bj-turn">T{e.turn}</span>
+                <span className="bj-copy">{e.text}</span>
+                {e.atk != null && (
+                  <span className="bj-dice" aria-label={`2d6 ${e.atk}${e.def != null ? ` vs ${e.def}` : ''}`}>
+                    <span className="bj-pip">{e.atk}</span>
+                    {e.def != null && <span className="bj-pip">{e.def}</span>}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="bj-section">
+          <div className="bj-kicker">Situation</div>
+          {cards.map((c) => (
+            <div key={c.key} className={`bj-card ${c.tone}`}>
+              <span className="jc-title">{c.title}</span>
+              <span className="jc-body">{c.body}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
