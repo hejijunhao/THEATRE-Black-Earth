@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.8](#028--2026-09-16--ui-authority-cut) | 2026-09-16 | UI authority cut | squint-readable agency (tabs/blades/MP stamp), encyclopedia tooltips, milled command bench, victory clock, bound journal |
 | [0.2.7](#027--2026-09-16--ui-hardening-cut) | 2026-09-16 | UI hardening cut | board chrome (MP / spent / contact), assault briefing card, command bench plates, dispatch paper, strength lexicon |
 | [0.2.6](#026--2026-09-16--readable-engagements) | 2026-09-16 | Readable engagements | explicit 2d6 per side, attack/defence rolls decide damage given/taken, after-action report, combat unit tests |
 | [0.2.5](#025--2026-08-08--hero-terrain-tier-ground) | 2026-08-08 | Hero terrain tier (ground) | five diorama ground tiles, blade-geometry grass, soil strata, analytic AO, aTer channels, map vegetation layer from geodata fractions |
@@ -24,6 +25,18 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.8] — 2026-09-16 · UI authority cut
+
+Presentation only. Rules are unchanged (PC2 2d6, same power model). Cut #2's rings did not survive campaign zoom; this cut replaces decoration with command furniture.
+
+- **Squint-readable agency.** Counters carry a brass MP stamp (~1/3 of the plate) and a solid contact blade. Selected is a parchment tab, not a hairline ring. Spent plates stay readable (no 50% fade). Ground marks are filled tabs/blades. Counters come in earlier so the stamp is the operational read.
+- **Encyclopedia tooltips.** Hover Strength, Readiness, Morale, Attack, Defence, Movement, Supply, the clock needles, and the bench plates for a doctrine paragraph plus *why this colour now*.
+- **Command bench.** Legal orders as milled plates: engraved label, large numeral, no icon chips. Nameplate with MP pips. Assault is a gold-inlaid plate. Theatre plates and End Week sit to the right.
+- **Victory clock.** Cities / war support / army as three dials and a headline (Holding / Pressing / Slipping / Breaking). Replaces the ledger cells for VP, score and support.
+- **Bound journal.** Week, weather, engagements with 2d6 totals, then situation. The toast strip is gone.
+
+The campaign, map, AI, supply and combat math are unchanged.
 
 ## [0.2.7] — 2026-09-16 · UI hardening cut
 

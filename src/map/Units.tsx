@@ -32,42 +32,42 @@ import { FACTION_STRONG } from './palette';
 // unit's per-frame material update. Driven by camera height or the Tab
 // override — the zoom metaphor's unit dial.
 const fadeState = { value: 0 };
-const COUNTER_ZOOM_IN = 24;  // camera.y where counters start fading in
-const COUNTER_ZOOM_FULL = 34;
+const COUNTER_ZOOM_IN = 20;  // counters (and their stamps) come in earlier
+const COUNTER_ZOOM_FULL = 30;
 
-/** Glanceable agency at campaign camera. Five reads: selected / spent /
- *  contact / can-attack / (MP lives on the plate). */
-function AgencyRings({ chrome, selected }: { chrome: BoardChrome; selected: boolean }) {
+// Solid marks, not hairline rings. A filled tab/blade reads at campaign zoom;
+// a 0.2-wide ring on a NATO flag does not.
+const TAB_GEO = new THREE.PlaneGeometry(1.05, 0.42);
+const BLADE_GEO = new THREE.CircleGeometry(0.38, 3);
+const NOTCH_GEO = new THREE.CircleGeometry(0.22, 3);
+const BAR_GEO = new THREE.PlaneGeometry(0.92, 0.22);
+
+function AgencyMarks({ chrome, selected }: { chrome: BoardChrome; selected: boolean }) {
   return (
     <group>
       {selected && (
-        <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.90, 1.10, 32]} />
-          <meshBasicMaterial color="#e8dfc8" transparent opacity={0.78} depthWrite={false} />
+        <mesh position={[0, 0.02, 0.62]} rotation={[-Math.PI / 2, 0, 0]} geometry={TAB_GEO}>
+          <meshBasicMaterial color="#efe6d0" depthWrite={false} />
         </mesh>
       )}
       {chrome.canAttack && (
-        <mesh position={[0, 0.038, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.58, 0.86, 32]} />
-          <meshBasicMaterial color="#c9a352" transparent opacity={0.7} depthWrite={false} />
+        <mesh position={[0.68, 0.024, 0]} rotation={[-Math.PI / 2, 0, -Math.PI / 2]} geometry={BLADE_GEO}>
+          <meshBasicMaterial color="#d4b05a" depthWrite={false} />
         </mesh>
       )}
       {chrome.inContact && !chrome.canAttack && (
-        <mesh position={[0, 0.036, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.58, 0.80, 28]} />
-          <meshBasicMaterial color="#c9a352" transparent opacity={0.28} depthWrite={false} />
+        <mesh position={[0.58, 0.022, 0]} rotation={[-Math.PI / 2, 0, -Math.PI / 2]} geometry={NOTCH_GEO}>
+          <meshBasicMaterial color="#c9a352" depthWrite={false} />
         </mesh>
       )}
       {chrome.threatened && (
-        <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.58, 0.88, 32]} />
-          <meshBasicMaterial color="#e8dfc8" transparent opacity={0.55} depthWrite={false} />
+        <mesh position={[0.68, 0.024, 0]} rotation={[-Math.PI / 2, 0, -Math.PI / 2]} geometry={BLADE_GEO}>
+          <meshBasicMaterial color="#efe6d0" depthWrite={false} />
         </mesh>
       )}
-      {chrome.spent && (
-        <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.48, 0.70, 28]} />
-          <meshBasicMaterial color="#2a2a28" transparent opacity={0.55} depthWrite={false} />
+      {chrome.spent && !selected && (
+        <mesh position={[0, 0.016, 0.55]} rotation={[-Math.PI / 2, 0, 0]} geometry={BAR_GEO}>
+          <meshBasicMaterial color="#1a1a18" depthWrite={false} />
         </mesh>
       )}
     </group>
@@ -139,7 +139,8 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
     movementMax: chrome.showMp ? chrome.mpMax : undefined,
     spent: chrome.spent,
     hasAttacked: chrome.hasAttacked,
-    inContact: chrome.canAttack,
+    inContact: chrome.inContact,
+    canAttack: chrome.canAttack,
     threatened: chrome.threatened,
   };
   const stdTexture = useMemo(() => makeStandardTexture(stdSpec), [standardKey(stdSpec)]);
@@ -168,7 +169,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
       g.position.lerp(target.current, Math.min(1, delta * 7));
     }
     // Crossfade against the counters.
-    const vis = (1 - fadeState.value) * (chrome.spent ? 0.48 : 1);
+    const vis = (1 - fadeState.value) * (chrome.spent ? 0.78 : 1);
     g.visible = vis > 0.02;
     if (baseMatRef.current) baseMatRef.current.opacity = vis;
     if (stdMatRef.current) stdMatRef.current.opacity = vis;
@@ -228,11 +229,11 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
           <meshBasicMaterial color="#b04a3a" transparent opacity={0.4} depthWrite={false} />
         </mesh>
       )}
-      <AgencyRings chrome={chrome} selected={selected} />
+      <AgencyMarks chrome={chrome} selected={selected} />
       {/* The standard. */}
       <Billboard position={[0, 0.5, 0]} follow>
         <mesh>
-          <planeGeometry args={[0.66, 0.22]} />
+          <planeGeometry args={[0.82, 0.28]} />
           <meshBasicMaterial ref={stdMatRef} map={stdTexture} transparent depthWrite={false} />
         </mesh>
       </Billboard>
@@ -265,7 +266,8 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
     movementMax: chrome.showMp ? chrome.mpMax : undefined,
     spent: chrome.spent,
     hasAttacked: chrome.hasAttacked,
-    inContact: chrome.canAttack,
+    inContact: chrome.inContact,
+    canAttack: chrome.canAttack,
     threatened: chrome.threatened,
   };
   const key = counterKey(spec);
@@ -288,7 +290,7 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
     if (g.position.distanceTo(target.current) > 0.002) {
       g.position.lerp(target.current, Math.min(1, delta * 7));
     }
-    const vis = fadeState.value * (chrome.spent ? 0.48 : 1);
+    const vis = fadeState.value * (chrome.spent ? 0.78 : 1);
     g.visible = vis > 0.02;
     if (plateMatRef.current) plateMatRef.current.opacity = vis;
     if (baseMatRef.current) baseMatRef.current.opacity = vis;
@@ -325,10 +327,10 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
           emissiveIntensity={selected ? 0.5 : chrome.threatened ? 0.38 : chrome.canAttack ? 0.3 : 0}
         />
       </mesh>
-      <AgencyRings chrome={chrome} selected={selected} />
+      <AgencyMarks chrome={chrome} selected={selected} />
       <Billboard position={[0, 0.78, 0]} follow>
         <mesh>
-          <planeGeometry args={[1.18, 0.74]} />
+          <planeGeometry args={[1.46, 0.92]} />
           <meshBasicMaterial ref={plateMatRef} map={texture} transparent depthWrite={false} />
         </mesh>
       </Billboard>

@@ -22,7 +22,6 @@ import {
 } from './ui/Modals';
 import { AssetsView } from './ui/AssetsView';
 import { Journal } from './ui/Journal';
-import { Notifications } from './ui/Notifications';
 import { SidePanel } from './ui/SidePanel';
 import { TurnCard } from './ui/TurnCard';
 import { TopBar } from './ui/TopBar';
@@ -260,7 +259,6 @@ export default function App() {
         <CommandBar />
         <OrdersHint />
         <MapModes />
-        <Notifications />
         <AIOverlay />
         <AssaultBriefing />
         <CombatResultPanel />

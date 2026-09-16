@@ -1,14 +1,13 @@
 // Context panel: selected unit or selected tile/city.
 // Assault preview lives on the centered briefing card.
 
-import { ReactNode } from 'react';
 import { TERRAIN_DEFS, UNIT_DEFS } from '../game/data/defs';
 import { supplyStateFromLevel } from '../game/rules/supply';
 import { useStore } from '../game/state/store';
 import { Unit } from '../game/types';
-import { strengthNowCopy } from './boardChrome';
+import { LEXICON, moraleNow, movementNow, readinessNow, strengthNow, supplyNow } from './lexicon';
 import { MiniViewport } from './MiniViewport';
-import { Tip } from './Tip';
+import { LexiconTip, Tip } from './Tip';
 
 function pct(v: number): string {
   return `${Math.round(v)}%`;
@@ -18,14 +17,14 @@ function condClass(v: number): string {
   return v > 65 ? 'good' : v > 35 ? 'warn' : 'bad';
 }
 
-function StatBar({ label, value, tip }: { label: string; value: number; tip: ReactNode }) {
+function StatBar({ label, value, doctrine, now }: { label: string; value: number; doctrine: string; now: string }) {
   const cls = value > 65 ? 'fill-good' : value > 35 ? 'fill-warn' : 'fill-bad';
   return (
-    <Tip title={label} text={tip} block lexicon={label === 'Strength'}>
+    <Tip title={label} text={doctrine} now={now} block lexicon>
       <div style={{ marginBottom: 7, width: '100%' }}>
         <div className="kv-line" style={{ padding: 0 }}>
           <span className="k">{label}</span>
-          <span className="v">{pct(value)}</span>
+          <span className={`v ${condClass(value)}`}>{pct(value)}</span>
         </div>
         <div className="bar"><span className={cls} style={{ width: `${Math.max(2, value)}%` }} /></div>
       </div>
@@ -38,12 +37,6 @@ function UnitDetails({ unit }: { unit: Unit }) {
   const def = UNIT_DEFS[unit.type];
   const tile = game.tiles[unit.tile];
   const showViewport = unit.faction === game.playerFaction;
-  const supplyTip =
-    unit.supply === 'isolated'
-      ? 'No connection to a supply source. The formation will degrade each turn it remains cut off. Reopen a land corridor or use Emergency Resupply.'
-      : unit.supply === 'low' || unit.supply === 'strained'
-        ? 'The supply route to the nearest hub is long or constricted. Combat power and recovery are reduced. Check the Supply map mode to trace the route.'
-        : 'Connected to the supply network. Full combat power and recovery.';
 
   return (
     <>
@@ -57,57 +50,57 @@ function UnitDetails({ unit }: { unit: Unit }) {
       {showViewport && <MiniViewport unit={unit} fortified={tile.fortified} />}
 
       <div className="status-tags">
-        <Tip title="Supply state" text={supplyTip}>
+        <LexiconTip id="supply" now={supplyNow(unit.supply).copy}>
           <span className={`tag ${unit.supply === 'full' || unit.supply === 'supplied' ? 'good' : unit.supply === 'strained' ? 'warn' : 'bad'}`}>
             {unit.supply}
           </span>
-        </Tip>
+        </LexiconTip>
         {unit.entrenchment > 0 && (
-          <Tip title="Entrenchment" text="Defensive preparation on this tile. Grows each stationary turn; lost on movement; reduced by artillery preparation and assaults.">
+          <LexiconTip id="entrench" now={`Dug in ${unit.entrenchment} on this hex.`}>
             <span className="tag">dug in {unit.entrenchment}</span>
-          </Tip>
+          </LexiconTip>
         )}
         {unit.reinforcing && (
-          <Tip title="Reinforcing" text="Receiving replacements each turn. Slower near the front. Movement halved; cannot attack effectively.">
+          <LexiconTip id="reinforce" now="Replacements are flowing. Movement is halved.">
             <span className="tag good">reinforcing</span>
-          </Tip>
+          </LexiconTip>
         )}
         {unit.disorganized > 0 && (
-          <Tip title="Disorganised" text="This formation recently retreated. Combat power and movement reduced until it recovers next turn.">
+          <Tip lexicon title="Disorganised" text="This formation recently retreated. Combat power and movement reduced until it recovers next week." now="Still shaking out from the last exchange.">
             <span className="tag warn">disorganised</span>
           </Tip>
         )}
         {unit.hasAttacked && <span className="tag">has attacked</span>}
         {unit.experience > 0 && (
-          <Tip title="Experience" text="Combat experience grants a modest bonus to attack and defence.">
+          <Tip lexicon title="Experience" text="Combat experience grants a modest bonus to attack and defence." now={`${unit.experience} chevron${unit.experience > 1 ? 's' : ''} on the standard.`}>
             <span className="tag good">{'★'.repeat(unit.experience)}</span>
           </Tip>
         )}
       </div>
 
-      <StatBar
-        label="Strength"
-        value={unit.strength}
-        tip={(
-          <>
-            <p>The fighting body of the formation — men, vehicles, cohesion. Not a hit-point bar: a brigade at 40 is still on the map but no longer a peer.</p>
-            <p className="tt-now">Now: {Math.round(unit.strength)} — {strengthNowCopy(unit.strength)}.</p>
-            <p>Restored by Reinforce (manpower + equipment). Near zero it ceases to exist. The 2d6 decide how fast this falls in a fight; the power model decides the bill.</p>
-          </>
-        )}
-      />
-      <StatBar label="Readiness" value={unit.readiness} tip="Ability to conduct operations. Drains with combat and low supply; recovers when resting in supply." />
-      <StatBar label="Morale" value={unit.morale} tip="Willingness to fight. Low morale formations retreat easily. Recovers in supply; drops when isolated." />
+      <StatBar label="Strength" value={unit.strength} doctrine={LEXICON.strength.doctrine} now={strengthNow(unit.strength).copy} />
+      <StatBar label="Readiness" value={unit.readiness} doctrine={LEXICON.readiness.doctrine} now={readinessNow(unit.readiness).copy} />
+      <StatBar label="Morale" value={unit.morale} doctrine={LEXICON.morale.doctrine} now={moraleNow(unit.morale).copy} />
 
       <div className="stat-grid">
-        <div className="stat"><span className="k">Attack</span><span className="v">{def.attack}</span></div>
-        <div className="stat"><span className="k">Defence</span><span className="v">{def.defense}</span></div>
-        <div className="stat"><span className="k">Breakthrough</span><span className="v">{def.breakthrough}</span></div>
-        <div className="stat"><span className="k">Support</span><span className="v">{def.support}</span></div>
-        <div className="stat">
-          <span className="k">Movement</span>
-          <span className={`v ${unit.movement <= 0 ? 'bad' : ''}`}>{unit.movement.toFixed(1)}/{def.movement}</span>
-        </div>
+        <LexiconTip id="attack" now={`Printed attack ${def.attack} for this type.`}>
+          <div className="stat"><span className="k">Attack</span><span className="v">{def.attack}</span></div>
+        </LexiconTip>
+        <LexiconTip id="defence" now={`Printed defence ${def.defense} for this type.`}>
+          <div className="stat"><span className="k">Defence</span><span className="v">{def.defense}</span></div>
+        </LexiconTip>
+        <LexiconTip id="breakthrough" now={`Breakthrough ${def.breakthrough} — ${def.breakthrough >= 7 ? 'built to take the hex' : 'holds more than it punches'}.`}>
+          <div className="stat"><span className="k">Breakthrough</span><span className="v">{def.breakthrough}</span></div>
+        </LexiconTip>
+        <LexiconTip id="support" now={def.support > 0 ? `Fires ${def.support} — this plate degrades, it does not take.` : 'No fires weight. This formation must close.'}>
+          <div className="stat"><span className="k">Support</span><span className="v">{def.support}</span></div>
+        </LexiconTip>
+        <LexiconTip id="movement" now={movementNow(unit.movement, def.movement).copy}>
+          <div className="stat">
+            <span className="k">Movement</span>
+            <span className={`v ${unit.movement <= 0 ? 'bad' : ''}`}>{unit.movement.toFixed(1)}/{def.movement}</span>
+          </div>
+        </LexiconTip>
         <div className="stat"><span className="k">Terrain</span><span className="v">{TERRAIN_DEFS[tile.terrain].label}</span></div>
       </div>
 
@@ -142,9 +135,9 @@ function TileDetails() {
       {city && (
         <div className="status-tags">
           {city.vp > 0 && (
-            <Tip title="Victory points" text="Holding this location contributes to campaign score every turn and shifts war support when it changes hands.">
+            <LexiconTip id="cities" now={`${city.vp} VP on this hex. Taking it moves the clock.`}>
               <span className="tag good">{city.vp} VP</span>
-            </Tip>
+            </LexiconTip>
           )}
           {city.supplyHub && (
             <Tip title="Supply hub" text="Extends the supply network. Reserves can deploy at supplied hub cities.">

@@ -6,6 +6,7 @@ import { UNIT_DEFS } from '../game/data/defs';
 import { computePreview } from '../game/rules/combat';
 import { useStore } from '../game/state/store';
 import { VERDICT_LABEL } from './combatChrome';
+import { LEXICON } from './lexicon';
 import { Tip } from './Tip';
 
 export function AssaultBriefing() {
@@ -71,8 +72,9 @@ export function AssaultBriefing() {
           {!isArtillery && (
             <Tip
               lexicon
-              title="The exchange"
-              text="Staff estimate before fortune. They lose the first number; you lose the second. Dice swing both — a 12 presses, a 2 falters. Decisions still dominate a 2:1 fight."
+              title={LEXICON.odds.title}
+              text={LEXICON.odds.doctrine}
+              now={`${preview.oddsLabel} — they lose the first number, you lose the second.`}
               block
             >
               <div className="preview-bill brief-bill">
