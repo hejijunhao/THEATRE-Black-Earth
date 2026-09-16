@@ -1115,14 +1115,19 @@ button {
 }
 .paper-callout line {
   fill: none;
-  stroke: rgba(201, 163, 82, 0.72);
-  stroke-width: 1.25;
+  stroke: rgba(201, 163, 82, 0.88);
+  stroke-width: 2;
   stroke-linecap: round;
 }
+.paper-callout .paper-pin-halo {
+  fill: none;
+  stroke: rgba(201, 163, 82, 0.45);
+  stroke-width: 1.5;
+}
 .paper-callout .paper-pin {
-  fill: rgba(216, 196, 138, 0.95);
-  stroke: rgba(90, 70, 40, 0.55);
-  stroke-width: 1;
+  fill: rgba(232, 214, 150, 0.98);
+  stroke: rgba(60, 44, 20, 0.7);
+  stroke-width: 1.25;
 }
 .brief-sheet {
   --ink: #3a3226;

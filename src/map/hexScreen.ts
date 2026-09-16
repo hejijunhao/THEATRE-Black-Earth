@@ -8,28 +8,14 @@ export interface HexScreenPoint {
   visible: boolean;
 }
 
-type Listener = (pt: HexScreenPoint | null) => void;
+type Projector = (tile: string) => HexScreenPoint | null;
 
-let current: HexScreenPoint | null = null;
-const listeners = new Set<Listener>();
+let projector: Projector | null = null;
 
-export function publishHexScreen(pt: HexScreenPoint | null): void {
-  const same = current && pt
-    && current.tile === pt.tile
-    && current.visible === pt.visible
-    && Math.abs(current.x - pt.x) < 0.75
-    && Math.abs(current.y - pt.y) < 0.75;
-  if (same || (!current && !pt)) return;
-  current = pt;
-  for (const listen of listeners) listen(pt);
+export function setHexProjector(fn: Projector | null): void {
+  projector = fn;
 }
 
-export function subscribeHexScreen(listen: Listener): () => void {
-  listeners.add(listen);
-  listen(current);
-  return () => { listeners.delete(listen); };
-}
-
-export function peekHexScreen(): HexScreenPoint | null {
-  return current;
+export function projectHex(tile: string): HexScreenPoint | null {
+  return projector?.(tile) ?? null;
 }

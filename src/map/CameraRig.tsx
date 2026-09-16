@@ -8,13 +8,16 @@ import * as THREE from 'three';
 import type { MapControls as MapControlsImpl } from 'three-stdlib';
 import { tileWorldById } from '../game/hex';
 import { useStore } from '../game/state/store';
+import { setHexProjector } from './hexScreen';
+import { tileGroundY } from './terrain/heightfield';
 import { WORLD_W as MAP_W, WORLD_H as MAP_H } from './worldDims';
 
 export function CameraRig() {
   const controlsRef = useRef<MapControlsImpl>(null);
   const focus = useStore((s) => s.cameraFocus);
   const targetGoal = useRef<THREE.Vector3 | null>(null);
-  const { camera } = useThree();
+  const { camera, gl } = useThree();
+  const scratch = useRef(new THREE.Vector3());
 
   // Initial framing: center on the Dnipro bend, looking north.
   useEffect(() => {
@@ -23,6 +26,19 @@ export function CameraRig() {
     controls.target.set(MAP_W * 0.58, 0, MAP_H * 0.45);
     camera.position.set(MAP_W * 0.58, 34, MAP_H * 0.45 + 22);
     controls.update();
+    const projectTile = (tile: string) => {
+      const { wx, wz } = tileWorldById(tile);
+      camera.updateMatrixWorld();
+      const v = scratch.current.set(wx, tileGroundY(tile) + 0.05, wz).project(camera);
+      const rect = gl.domElement.getBoundingClientRect();
+      return {
+        tile,
+        x: (v.x * 0.5 + 0.5) * rect.width + rect.left,
+        y: (-v.y * 0.5 + 0.5) * rect.height + rect.top,
+        visible: Number.isFinite(v.x) && Number.isFinite(v.y),
+      };
+    };
+    setHexProjector(projectTile);
     // Dev/automation camera hook (golden harness close-ups, playtest).
     (window as unknown as Record<string, unknown>).__TBE_CAMERA__ = {
       set: (px: number, py: number, pz: number, tx: number, tz: number) => {
@@ -30,8 +46,10 @@ export function CameraRig() {
         controls.target.set(tx, 0, tz);
         controls.update();
       },
+      projectTile,
     };
-  }, [camera]);
+    return () => setHexProjector(null);
+  }, [camera, gl]);
 
   useEffect(() => {
     if (!focus) return;

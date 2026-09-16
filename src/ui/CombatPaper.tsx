@@ -2,7 +2,7 @@
 // Wash, not curtain. Docks from the contested hex's screen position.
 
 import { CSSProperties, ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { subscribeHexScreen } from '../map/hexScreen';
+import { projectHex } from '../map/hexScreen';
 import { TileId } from '../game/types';
 import { paperLayoutFromScreen, paperOverClass, SHEET_WIDTH } from './combatPaper';
 
@@ -26,12 +26,24 @@ export function CombatPaper({
   children: ReactNode;
 }) {
   const sheetRef = useRef<HTMLElement>(null);
+  const overRef = useRef<HTMLDivElement>(null);
   const [sheetH, setSheetH] = useState(320);
   const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
 
-  useEffect(() => subscribeHexScreen((pt) => {
-    setAnchor(pt && pt.tile === tile && pt.visible ? { x: pt.x, y: pt.y } : null);
-  }), [tile]);
+  useEffect(() => {
+    let raf = 0;
+    const tick = () => {
+      const pt = projectHex(tile);
+      setAnchor((prev) => {
+        if (!pt || !pt.visible) return null;
+        if (prev && Math.abs(prev.x - pt.x) < 0.6 && Math.abs(prev.y - pt.y) < 0.6) return prev;
+        return { x: pt.x, y: pt.y };
+      });
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [tile]);
 
   useLayoutEffect(() => {
     const el = sheetRef.current;
@@ -43,11 +55,13 @@ export function CombatPaper({
     return () => ro.disconnect();
   }, []);
 
-  const layout = anchor
-    ? paperLayoutFromScreen(anchor, { w: window.innerWidth, h: window.innerHeight }, {
-      w: SHEET_WIDTH,
-      h: sheetH,
-    })
+  const hud = overRef.current?.getBoundingClientRect();
+  const layout = anchor && hud
+    ? paperLayoutFromScreen(
+      { x: anchor.x - hud.left, y: anchor.y - hud.top },
+      { w: hud.width, h: hud.height },
+      { w: SHEET_WIDTH, h: sheetH },
+    )
     : null;
   const cls = layout ? `brief-over anchored dock-${layout.side}` : paperOverClass(tile);
   const wash = layout
@@ -55,7 +69,7 @@ export function CombatPaper({
     : undefined;
 
   return (
-    <div className={cls} style={wash}>
+    <div ref={overRef} className={cls} style={wash}>
       {layout && (
         <svg className="paper-callout" aria-hidden>
           <line
@@ -64,7 +78,8 @@ export function CombatPaper({
             x2={layout.callout.x2}
             y2={layout.callout.y2}
           />
-          <circle className="paper-pin" cx={layout.callout.x1} cy={layout.callout.y1} r={4} />
+          <circle className="paper-pin-halo" cx={layout.callout.x1} cy={layout.callout.y1} r={9} />
+          <circle className="paper-pin" cx={layout.callout.x1} cy={layout.callout.y1} r={5} />
         </svg>
       )}
       <article
