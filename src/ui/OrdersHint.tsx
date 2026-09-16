@@ -13,6 +13,7 @@ export function OrdersHint() {
   const interactionMode = useStore((s) => s.interactionMode);
 
   if (!game || game.phase !== 'player' || lastCombat) return null;
+  if (pendingAttackId) return null;
 
   let eyebrow = 'Orders';
   let line = 'Select a formation to move or attack.';

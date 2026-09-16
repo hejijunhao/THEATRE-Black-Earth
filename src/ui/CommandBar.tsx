@@ -103,7 +103,7 @@ export function CommandBar() {
   const [showOps, setShowOps] = useState(false);
   const [showReserves, setShowReserves] = useState(false);
 
-  if (!game || game.phase !== 'player' || lastCombat) return null;
+  if (!game || game.phase !== 'player' || lastCombat || pendingAttackId) return null;
 
   const unit = selectedUnitId ? game.units[selectedUnitId] : null;
   const faction = game.factions[game.playerFaction];
@@ -132,7 +132,7 @@ export function CommandBar() {
                 {orders.contacts.length > 0 && (
                   <Plate
                     eyebrow={orders.isFires ? 'Fires' : 'Assault'}
-                    title={orders.contacts.length === 1 ? orders.contacts[0].name : `${orders.contacts.length} in contact`}
+                    title={`${orders.contacts.length} in contact`}
                     line="open briefing"
                     icon={orders.isFires ? 'artillery' : 'threat'}
                     tip="Click to open the staff estimate against the first adjacent enemy. You can also click the enemy counter on the board."

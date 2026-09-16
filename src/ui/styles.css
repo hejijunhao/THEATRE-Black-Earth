@@ -422,9 +422,10 @@ button {
   transform: translateX(-50%);
   display: flex;
   align-items: stretch;
+  flex-wrap: nowrap;
   gap: 0;
-  min-height: 88px;
-  max-width: min(980px, calc(100vw - 280px));
+  min-height: 86px;
+  max-width: min(1080px, calc(100vw - 248px));
   border-radius: 2px;
   z-index: 16;
 }
@@ -476,16 +477,17 @@ button {
   display: flex;
   align-items: stretch;
   gap: 6px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .bench-plate {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  min-width: 118px;
-  max-width: 200px;
-  padding: 7px 10px 8px;
+  gap: 7px;
+  min-width: 102px;
+  max-width: 148px;
+  flex: 0 1 auto;
+  padding: 6px 8px 7px;
   text-align: left;
   color: var(--ink);
   background:
@@ -831,8 +833,13 @@ button {
   z-index: 3;
 }
 
-.assault-brief { width: 680px; }
-.assault-brief .aar-headline { font-size: 30px; }
+.assault-brief,
+.aar.dispatch {
+  overflow-x: hidden;
+}
+.assault-brief { width: min(640px, calc(100vw - 48px)); }
+.assault-brief .aar-headline { font-size: 28px; }
+.assault-brief .aar-detail { font-size: 14px; max-width: 38em; }
 .brief-bill {
   border: 1px solid var(--line);
   padding: 8px 12px;
