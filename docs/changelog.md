@@ -30,10 +30,10 @@ add a row for them here.
 A presentation pass on the combat / orders loop. Rules are unchanged (PC2
 2d6, same power model). The board and the bench now say who can still act.
 
-- **Board chrome.** Counters and standards show remaining movement pips.
-  Spent formations dim. Friendly units in contact get amber ticks / a ring;
-  a selected unit's legal targets get a parchment edge. Tab-forced counters
-  and miniature LOD both carry the same read.
+- **Board chrome.** Counters are frames: abbreviated name, a brass MP box,
+  ATK if the formation has engaged, supply pip. Spent plates dim hard.
+  Contact gets amber ticks / a ring; a selected unit's legal targets get a
+  parchment edge. Tab-forced counters and miniature LOD share the same read.
 - **Assault briefing.** The preview is no longer a 320px dock. It is a
   centered staff paper — verdict as headline, named sides, odds, expected
   losses, factor ledger — then Commit the roll. Esc withdraws. The side

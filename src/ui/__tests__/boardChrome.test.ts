@@ -17,6 +17,7 @@ describe('board chrome', () => {
     expect(chrome.mp).toBeGreaterThan(0);
     expect(chrome.inContact).toBe(true);
     expect(chrome.contactCount).toBeGreaterThan(0);
+    expect(chrome.hasAttacked).toBe(false);
   });
 
   it('dims a spent friendly and hides MP on the enemy', () => {
@@ -25,6 +26,7 @@ describe('board chrome', () => {
     expect(chrome.spent).toBe(true);
     expect(chrome.idle).toBe(false);
     expect(chrome.inContact).toBe(false);
+    expect(chrome.hasAttacked).toBe(true);
 
     const enemy = boardChrome(state, r1, true);
     expect(enemy.showMp).toBe(false);

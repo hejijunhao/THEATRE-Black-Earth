@@ -99,6 +99,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
     movement: chrome.showMp ? chrome.mp : undefined,
     movementMax: chrome.showMp ? chrome.mpMax : undefined,
     spent: chrome.spent,
+    hasAttacked: chrome.hasAttacked,
     inContact: chrome.inContact,
     threatened: chrome.threatened,
   };
@@ -235,6 +236,7 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
     movement: chrome.showMp ? chrome.mp : undefined,
     movementMax: chrome.showMp ? chrome.mpMax : undefined,
     spent: chrome.spent,
+    hasAttacked: chrome.hasAttacked,
     inContact: chrome.inContact,
     threatened: chrome.threatened,
   };
@@ -297,7 +299,7 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
       </mesh>
       <Billboard position={[0, 0.78, 0]} follow>
         <mesh>
-          <planeGeometry args={[1.06, 0.66]} />
+          <planeGeometry args={[1.18, 0.74]} />
           <meshBasicMaterial ref={plateMatRef} map={texture} transparent depthWrite={false} />
         </mesh>
       </Billboard>

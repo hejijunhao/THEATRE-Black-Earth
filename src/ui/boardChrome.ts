@@ -18,6 +18,8 @@ export interface BoardChrome {
   /** Player, at least one legal adjacent target. */
   inContact: boolean;
   contactCount: number;
+  /** Player, already committed an assault or fires this week. */
+  hasAttacked: boolean;
   /** Enemy the selected friendly can legally assault. */
   threatened: boolean;
 }
@@ -53,6 +55,7 @@ export function boardChrome(
     idle: isPlayer && playerTurn && unit.movement > 0,
     inContact: contacts.length > 0,
     contactCount: contacts.length,
+    hasAttacked: isPlayer && unit.hasAttacked,
     threatened,
   };
 }
