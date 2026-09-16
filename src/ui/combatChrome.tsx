@@ -57,25 +57,3 @@ export function StrengthStrip({
   );
 }
 
-export function LossMeter({
-  label,
-  amount,
-  cap = 32,
-  tone,
-}: {
-  label: string;
-  amount: number;
-  cap?: number;
-  tone: 'given' | 'taken';
-}) {
-  const pct = Math.min(100, (amount / cap) * 100);
-  return (
-    <div className={`loss-meter ${tone}`}>
-      <div className="loss-lab">{label}</div>
-      <div className="loss-bar" aria-hidden>
-        <span style={{ width: `${Math.max(4, pct)}%` }} />
-      </div>
-      <div className="loss-n">−{Math.round(amount)}</div>
-    </div>
-  );
-}

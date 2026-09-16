@@ -1,27 +1,18 @@
 // Army instrument: CONTACT / MARCH / SPENT, type + strength + assault.
-// Stays present (thin rail) under the briefing. Hover lights the hex.
+// Stays present (thin rail) under briefing AND after-action. Hover lights the hex.
 
 import { UNIT_DEFS } from '../game/data/defs';
 import { useStore } from '../game/state/store';
-import { GameState, Unit } from '../game/types';
-import { AgencyKind, agencyKind, boardChrome, unitOrders } from './boardChrome';
+import { Unit } from '../game/types';
+import { AgencyKind, agencyKind, boardChrome, cycleUnspent, formationLane, FormationLane, unitOrders } from './boardChrome';
 import { Ico } from './icons';
 import { abbreviate } from '../map/textures';
-
-type RowKind = 'contact' | 'march' | 'spent';
-
-function kindOf(unit: Unit, game: GameState): RowKind {
-  const o = unitOrders(game, unit);
-  if (o.contacts.length > 0) return 'contact';
-  if (o.canMove) return 'march';
-  return 'spent';
-}
 
 function strengthTone(strength: number): string {
   return strength > 65 ? 'good' : strength > 35 ? 'warn' : 'bad';
 }
 
-const KIND_LABEL: Record<RowKind, string> = {
+const KIND_LABEL: Record<FormationLane, string> = {
   contact: 'Contact',
   march: 'March',
   spent: 'Spent',
@@ -52,8 +43,9 @@ export function Outliner() {
   const focusCamera = useStore((s) => s.focusCamera);
   const hoverTile = useStore((s) => s.hoverTile);
   const setPendingAttack = useStore((s) => s.setPendingAttack);
+  const dismissCombat = useStore((s) => s.dismissCombat);
 
-  if (!game || game.phase !== 'player' || lastCombat) return null;
+  if (!game || game.phase !== 'player') return null;
 
   const mine = Object.values(game.units).filter((u) => u.faction === game.playerFaction);
   const rows = mine
@@ -63,7 +55,7 @@ export function Outliner() {
       const selected = u.id === selectedUnitId;
       return {
         unit: u,
-        kind: kindOf(u, game),
+        kind: formationLane(game, u),
         orders,
         mark: agencyKind(chrome, selected),
       };
@@ -75,21 +67,44 @@ export function Outliner() {
       return a.unit.name.localeCompare(b.unit.name);
     });
 
-  const groups: RowKind[] = ['contact', 'march', 'spent'];
+  const groups: FormationLane[] = ['contact', 'march', 'spent'];
   const nContact = rows.filter((r) => r.kind === 'contact').length;
   const nMarch = rows.filter((r) => r.kind === 'march').length;
   const nSpent = rows.filter((r) => r.kind === 'spent').length;
-  const briefing = Boolean(pendingAttackId);
+  const paperUp = Boolean(pendingAttackId || lastCombat);
+
+  const openEstimate = (unit: Unit, defenderId: string) => {
+    if (lastCombat) dismissCombat();
+    selectUnit(unit.id);
+    focusCamera(unit.tile);
+    setPendingAttack(defenderId);
+  };
+
+  const cycle = () => {
+    const next = cycleUnspent(game, selectedUnitId);
+    if (!next) return;
+    const unit = game.units[next];
+    selectUnit(next);
+    if (unit) focusCamera(unit.tile);
+  };
 
   return (
     <div
-      className={`outliner panel${briefing ? ' rail' : ''}`}
+      className={`outliner panel${paperUp ? ' rail' : ''}`}
       role="navigation"
       aria-label="Formations"
     >
       <div className="outliner-head">
         <span className="ttl">Formations</span>
         <span className="sub">{nContact} contact · {nMarch} march · {nSpent} spent</span>
+        <button
+          type="button"
+          className="or-next"
+          onClick={cycle}
+          title="Next unspent formation · N"
+        >
+          Next
+        </button>
       </div>
       <div className="outliner-list">
         {groups.map((g) => {
@@ -127,9 +142,7 @@ export function Outliner() {
                       title="Open the staff estimate"
                       onClick={(e) => {
                         e.stopPropagation();
-                        selectUnit(unit.id);
-                        focusCamera(unit.tile);
-                        setPendingAttack(orders.contacts[0].id);
+                        openEstimate(unit, orders.contacts[0].id);
                       }}
                     >
                       {orders.contacts.length}×

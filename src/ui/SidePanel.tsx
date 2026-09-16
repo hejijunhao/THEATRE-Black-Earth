@@ -5,7 +5,7 @@ import { TERRAIN_DEFS, UNIT_DEFS } from '../game/data/defs';
 import { supplyStateFromLevel } from '../game/rules/supply';
 import { useStore } from '../game/state/store';
 import { Unit } from '../game/types';
-import { LEXICON, moraleNow, movementNow, readinessNow, strengthNow, supplyNow } from './lexicon';
+import { LEXICON, LexiconId, moraleNow, movementNow, readinessNow, strengthNow, supplyNow } from './lexicon';
 import { MiniViewport } from './MiniViewport';
 import { LexiconTip, Tip } from './Tip';
 
@@ -192,6 +192,21 @@ function TileDetails() {
   );
 }
 
+function EncyclopediaLedger({ id }: { id: LexiconId }) {
+  const pinLexicon = useStore((s) => s.pinLexicon);
+  const entry = LEXICON[id];
+  return (
+    <div className="lex-ledger">
+      <div className="lex-kicker">Encyclopedia</div>
+      <div className="lex-title">{entry.title}</div>
+      <p className="lex-doctrine">{entry.doctrine}</p>
+      <button type="button" className="lex-unpin" onClick={() => pinLexicon(null)}>
+        Unpin · E
+      </button>
+    </div>
+  );
+}
+
 export function SidePanel() {
   const game = useStore((s) => s.game);
   const selectedUnitId = useStore((s) => s.selectedUnitId);
@@ -200,11 +215,15 @@ export function SidePanel() {
   const interactionMode = useStore((s) => s.interactionMode);
   const pendingOp = useStore((s) => s.pendingOp);
   const lastCombat = useStore((s) => s.lastCombat);
+  const pinnedLexiconId = useStore((s) => s.pinnedLexiconId);
   const cancelInteraction = useStore((s) => s.cancelInteraction);
 
   if (!game) return null;
-  if (lastCombat && game.phase === 'player') return null;
-  if (pendingAttackId && game.phase === 'player') return null;
+  const pinned = pinnedLexiconId && pinnedLexiconId in LEXICON
+    ? (pinnedLexiconId as LexiconId)
+    : null;
+  const paperUp = Boolean((lastCombat || pendingAttackId) && game.phase === 'player');
+  if (paperUp && !pinned) return null;
 
   let content: JSX.Element | null = null;
   let title = 'Theatre';
@@ -221,6 +240,9 @@ export function SidePanel() {
         </div>
       </>
     );
+  } else if (paperUp && pinned) {
+    title = 'Encyclopedia';
+    content = <EncyclopediaLedger id={pinned} />;
   } else if (interactionMode === 'deploy') {
     title = 'Deploy reserve';
     content = (
@@ -239,6 +261,8 @@ export function SidePanel() {
   } else if (selectedTileId) {
     title = 'Sector';
     content = <TileDetails />;
+  } else if (pinned) {
+    title = 'Encyclopedia';
   } else {
     return null;
   }
@@ -249,7 +273,10 @@ export function SidePanel() {
         {title}
         <span className="sub">{game.scenario.dateLabel}</span>
       </div>
-      <div className="body">{content}</div>
+      <div className="body">
+        {pinned && !paperUp && <EncyclopediaLedger id={pinned} />}
+        {content}
+      </div>
     </div>
   );
 }

@@ -44,7 +44,7 @@ describe('encyclopedia now-lines', () => {
 });
 
 describe('theatre balance', () => {
-  it('opens the designed scenario as Holding, with three needles', () => {
+  it('opens the designed scenario as Holding, with a decisive track', () => {
     const state = buildInitialState('UA', 42);
     const b = theatreBalance(state);
     expect(b.headline).toBe('Holding');

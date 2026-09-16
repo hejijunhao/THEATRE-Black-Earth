@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { buildInitialState } from '../../game/scenarios/build';
+import { cycleUnspent, formationLane } from '../boardChrome';
 import { rankReasons, reasonCopy, reasonWeight } from '../briefingCopy';
+import { paperDock } from '../combatPaper';
 import { bindChronology, parseDice } from '../journalChronology';
 import { CombatFactor, NotificationEntry } from '../../game/types';
 
@@ -34,6 +37,34 @@ describe('staff estimate ranking', () => {
   });
 });
 
+describe('combat paper dock', () => {
+  it('puts the sheet on the opposite side of the contested hex', () => {
+    expect(paperDock('8,18').side).toBe('east');
+    expect(paperDock('36,18').side).toBe('west');
+    expect(paperDock('24,6').yBias).toBe('low');
+    expect(paperDock('24,18').yBias).toBe('mid');
+    expect(paperDock('24,30').yBias).toBe('high');
+  });
+});
+
+describe('ops rail cycle', () => {
+  it('walks contact then march and skips spent', () => {
+    const state = buildInitialState('UA', 42);
+    const first = cycleUnspent(state, null);
+    expect(first).toBeTruthy();
+    const unit = state.units[first!];
+    expect(formationLane(state, unit)).not.toBe('spent');
+
+    const spent = state.units.u3;
+    expect(spent).toBeTruthy();
+    spent.movement = 0;
+    spent.hasAttacked = true;
+    const next = cycleUnspent(state, 'u3');
+    expect(next).not.toBe('u3');
+    if (next) expect(formationLane(state, state.units[next])).not.toBe('spent');
+  });
+});
+
 describe('bound journal chronology', () => {
   it('parses 2d6 from combat lines', () => {
     expect(parseDice('57th hits 20th MRD — 2d6 9–5')).toEqual({ atk: 9, def: 5 });
@@ -41,7 +72,7 @@ describe('bound journal chronology', () => {
     expect(parseDice('Melitopol taken')).toEqual({});
   });
 
-  it('groups newest week first and keeps dice on combat', () => {
+  it('treats the week as the chapter, newest first', () => {
     const notes: NotificationEntry[] = [
       { id: 1, turn: 1, kind: 'info', text: 'Week opens.' },
       { id: 2, turn: 1, kind: 'combat', text: '57th against 20th MRD — 2d6 8–6' },
