@@ -86,6 +86,22 @@ await page.evaluate((id) => window.__TBE_DEBUG__.pendingAttack(id), targets[0]);
 await sleep(500);
 await page.screenshot({ path: join(OUT, '03-assault-briefing.png') });
 
+// Doctrine card from a briefing chip (terrain / supply).
+const chip = await page.$('.brief-chip');
+if (chip) {
+  const box = await chip.boundingBox();
+  if (box) {
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await sleep(400);
+    await page.screenshot({ path: join(OUT, '03b-briefing-doctrine.png') });
+  }
+}
+await page.mouse.move(10, 10);
+await sleep(200);
+
+// Thin ops rail stays present beside the paper.
+await page.screenshot({ path: join(OUT, '03c-ops-rail-during-brief.png') });
+
 await page.evaluate((id) => window.__TBE_DEBUG__.attack(id), targets[0]);
 await sleep(700);
 await page.screenshot({ path: join(OUT, '04-after-action.png') });
@@ -96,6 +112,14 @@ await sleep(300);
 await page.evaluate(() => window.__TBE_DEBUG__.selectUnit('u3'));
 await sleep(400);
 await page.screenshot({ path: join(OUT, '05-spent-plate-journal.png') });
+
+// Clock + rail after the fight (u3 spent; decisive track still live).
+await page.evaluate(() => {
+  const cam = window.__TBE_CAMERA__;
+  if (cam) cam.set(0, 42, 18, 0, 0);
+});
+await sleep(400);
+await page.screenshot({ path: join(OUT, '05b-clock-rail-journal.png') });
 
 // Near-camera miniatures still carry the tab/blade.
 await page.keyboard.press('Tab');

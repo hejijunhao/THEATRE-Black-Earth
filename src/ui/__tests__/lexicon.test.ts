@@ -54,6 +54,9 @@ describe('theatre balance', () => {
     expect(b.army.ownCount).toBeGreaterThan(0);
     expect(b.army.fighting).toBeGreaterThan(0);
     expect(b.line).toMatch(/Neither side|Hold/);
+    expect(b.decisiveCities.length).toBe(2);
+    expect(b.decisiveCities.map((c) => c.name)).toEqual(expect.arrayContaining(['Melitopol', 'Mariupol']));
+    expect(b.cities.decisiveHeld).toBe(b.decisiveCities.filter((c) => c.held).length);
   });
 
   it('reads Breaking when war support is collapsing', () => {

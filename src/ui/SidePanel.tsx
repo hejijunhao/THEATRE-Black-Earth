@@ -147,19 +147,22 @@ function TileDetails() {
             </LexiconTip>
           )}
           {city.supplyHub && (
-            <Tip title="Supply hub" text="Extends the supply network. Reserves can deploy at supplied hub cities.">
+            <LexiconTip id="supply" now="A hub on the corridor. Reserves deploy here when the hex is supplied.">
               <span className="tag">supply hub</span>
-            </Tip>
+            </LexiconTip>
           )}
           {city.supplySource && (
-            <Tip title="Supply source" text="A national entry point where supply originates. Losing it would cripple the surrounding network.">
+            <LexiconTip id="supply" now="A national source. Losing it starves the surrounding network.">
               <span className="tag warn">supply source</span>
-            </Tip>
+            </LexiconTip>
           )}
           {city.decisiveFor && (
-            <Tip title="Decisive objective" text={`Part of the decisive victory condition for ${city.decisiveFor === 'UA' ? 'Ukraine' : 'Russia'}.`}>
+            <LexiconTip
+              id="cities"
+              now={`Decisive for ${city.decisiveFor === 'UA' ? 'Ukraine' : 'Russia'} — hold the set and the short war ends.`}
+            >
               <span className="tag warn">decisive · {city.decisiveFor}</span>
-            </Tip>
+            </LexiconTip>
           )}
         </div>
       )}

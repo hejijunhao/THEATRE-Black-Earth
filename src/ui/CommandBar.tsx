@@ -11,11 +11,11 @@ import { Ico } from './icons';
 import { LEXICON } from './lexicon';
 import { LexiconTip, Tip } from './Tip';
 
-const MAP_MODES: Array<{ id: MapMode; label: string; tip: string }> = [
+const MAP_MODES: Array<{ id: MapMode; label: string; lexicon?: keyof typeof LEXICON; tip?: string }> = [
   { id: 'political', label: 'Political', tip: 'Territorial control and the frontline.' },
-  { id: 'supply', label: 'Supply', tip: 'Your supply network: bright green is well supplied, red is isolated. Trace a unit\'s route back to a hub to see why it is starved.' },
-  { id: 'terrain', label: 'Terrain', tip: 'Pure terrain view without political tint.' },
-  { id: 'objectives', label: 'Objectives', tip: 'Victory-point locations. Gold diamonds are decisive objectives for your side.' },
+  { id: 'supply', label: 'Supply', lexicon: 'supply' },
+  { id: 'terrain', label: 'Terrain', lexicon: 'terrain' },
+  { id: 'objectives', label: 'Objectives', lexicon: 'cities' },
   { id: 'intel', label: 'Intelligence', tip: 'Observed sectors are bright; dark areas rely on stale or absent intelligence.' },
 ];
 
@@ -24,16 +24,28 @@ export function MapModes() {
   const setMapMode = useStore((s) => s.setMapMode);
   return (
     <div className="map-modes">
-      {MAP_MODES.map((m) => (
-        <Tip key={m.id} title={m.label} text={m.tip}>
+      {MAP_MODES.map((m) => {
+        const btn = (
           <button
             className={`map-mode-btn ${mapMode === m.id ? 'active' : ''}`}
             onClick={() => setMapMode(m.id)}
           >
             {m.label}
           </button>
-        </Tip>
-      ))}
+        );
+        if (m.lexicon) {
+          return (
+            <LexiconTip key={m.id} id={m.lexicon} now={`Map mode: ${m.label}.`}>
+              {btn}
+            </LexiconTip>
+          );
+        }
+        return (
+          <Tip key={m.id} title={m.label} text={m.tip ?? m.label}>
+            {btn}
+          </Tip>
+        );
+      })}
     </div>
   );
 }
