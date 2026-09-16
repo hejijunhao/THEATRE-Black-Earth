@@ -129,7 +129,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
       g.position.lerp(target.current, Math.min(1, delta * 7));
     }
     // Crossfade against the counters.
-    const vis = 1 - fadeState.value;
+    const vis = (1 - fadeState.value) * (chrome.spent ? 0.48 : 1);
     g.visible = vis > 0.02;
     if (baseMatRef.current) baseMatRef.current.opacity = vis;
     if (stdMatRef.current) stdMatRef.current.opacity = vis;
@@ -190,15 +190,21 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
         </mesh>
       )}
       {chrome.inContact && unit.supply !== 'isolated' && (
-        <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.40, 0.48, 24]} />
-          <meshBasicMaterial color="#c9a352" transparent opacity={0.42} depthWrite={false} />
+        <mesh position={[0, 0.038, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.58, 0.86, 32]} />
+          <meshBasicMaterial color="#c9a352" transparent opacity={0.62} depthWrite={false} />
         </mesh>
       )}
       {chrome.threatened && (
-        <mesh position={[0, 0.042, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.40, 0.50, 24]} />
-          <meshBasicMaterial color="#e8dfc8" transparent opacity={0.5} depthWrite={false} />
+        <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.58, 0.88, 32]} />
+          <meshBasicMaterial color="#e8dfc8" transparent opacity={0.55} depthWrite={false} />
+        </mesh>
+      )}
+      {chrome.spent && (
+        <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.52, 0.72, 28]} />
+          <meshBasicMaterial color="#2a2a28" transparent opacity={0.55} depthWrite={false} />
         </mesh>
       )}
       {/* The standard. */}
@@ -260,7 +266,7 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
     if (g.position.distanceTo(target.current) > 0.002) {
       g.position.lerp(target.current, Math.min(1, delta * 7));
     }
-    const vis = fadeState.value;
+    const vis = fadeState.value * (chrome.spent ? 0.48 : 1);
     g.visible = vis > 0.02;
     if (plateMatRef.current) plateMatRef.current.opacity = vis;
     if (baseMatRef.current) baseMatRef.current.opacity = vis;
@@ -297,6 +303,24 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
           emissiveIntensity={selected ? 0.5 : chrome.threatened ? 0.38 : chrome.inContact ? 0.26 : 0}
         />
       </mesh>
+      {chrome.inContact && (
+        <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.58, 0.86, 32]} />
+          <meshBasicMaterial color="#c9a352" transparent opacity={0.62} depthWrite={false} />
+        </mesh>
+      )}
+      {chrome.threatened && (
+        <mesh position={[0, 0.042, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.58, 0.88, 32]} />
+          <meshBasicMaterial color="#e8dfc8" transparent opacity={0.55} depthWrite={false} />
+        </mesh>
+      )}
+      {chrome.spent && (
+        <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.52, 0.72, 28]} />
+          <meshBasicMaterial color="#2a2a28" transparent opacity={0.55} depthWrite={false} />
+        </mesh>
+      )}
       <Billboard position={[0, 0.78, 0]} follow>
         <mesh>
           <planeGeometry args={[1.18, 0.74]} />
