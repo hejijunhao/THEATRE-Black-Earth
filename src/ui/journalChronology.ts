@@ -1,6 +1,6 @@
 // Bound-journal chronology. Pure read of notifications — no rules.
 
-import { NotificationEntry } from '../game/types';
+import { GameState, NotificationEntry, TileId } from '../game/types';
 
 export interface ChronoLine {
   id: number;
@@ -47,4 +47,25 @@ export function bindChronology(notes: NotificationEntry[], limit = 10): ChronoWe
   return [...weeks.entries()]
     .sort((a, b) => b[0] - a[0])
     .map(([turn, lines]) => ({ turn, lines: lines.slice().reverse() }));
+}
+
+/** Best hex for a chronology line — last named living unit (the contested hex
+ *  in "A vs B"), else a named city. No engine write; names already in the note. */
+export function chronologyTile(game: GameState, text: string): TileId | null {
+  let best: { tile: TileId; at: number; len: number } | null = null;
+  for (const u of Object.values(game.units)) {
+    if (!u.name) continue;
+    const at = text.indexOf(u.name);
+    if (at < 0) continue;
+    if (!best || at > best.at || (at === best.at && u.name.length > best.len)) {
+      best = { tile: u.tile, at, len: u.name.length };
+    }
+  }
+  if (best) return best.tile;
+  let city: { tile: TileId; len: number } | null = null;
+  for (const c of Object.values(game.cities)) {
+    if (!text.includes(c.name)) continue;
+    if (!city || c.name.length > city.len) city = { tile: c.tile, len: c.name.length };
+  }
+  return city?.tile ?? null;
 }

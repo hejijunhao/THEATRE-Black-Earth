@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.11](#0211--2026-09-16--ui-cut-6-world-anchor) | 2026-09-16 | UI cut #6 | world-anchored combat paper, bench stays through AAR, encyclopedia index, journal→map |
 | [0.2.10](#0210--2026-09-16--ui-cut-5-combat-paper-craft) | 2026-09-16 | UI cut #5 | unified combat paper, wash-not-curtain AAR, ops rail through AAR, one-ritual clock, chronology journal, pin encyclopedia |
 | [0.2.9](#029--2026-09-16--ui-cut-4-staff-furniture) | 2026-09-16 | UI cut #4 | staff-estimate briefing, ops rail, doctrine encyclopedia, analog victory clock, bound chronology |
 | [0.2.8](#028--2026-09-16--ui-authority-cut) | 2026-09-16 | UI authority cut | squint-readable agency (parchment annulus / amber chevron / contact ticks), encyclopedia, command bench, victory clock, bound journal |
@@ -27,6 +28,17 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.11] — 2026-09-16 · UI cut #6 — world-anchor
+
+Presentation only. Rules are unchanged. Combat-paper family, wash, StrengthStrip and the thin ops rail through AAR are left as cut #5 locked them.
+
+- **World-anchored paper.** The sheet and callout project from the contested hex's screen position (the same point as the Overlays pulse). The decorative SVG curve is gone; a straight ink line and pin meet the pulse. Tile-grid east/west remains a first-paint fallback only.
+- **Bench stays.** The command bench no longer hard-nulls during the after-action. It thins and dims, same as during the estimate.
+- **Encyclopedia index.** The pinned ledger lists every doctrine entry (grouped, with optional search). Hover stays secondary; click / `E` still pins.
+- **Journal → map.** A chronology line that names a living formation or a city focuses that hex.
+
+The campaign, map, AI, supply and combat math are unchanged.
 
 ## [0.2.10] — 2026-09-16 · UI cut #5 — combat paper craft
 

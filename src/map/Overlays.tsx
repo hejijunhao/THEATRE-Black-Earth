@@ -2,7 +2,7 @@
 // operation/deploy targeting, hover highlight and objective markers.
 
 import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { attackableTargets, useStore } from '../game/state/store';
 import { reachableTiles } from '../game/rules/movement';
@@ -10,6 +10,7 @@ import { validateOpTarget } from '../game/rules/ops';
 import { validDeployTiles } from '../game/rules/turn';
 import { OPERATION_DEFS } from '../game/data/defs';
 import { tileWorldById } from '../game/hex';
+import { publishHexScreen } from './hexScreen';
 import { tileGroundY } from './terrain/heightfield';
 
 function useHexShapes() {
@@ -37,13 +38,23 @@ function ContestedPulse({
 }) {
   const mat = useRef<THREE.MeshBasicMaterial>(null);
   const { wx, wz } = tileWorldById(tile);
-  useFrame(({ clock }) => {
+  const y = tileGroundY(tile) + 0.05;
+  const projected = useRef(new THREE.Vector3());
+  useFrame(({ clock, camera, size }) => {
     if (mat.current) {
       mat.current.opacity = 0.34 + Math.sin(clock.elapsedTime * 3.2) * 0.2;
     }
+    const v = projected.current.set(wx, y, wz).project(camera);
+    publishHexScreen({
+      tile,
+      x: (v.x * 0.5 + 0.5) * size.width,
+      y: (-v.y * 0.5 + 0.5) * size.height,
+      visible: v.z > -1 && v.z < 1 && Math.abs(v.x) < 1.2 && Math.abs(v.y) < 1.2,
+    });
   });
+  useEffect(() => () => publishHexScreen(null), [tile]);
   return (
-    <mesh geometry={geometry} position={[wx, tileGroundY(tile) + 0.05, wz]}>
+    <mesh geometry={geometry} position={[wx, y, wz]}>
       <meshBasicMaterial ref={mat} color="#d8c48a" transparent opacity={0.4} depthWrite={false} />
     </mesh>
   );

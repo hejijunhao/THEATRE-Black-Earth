@@ -1,11 +1,12 @@
 // Context panel: selected unit or selected tile/city.
 // Assault preview lives on the centered briefing card.
 
+import { useState } from 'react';
 import { TERRAIN_DEFS, UNIT_DEFS } from '../game/data/defs';
 import { supplyStateFromLevel } from '../game/rules/supply';
 import { useStore } from '../game/state/store';
 import { Unit } from '../game/types';
-import { LEXICON, LexiconId, moraleNow, movementNow, readinessNow, strengthNow, supplyNow } from './lexicon';
+import { LEXICON, LEXICON_SECTIONS, LexiconId, moraleNow, movementNow, readinessNow, strengthNow, supplyNow } from './lexicon';
 import { MiniViewport } from './MiniViewport';
 import { LexiconTip, Tip } from './Tip';
 
@@ -194,10 +195,48 @@ function TileDetails() {
 
 function EncyclopediaLedger({ id }: { id: LexiconId }) {
   const pinLexicon = useStore((s) => s.pinLexicon);
+  const [query, setQuery] = useState('');
   const entry = LEXICON[id];
+  const q = query.trim().toLowerCase();
   return (
     <div className="lex-ledger">
       <div className="lex-kicker">Encyclopedia</div>
+      <div className="lex-index" role="navigation" aria-label="Encyclopedia index">
+        <input
+          className="lex-search"
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Find a term"
+          aria-label="Find a term"
+        />
+        {LEXICON_SECTIONS.map((section) => {
+          const ids = section.ids.filter((entryId) => {
+            if (!q) return true;
+            const item = LEXICON[entryId];
+            return item.title.toLowerCase().includes(q) || entryId.includes(q);
+          });
+          if (ids.length === 0) return null;
+          return (
+            <div key={section.title} className="lex-sec">
+              <div className="lex-sec-kicker">{section.title}</div>
+              <ul className="lex-list">
+                {ids.map((entryId) => (
+                  <li key={entryId}>
+                    <button
+                      type="button"
+                      className={`lex-entry${entryId === id ? ' current' : ''}`}
+                      onClick={() => pinLexicon(entryId)}
+                    >
+                      {LEXICON[entryId].title}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+      </div>
       <div className="lex-title">{entry.title}</div>
       <p className="lex-doctrine">{entry.doctrine}</p>
       <button type="button" className="lex-unpin" onClick={() => pinLexicon(null)}>

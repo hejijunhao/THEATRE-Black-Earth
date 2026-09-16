@@ -1,9 +1,10 @@
 // Shared combat sheet — estimate and after-action are one paper family.
-// Wash, not curtain. Docks beside the contested hex. Not a centered plaque.
+// Wash, not curtain. Docks from the contested hex's screen position.
 
-import { ReactNode } from 'react';
+import { CSSProperties, ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { subscribeHexScreen } from '../map/hexScreen';
 import { TileId } from '../game/types';
-import { paperDock, paperOverClass } from './combatPaper';
+import { paperLayoutFromScreen, paperOverClass, SHEET_WIDTH } from './combatPaper';
 
 export function CombatPaper({
   tile,
@@ -24,20 +25,54 @@ export function CombatPaper({
   titleId: string;
   children: ReactNode;
 }) {
-  const dock = paperDock(tile);
-  const callout = dock.side === 'east'
-    ? 'M 8 36 C 26 38, 44 46, 58 54'
-    : 'M 92 36 C 74 38, 56 46, 42 54';
+  const sheetRef = useRef<HTMLElement>(null);
+  const [sheetH, setSheetH] = useState(320);
+  const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
+
+  useEffect(() => subscribeHexScreen((pt) => {
+    setAnchor(pt && pt.tile === tile && pt.visible ? { x: pt.x, y: pt.y } : null);
+  }), [tile]);
+
+  useLayoutEffect(() => {
+    const el = sheetRef.current;
+    if (!el) return;
+    const measure = () => setSheetH(el.getBoundingClientRect().height);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const layout = anchor
+    ? paperLayoutFromScreen(anchor, { w: window.innerWidth, h: window.innerHeight }, {
+      w: SHEET_WIDTH,
+      h: sheetH,
+    })
+    : null;
+  const cls = layout ? `brief-over anchored dock-${layout.side}` : paperOverClass(tile);
+  const wash = layout
+    ? { '--hex-x': `${layout.callout.x1}px`, '--hex-y': `${layout.callout.y1}px` } as CSSProperties
+    : undefined;
 
   return (
-    <div className={paperOverClass(tile)}>
-      <svg className="paper-callout" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
-        <path d={callout} />
-      </svg>
+    <div className={cls} style={wash}>
+      {layout && (
+        <svg className="paper-callout" aria-hidden>
+          <line
+            x1={layout.callout.x1}
+            y1={layout.callout.y1}
+            x2={layout.callout.x2}
+            y2={layout.callout.y2}
+          />
+          <circle className="paper-pin" cx={layout.callout.x1} cy={layout.callout.y1} r={4} />
+        </svg>
+      )}
       <article
+        ref={sheetRef}
         className="brief-sheet dispatch aar"
         role="dialog"
         aria-labelledby={titleId}
+        style={layout ? { left: layout.left, top: layout.top, width: layout.width } : undefined}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="brief-holes" aria-hidden>
