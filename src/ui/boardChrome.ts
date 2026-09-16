@@ -3,7 +3,8 @@
 // the command bench. No rules live here — only attackableTargets / defs.
 
 import { UNIT_DEFS } from '../game/data/defs';
-import { attackableTargets } from '../game/rules/movement';
+import { neighborIds } from '../game/hex';
+import { attackableTargets, unitOnTile } from '../game/rules/movement';
 import { GameState, Unit } from '../game/types';
 
 export interface BoardChrome {
@@ -15,13 +16,24 @@ export interface BoardChrome {
   spent: boolean;
   /** Player, can still walk. */
   idle: boolean;
-  /** Player, at least one legal adjacent target. */
+  /** Player, hex-adjacent to at least one enemy (even if spent). */
   inContact: boolean;
   contactCount: number;
+  /** Player, has a legal assault/fires this week. */
+  canAttack: boolean;
   /** Player, already committed an assault or fires this week. */
   hasAttacked: boolean;
   /** Enemy the selected friendly can legally assault. */
   threatened: boolean;
+}
+
+function adjacentEnemyCount(game: GameState, unit: Unit): number {
+  let n = 0;
+  for (const id of neighborIds(unit.tile)) {
+    const other = unitOnTile(game, id);
+    if (other && other.faction !== unit.faction) n += 1;
+  }
+  return n;
 }
 
 export interface UnitOrders {
@@ -45,7 +57,8 @@ export function boardChrome(
   const isPlayer = unit.faction === game.playerFaction;
   const playerTurn = game.phase === 'player';
   const def = UNIT_DEFS[unit.type];
-  const contacts = isPlayer && playerTurn ? attackableTargets(game, unit) : [];
+  const legal = isPlayer && playerTurn ? attackableTargets(game, unit) : [];
+  const adjacent = isPlayer ? adjacentEnemyCount(game, unit) : 0;
   const spent = isPlayer && playerTurn && unit.movement <= 0;
   return {
     showMp: isPlayer,
@@ -53,8 +66,9 @@ export function boardChrome(
     mpMax: def.movement,
     spent,
     idle: isPlayer && playerTurn && unit.movement > 0,
-    inContact: contacts.length > 0,
-    contactCount: contacts.length,
+    inContact: adjacent > 0,
+    contactCount: adjacent,
+    canAttack: legal.length > 0,
     hasAttacked: isPlayer && unit.hasAttacked,
     threatened,
   };

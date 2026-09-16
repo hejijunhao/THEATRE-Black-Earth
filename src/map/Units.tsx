@@ -35,6 +35,45 @@ const fadeState = { value: 0 };
 const COUNTER_ZOOM_IN = 24;  // camera.y where counters start fading in
 const COUNTER_ZOOM_FULL = 34;
 
+/** Glanceable agency at campaign camera. Five reads: selected / spent /
+ *  contact / can-attack / (MP lives on the plate). */
+function AgencyRings({ chrome, selected }: { chrome: BoardChrome; selected: boolean }) {
+  return (
+    <group>
+      {selected && (
+        <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.90, 1.10, 32]} />
+          <meshBasicMaterial color="#e8dfc8" transparent opacity={0.78} depthWrite={false} />
+        </mesh>
+      )}
+      {chrome.canAttack && (
+        <mesh position={[0, 0.038, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.58, 0.86, 32]} />
+          <meshBasicMaterial color="#c9a352" transparent opacity={0.7} depthWrite={false} />
+        </mesh>
+      )}
+      {chrome.inContact && !chrome.canAttack && (
+        <mesh position={[0, 0.036, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.58, 0.80, 28]} />
+          <meshBasicMaterial color="#c9a352" transparent opacity={0.28} depthWrite={false} />
+        </mesh>
+      )}
+      {chrome.threatened && (
+        <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.58, 0.88, 32]} />
+          <meshBasicMaterial color="#e8dfc8" transparent opacity={0.55} depthWrite={false} />
+        </mesh>
+      )}
+      {chrome.spent && (
+        <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.48, 0.70, 28]} />
+          <meshBasicMaterial color="#2a2a28" transparent opacity={0.55} depthWrite={false} />
+        </mesh>
+      )}
+    </group>
+  );
+}
+
 // Peak-to-peak heading spread of a formation on its base plate, in radians.
 const UNIT_FACING_JITTER = 0.2;
 
@@ -100,7 +139,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
     movementMax: chrome.showMp ? chrome.mpMax : undefined,
     spent: chrome.spent,
     hasAttacked: chrome.hasAttacked,
-    inContact: chrome.inContact,
+    inContact: chrome.canAttack,
     threatened: chrome.threatened,
   };
   const stdTexture = useMemo(() => makeStandardTexture(stdSpec), [standardKey(stdSpec)]);
@@ -165,11 +204,11 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
           emissive={
             selected
               ? FACTION_STRONG[unit.faction]
-              : chrome.inContact || chrome.threatened
+              : chrome.canAttack || chrome.threatened
                 ? '#c9a352'
                 : '#000000'
           }
-          emissiveIntensity={selected ? 0.55 : chrome.threatened ? 0.4 : chrome.inContact ? 0.28 : 0}
+          emissiveIntensity={selected ? 0.55 : chrome.threatened ? 0.4 : chrome.canAttack ? 0.32 : 0}
         />
       </mesh>
       {/* The machines: hero vehicles as instances, everything else — foot
@@ -189,24 +228,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
           <meshBasicMaterial color="#b04a3a" transparent opacity={0.4} depthWrite={false} />
         </mesh>
       )}
-      {chrome.inContact && unit.supply !== 'isolated' && (
-        <mesh position={[0, 0.038, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.58, 0.86, 32]} />
-          <meshBasicMaterial color="#c9a352" transparent opacity={0.62} depthWrite={false} />
-        </mesh>
-      )}
-      {chrome.threatened && (
-        <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.58, 0.88, 32]} />
-          <meshBasicMaterial color="#e8dfc8" transparent opacity={0.55} depthWrite={false} />
-        </mesh>
-      )}
-      {chrome.spent && (
-        <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.52, 0.72, 28]} />
-          <meshBasicMaterial color="#2a2a28" transparent opacity={0.55} depthWrite={false} />
-        </mesh>
-      )}
+      <AgencyRings chrome={chrome} selected={selected} />
       {/* The standard. */}
       <Billboard position={[0, 0.5, 0]} follow>
         <mesh>
@@ -243,7 +265,7 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
     movementMax: chrome.showMp ? chrome.mpMax : undefined,
     spent: chrome.spent,
     hasAttacked: chrome.hasAttacked,
-    inContact: chrome.inContact,
+    inContact: chrome.canAttack,
     threatened: chrome.threatened,
   };
   const key = counterKey(spec);
@@ -296,31 +318,14 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
           emissive={
             selected
               ? FACTION_STRONG[unit.faction]
-              : chrome.inContact || chrome.threatened
+              : chrome.canAttack || chrome.threatened
                 ? '#c9a352'
                 : '#000000'
           }
-          emissiveIntensity={selected ? 0.5 : chrome.threatened ? 0.38 : chrome.inContact ? 0.26 : 0}
+          emissiveIntensity={selected ? 0.5 : chrome.threatened ? 0.38 : chrome.canAttack ? 0.3 : 0}
         />
       </mesh>
-      {chrome.inContact && (
-        <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.58, 0.86, 32]} />
-          <meshBasicMaterial color="#c9a352" transparent opacity={0.62} depthWrite={false} />
-        </mesh>
-      )}
-      {chrome.threatened && (
-        <mesh position={[0, 0.042, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.58, 0.88, 32]} />
-          <meshBasicMaterial color="#e8dfc8" transparent opacity={0.55} depthWrite={false} />
-        </mesh>
-      )}
-      {chrome.spent && (
-        <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.52, 0.72, 28]} />
-          <meshBasicMaterial color="#2a2a28" transparent opacity={0.55} depthWrite={false} />
-        </mesh>
-      )}
+      <AgencyRings chrome={chrome} selected={selected} />
       <Billboard position={[0, 0.78, 0]} follow>
         <mesh>
           <planeGeometry args={[1.18, 0.74]} />

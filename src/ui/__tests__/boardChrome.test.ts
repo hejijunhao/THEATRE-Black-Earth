@@ -16,6 +16,7 @@ describe('board chrome', () => {
     expect(chrome.spent).toBe(false);
     expect(chrome.mp).toBeGreaterThan(0);
     expect(chrome.inContact).toBe(true);
+    expect(chrome.canAttack).toBe(true);
     expect(chrome.contactCount).toBeGreaterThan(0);
     expect(chrome.hasAttacked).toBe(false);
   });
@@ -25,7 +26,8 @@ describe('board chrome', () => {
     const chrome = boardChrome(state, spent, false);
     expect(chrome.spent).toBe(true);
     expect(chrome.idle).toBe(false);
-    expect(chrome.inContact).toBe(false);
+    expect(chrome.inContact).toBe(true);
+    expect(chrome.canAttack).toBe(false);
     expect(chrome.hasAttacked).toBe(true);
 
     const enemy = boardChrome(state, r1, true);
