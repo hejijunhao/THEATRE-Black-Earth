@@ -1,7 +1,8 @@
 // Interactive overlays: selection ring, movement range, attack targets,
 // operation/deploy targeting, hover highlight and objective markers.
 
-import { useMemo } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { attackableTargets, useStore } from '../game/state/store';
 import { reachableTiles } from '../game/rules/movement';
@@ -27,6 +28,27 @@ function tileY(_gameTiles: Record<string, { elevation: number; terrain: string }
   return tileGroundY(id) + 0.045;
 }
 
+function ContestedPulse({
+  tile,
+  geometry,
+}: {
+  tile: string;
+  geometry: THREE.BufferGeometry;
+}) {
+  const mat = useRef<THREE.MeshBasicMaterial>(null);
+  const { wx, wz } = tileWorldById(tile);
+  useFrame(({ clock }) => {
+    if (mat.current) {
+      mat.current.opacity = 0.34 + Math.sin(clock.elapsedTime * 3.2) * 0.2;
+    }
+  });
+  return (
+    <mesh geometry={geometry} position={[wx, tileGroundY(tile) + 0.05, wz]}>
+      <meshBasicMaterial ref={mat} color="#d8c48a" transparent opacity={0.4} depthWrite={false} />
+    </mesh>
+  );
+}
+
 export function Overlays() {
   const game = useStore((s) => s.game);
   const selectedUnitId = useStore((s) => s.selectedUnitId);
@@ -35,6 +57,7 @@ export function Overlays() {
   const interactionMode = useStore((s) => s.interactionMode);
   const pendingOp = useStore((s) => s.pendingOp);
   const pendingAttackId = useStore((s) => s.pendingAttackId);
+  const lastCombat = useStore((s) => s.lastCombat);
   const mapMode = useStore((s) => s.mapMode);
   const { disc, ring } = useHexShapes();
 
@@ -81,6 +104,9 @@ export function Overlays() {
 
   if (!game) return null;
   const tiles = game.tiles;
+  const contested = pendingAttackId && game.units[pendingAttackId]
+    ? game.units[pendingAttackId].tile
+    : lastCombat?.tile;
 
   return (
     <group>
@@ -136,6 +162,10 @@ export function Overlays() {
           </mesh>
         );
       })}
+
+      {contested && tiles[contested] && (
+        <ContestedPulse tile={contested} geometry={disc} />
+      )}
 
       {/* Selection */}
       {selectedTileId && tiles[selectedTileId] && (

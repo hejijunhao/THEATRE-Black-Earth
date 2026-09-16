@@ -1,5 +1,5 @@
-// Bound journal: paper/ink, week chronology, then the live concerns.
-// A book, not a feed.
+// Bound journal: week-as-chapter chronology first; situation as marginalia.
+// A book, not a card stack.
 
 import { useMemo } from 'react';
 import { WEATHER_DEFS } from '../game/data/defs';
@@ -9,7 +9,7 @@ import { useStore } from '../game/state/store';
 import { opposing } from '../game/types';
 import { bindChronology } from './journalChronology';
 
-interface Card {
+interface Note {
   key: string;
   tone: 'gold' | 'red' | 'amber' | 'green' | '';
   title: string;
@@ -19,10 +19,11 @@ interface Card {
 export function Journal() {
   const game = useStore((s) => s.game);
   const pendingAttackId = useStore((s) => s.pendingAttackId);
+  const lastCombat = useStore((s) => s.lastCombat);
 
-  const { cards, weeks } = useMemo(() => {
-    if (!game) return { cards: [] as Card[], weeks: [] as ReturnType<typeof bindChronology> };
-    const out: Card[] = [];
+  const { notes, weeks } = useMemo(() => {
+    if (!game) return { notes: [] as Note[], weeks: [] as ReturnType<typeof bindChronology> };
+    const out: Note[] = [];
     const player = game.playerFaction;
     const enemy = opposing(player);
 
@@ -76,15 +77,15 @@ export function Journal() {
       });
     }
 
-    return { cards: out, weeks: bindChronology(game.notifications, 10) };
+    return { notes: out, weeks: bindChronology(game.notifications, 10) };
   }, [game]);
 
   if (!game || game.phase !== 'player') return null;
 
   return (
-    <div className={`bound-journal${pendingAttackId ? ' tucked' : ''}`} aria-label="Theatre journal">
+    <div className={`bound-journal${pendingAttackId || lastCombat ? ' tucked' : ''}`} aria-label="Theatre journal">
       <div className="bj-spine" aria-hidden>
-        <i /><i /><i />
+        <span className="bj-spine-title">Journal</span>
       </div>
       <div className="bj-page">
         <div className="bj-head">
@@ -94,11 +95,13 @@ export function Journal() {
         </div>
 
         {weeks.length > 0 && (
-          <div className="bj-section">
-            <div className="bj-kicker">Chronology</div>
+          <div className="bj-section chronology">
             {weeks.map((w) => (
-              <div key={w.turn} className="bj-week-block">
-                <div className="bj-week-lab">Week {w.turn}</div>
+              <div key={w.turn} className="bj-chapter">
+                <div className="bj-chapter-head">
+                  <span className="bj-chap-num">Week {w.turn}</span>
+                  <span className="bj-chap-rule" />
+                </div>
                 {w.lines.map((e) => (
                   <div key={e.id} className={`bj-fight ${e.kind}`}>
                     <span className="bj-kind">{e.kind}</span>
@@ -116,15 +119,13 @@ export function Journal() {
           </div>
         )}
 
-        <div className="bj-section">
-          <div className="bj-kicker">Situation</div>
-          {cards.map((c) => (
-            <div key={c.key} className={`bj-card ${c.tone}`}>
-              <span className="jc-title">{c.title}</span>
-              <span className="jc-body">{c.body}</span>
-            </div>
+        <aside className="bj-margin" aria-label="Situation">
+          {notes.map((c) => (
+            <p key={c.key} className={`bj-note ${c.tone}`}>
+              <em>{c.title}.</em> {c.body}
+            </p>
           ))}
-        </div>
+        </aside>
       </div>
     </div>
   );

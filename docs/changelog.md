@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.10](#0210--2026-09-16--ui-cut-5-combat-paper-craft) | 2026-09-16 | UI cut #5 | unified combat paper, wash-not-curtain AAR, ops rail through AAR, one-ritual clock, chronology journal, pin encyclopedia |
 | [0.2.9](#029--2026-09-16--ui-cut-4-staff-furniture) | 2026-09-16 | UI cut #4 | staff-estimate briefing, ops rail, doctrine encyclopedia, analog victory clock, bound chronology |
 | [0.2.8](#028--2026-09-16--ui-authority-cut) | 2026-09-16 | UI authority cut | squint-readable agency (parchment annulus / amber chevron / contact ticks), encyclopedia, command bench, victory clock, bound journal |
 | [0.2.7](#027--2026-09-16--ui-hardening-cut) | 2026-09-16 | UI hardening cut | board chrome (MP / spent / contact), assault briefing card, command bench plates, dispatch paper, strength lexicon |
@@ -26,6 +27,20 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.10] — 2026-09-16 · UI cut #5 — combat paper craft
+
+Presentation only. Rules are unchanged. No new panels — craft of the furniture from cut #4.
+
+- **One paper family.** Estimate and after-action share the same wash, holes, red margin, left-aligned ink and milled plates. The AAR no longer uses `modal-backdrop aar-backdrop`. The theatre stays dimmed-alive under both.
+- **Dock, not plaque.** The sheet sits beside the contested hex (east/west, high/mid/low). A thin ink callout and a hex pulse tie paper to attacker/defender.
+- **One loss language.** StrengthStrip is the bill. The duplicate estimate-loss line and the AAR LossMeter are gone.
+- **Ops rail survives the loop.** It stays mounted (thin) during the AAR. Next-unspent / `N` cycles contact then march. CONTACT `×` still opens the estimate from the rail.
+- **Clock is one ritual.** Theatre headline plus a decisive-city arc and bead track. Support and army are secondary ink, not equal dials.
+- **Journal is a chronology.** Week-as-chapter type; situation as italic marginalia. The spine reads as a bound book.
+- **Encyclopedia open path.** Hover remains secondary. Click a doctrine surface, or press `E`, to pin the existing side ledger.
+
+The campaign, map, AI, supply and combat math are unchanged.
 
 ## [0.2.9] — 2026-09-16 · UI cut #4 — staff furniture
 

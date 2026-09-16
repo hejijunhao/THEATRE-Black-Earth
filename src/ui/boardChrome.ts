@@ -83,6 +83,33 @@ export function threatenedIds(game: GameState, selectedId: string | null): Set<s
   return ids;
 }
 
+export type FormationLane = 'contact' | 'march' | 'spent';
+
+export function formationLane(game: GameState, unit: Unit): FormationLane {
+  const o = unitOrders(game, unit);
+  if (o.contacts.length > 0) return 'contact';
+  if (o.canMove) return 'march';
+  return 'spent';
+}
+
+const LANE_RANK: Record<FormationLane, number> = { contact: 0, march: 1, spent: 2 };
+
+/** Next friendly plate that can still act this week. Same order as the ops rail. */
+export function cycleUnspent(game: GameState, currentId: string | null): string | null {
+  const rows = Object.values(game.units)
+    .filter((u) => u.faction === game.playerFaction)
+    .map((u) => ({ u, lane: formationLane(game, u) }))
+    .filter((r) => r.lane !== 'spent')
+    .sort((a, b) => {
+      const d = LANE_RANK[a.lane] - LANE_RANK[b.lane];
+      if (d !== 0) return d;
+      return a.u.name.localeCompare(b.u.name);
+    });
+  if (rows.length === 0) return null;
+  const i = currentId ? rows.findIndex((r) => r.u.id === currentId) : -1;
+  return rows[(i + 1) % rows.length].u.id;
+}
+
 export function unitOrders(game: GameState, unit: Unit): UnitOrders {
   const def = UNIT_DEFS[unit.type];
   const contacts = attackableTargets(game, unit);
