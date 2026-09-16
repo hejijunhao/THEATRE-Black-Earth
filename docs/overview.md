@@ -393,7 +393,10 @@ Ukrainian decisive victory at turn 21. Swingy, but plausible by design.
 | HUD layout / styling | [`ui/styles.css`](../src/ui/styles.css) + component |
 | Board selection chrome (MP / spent / contact) | [`map/Units.tsx`](../src/map/Units.tsx) + [`map/textures.ts`](../src/map/textures.ts) + [`ui/boardChrome.ts`](../src/ui/boardChrome.ts) |
 | Assault briefing / command bench | [`ui/AssaultBriefing.tsx`](../src/ui/AssaultBriefing.tsx) + [`ui/CommandBar.tsx`](../src/ui/CommandBar.tsx) |
-| Formations outliner | [`ui/Outliner.tsx`](../src/ui/Outliner.tsx) |
+| Formations outliner / ops rail | [`ui/Outliner.tsx`](../src/ui/Outliner.tsx) |
+| Victory clock | [`ui/VictoryClock.tsx`](../src/ui/VictoryClock.tsx) + [`ui/theatreBalance.ts`](../src/ui/theatreBalance.ts) |
+| Bound journal | [`ui/Journal.tsx`](../src/ui/Journal.tsx) + [`ui/journalChronology.ts`](../src/ui/journalChronology.ts) |
+| Encyclopedia copy | [`ui/lexicon.ts`](../src/ui/lexicon.ts) |
 
 ---
 

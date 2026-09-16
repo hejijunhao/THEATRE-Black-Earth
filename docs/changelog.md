@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.9](#029--2026-09-16--ui-cut-4-staff-furniture) | 2026-09-16 | UI cut #4 | staff-estimate briefing, ops rail, doctrine encyclopedia, analog victory clock, bound chronology |
 | [0.2.8](#028--2026-09-16--ui-authority-cut) | 2026-09-16 | UI authority cut | squint-readable agency (parchment annulus / amber chevron / contact ticks), encyclopedia, command bench, victory clock, bound journal |
 | [0.2.7](#027--2026-09-16--ui-hardening-cut) | 2026-09-16 | UI hardening cut | board chrome (MP / spent / contact), assault briefing card, command bench plates, dispatch paper, strength lexicon |
 | [0.2.6](#026--2026-09-16--readable-engagements) | 2026-09-16 | Readable engagements | explicit 2d6 per side, attack/defence rolls decide damage given/taken, after-action report, combat unit tests |
@@ -25,6 +26,18 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.9] — 2026-09-16 · UI cut #4 — staff furniture
+
+Presentation only. Rules are unchanged (PC2 2d6, same power model). Board agency from cut #3 is left alone.
+
+- **Briefing densify.** Half-sheet staff paper on the map: hole punches, red margin, StrengthStrip estimates before the roll, terrain / entrench / supply chips, ≤5 ranked named reasons (weight ticks, no % dump). Commit / Withdraw are milled plates. Overlay is a wash, not a curtain — clicks pass through to the theatre. Outliner and bench stay mounted.
+- **Ops rail.** Type icon, strength band, left-rail glyph matching board states (amber chevron / gold ticks / spent dim / parchment selected). CONTACT / MARCH / SPENT. Hover lights the hex. Collapses to a thin strip during the briefing and stays hoverable.
+- **Encyclopedia.** Strength, MP, odds, terrain and supply are doctrine entries plus a *Now* line — not Tip prose wrappers. Briefing chips and strips open the same ledger.
+- **Victory clock.** Analog needles and a decisive-city track. Cities / war support / army remain one instrument.
+- **Bound journal.** Ruled paper, ink, spine stitches. Chronology grouped by week, then situation.
+
+The campaign, map, AI, supply and combat math are unchanged.
 
 ## [0.2.8] — 2026-09-16 · UI authority cut
 

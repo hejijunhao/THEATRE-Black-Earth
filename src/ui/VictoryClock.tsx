@@ -22,13 +22,16 @@ function Dial({
   tone: string;
 }) {
   const p = Math.max(0, Math.min(1, value / Math.max(max, 1)));
+  const deg = p * 270 - 135;
   return (
     <div className={`clock-dial ${tone}`}>
       <span
         className="clock-ring"
         style={{ ['--p' as string]: `${Math.round(p * 100)}%` }}
         aria-hidden
-      />
+      >
+        <i className="clock-needle" style={{ transform: `rotate(${deg}deg)` }} />
+      </span>
       <span className="clock-num">{numeral}</span>
       <span className="clock-lab">{label}</span>
       <span className="clock-sub">{sub}</span>
@@ -73,6 +76,15 @@ export function VictoryClock() {
           <Dial label="Army" value={b.army.value} max={b.army.max} numeral={b.army.label} sub={b.army.sub} tone={b.army.tone} />
         </Tip>
       </div>
+      {b.decisiveCities.length > 0 && (
+        <div className="clock-track" aria-label="Decisive cities">
+          {b.decisiveCities.map((c) => (
+            <span key={c.id} className={`clock-bead ${c.held ? 'held' : 'lost'}`} title={c.name}>
+              {c.name}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

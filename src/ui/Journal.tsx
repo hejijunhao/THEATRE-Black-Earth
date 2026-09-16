@@ -1,5 +1,5 @@
-// Bound journal: week, weather, engagements with dice, then the live
-// concerns. Replaces the toast strip — a book, not a feed.
+// Bound journal: paper/ink, week chronology, then the live concerns.
+// A book, not a feed.
 
 import { useMemo } from 'react';
 import { WEATHER_DEFS } from '../game/data/defs';
@@ -7,6 +7,7 @@ import { neighborIds } from '../game/hex';
 import { formatTurnDate } from '../game/rules/weather';
 import { useStore } from '../game/state/store';
 import { opposing } from '../game/types';
+import { bindChronology } from './journalChronology';
 
 interface Card {
   key: string;
@@ -15,32 +16,12 @@ interface Card {
   body: string;
 }
 
-interface Engagement {
-  id: number;
-  turn: number;
-  text: string;
-  atk?: number;
-  def?: number;
-}
-
-const DICE_RE = /2d6\s+(\d+)(?:[–-](\d+)| vs (\d+))?/;
-
-function parseEngagement(text: string, id: number, turn: number): Engagement {
-  const m = text.match(DICE_RE);
-  return {
-    id,
-    turn,
-    text,
-    atk: m ? Number(m[1]) : undefined,
-    def: m ? Number(m[2] ?? m[3]) : undefined,
-  };
-}
-
 export function Journal() {
   const game = useStore((s) => s.game);
+  const pendingAttackId = useStore((s) => s.pendingAttackId);
 
-  const { cards, engagements } = useMemo(() => {
-    if (!game) return { cards: [] as Card[], engagements: [] as Engagement[] };
+  const { cards, weeks } = useMemo(() => {
+    if (!game) return { cards: [] as Card[], weeks: [] as ReturnType<typeof bindChronology> };
     const out: Card[] = [];
     const player = game.playerFaction;
     const enemy = opposing(player);
@@ -95,20 +76,16 @@ export function Journal() {
       });
     }
 
-    const engagements = game.notifications
-      .filter((n) => n.kind === 'combat' || n.kind === 'capture')
-      .slice(-5)
-      .reverse()
-      .map((n) => parseEngagement(n.text, n.id, n.turn));
-
-    return { cards: out, engagements };
+    return { cards: out, weeks: bindChronology(game.notifications, 10) };
   }, [game]);
 
   if (!game || game.phase !== 'player') return null;
 
   return (
-    <div className="bound-journal" aria-label="Theatre journal">
-      <div className="bj-spine" aria-hidden />
+    <div className={`bound-journal${pendingAttackId ? ' tucked' : ''}`} aria-label="Theatre journal">
+      <div className="bj-spine" aria-hidden>
+        <i /><i /><i />
+      </div>
       <div className="bj-page">
         <div className="bj-head">
           <span className="bj-week">Week {game.turn}</span>
@@ -116,19 +93,24 @@ export function Journal() {
           <span className="bj-date">{formatTurnDate(game)}</span>
         </div>
 
-        {engagements.length > 0 && (
+        {weeks.length > 0 && (
           <div className="bj-section">
-            <div className="bj-kicker">Engagements</div>
-            {engagements.map((e) => (
-              <div key={e.id} className="bj-fight">
-                <span className="bj-turn">T{e.turn}</span>
-                <span className="bj-copy">{e.text}</span>
-                {e.atk != null && (
-                  <span className="bj-dice" aria-label={`2d6 ${e.atk}${e.def != null ? ` vs ${e.def}` : ''}`}>
-                    <span className="bj-pip">{e.atk}</span>
-                    {e.def != null && <span className="bj-pip">{e.def}</span>}
-                  </span>
-                )}
+            <div className="bj-kicker">Chronology</div>
+            {weeks.map((w) => (
+              <div key={w.turn} className="bj-week-block">
+                <div className="bj-week-lab">Week {w.turn}</div>
+                {w.lines.map((e) => (
+                  <div key={e.id} className={`bj-fight ${e.kind}`}>
+                    <span className="bj-kind">{e.kind}</span>
+                    <span className="bj-copy">{e.text}</span>
+                    {e.atk != null && (
+                      <span className="bj-dice" aria-label={`2d6 ${e.atk}${e.def != null ? ` vs ${e.def}` : ''}`}>
+                        <span className="bj-pip">{e.atk}</span>
+                        {e.def != null && <span className="bj-pip">{e.def}</span>}
+                      </span>
+                    )}
+                  </div>
+                ))}
               </div>
             ))}
           </div>

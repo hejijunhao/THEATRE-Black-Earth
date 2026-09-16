@@ -250,26 +250,6 @@ button {
 }
 
 /* Living victory clock — hanging instrument, not a ledger cell. */
-.victory-clock {
-  position: absolute;
-  top: 56px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: stretch;
-  gap: 10px;
-  padding: 8px 12px 8px 14px;
-  z-index: 15;
-  border: 1px solid var(--line-strong);
-  background:
-    linear-gradient(180deg, rgba(40, 36, 28, 0.72), rgba(14, 14, 16, 0.82)),
-    var(--tex-plate);
-  background-size: auto, 100% 100%;
-  box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(230, 220, 190, 0.1),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.35);
-}
 .clock-head {
   display: flex;
   flex-direction: column;
@@ -315,28 +295,110 @@ button {
   padding: 0 4px;
   cursor: default;
 }
+.victory-clock {
+  position: absolute;
+  top: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  padding: 9px 14px 9px 16px;
+  z-index: 15;
+  border: 1px solid var(--line-strong);
+  background:
+    linear-gradient(180deg, rgba(48, 42, 30, 0.78), rgba(14, 14, 16, 0.86)),
+    var(--tex-plate);
+  background-size: auto, 100% 100%;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(230, 220, 190, 0.14),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(201, 163, 82, 0.12);
+}
 .clock-ring {
-  width: 28px;
-  height: 28px;
+  position: relative;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background:
-    conic-gradient(#c9a352 var(--p, 50%), rgba(20, 18, 14, 0.85) 0);
+    conic-gradient(from -135deg, #c9a352 var(--p, 50%), rgba(20, 18, 14, 0.85) 0);
   box-shadow:
-    inset 0 0 0 3px rgba(12, 12, 14, 0.92),
-    0 0 0 1px rgba(201, 163, 82, 0.35);
-  margin-bottom: 2px;
+    inset 0 0 0 4px rgba(12, 12, 14, 0.92),
+    0 0 0 1px rgba(201, 163, 82, 0.45),
+    inset 0 0 0 5px rgba(201, 163, 82, 0.12);
+  margin-bottom: 3px;
+}
+.clock-needle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1.5px;
+  height: 11px;
+  margin: -11px 0 0 -0.75px;
+  background: #efe9d8;
+  transform-origin: 50% 100%;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+}
+.clock-ring::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: #c9a352;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45);
 }
 .clock-dial.good .clock-ring {
-  background: conic-gradient(#8fae72 var(--p, 50%), rgba(20, 18, 14, 0.85) 0);
-  box-shadow: inset 0 0 0 3px rgba(12, 12, 14, 0.92), 0 0 0 1px rgba(143, 174, 114, 0.4);
+  background: conic-gradient(from -135deg, #8fae72 var(--p, 50%), rgba(20, 18, 14, 0.85) 0);
+  box-shadow: inset 0 0 0 4px rgba(12, 12, 14, 0.92), 0 0 0 1px rgba(143, 174, 114, 0.45);
 }
 .clock-dial.warn .clock-ring {
-  background: conic-gradient(#c9a352 var(--p, 50%), rgba(20, 18, 14, 0.85) 0);
+  background: conic-gradient(from -135deg, #c9a352 var(--p, 50%), rgba(20, 18, 14, 0.85) 0);
 }
 .clock-dial.bad .clock-ring {
-  background: conic-gradient(#b04a3a var(--p, 50%), rgba(20, 18, 14, 0.85) 0);
-  box-shadow: inset 0 0 0 3px rgba(12, 12, 14, 0.92), 0 0 0 1px rgba(176, 74, 58, 0.45);
+  background: conic-gradient(from -135deg, #b04a3a var(--p, 50%), rgba(20, 18, 14, 0.85) 0);
+  box-shadow: inset 0 0 0 4px rgba(12, 12, 14, 0.92), 0 0 0 1px rgba(176, 74, 58, 0.5);
 }
+.clock-track {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  padding-left: 10px;
+  margin-left: 4px;
+  border-left: 1px solid var(--line);
+  min-width: 92px;
+}
+.clock-bead {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  padding-left: 8px;
+  position: relative;
+  white-space: nowrap;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.clock-bead::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 5px;
+  height: 5px;
+  border: 1px solid rgba(201, 163, 82, 0.45);
+  background: transparent;
+}
+.clock-bead.held { color: var(--ink-bright); }
+.clock-bead.held::before { background: var(--gold); border-color: var(--gold); }
+.clock-bead.lost::before { background: transparent; }
 .clock-num {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -523,12 +585,10 @@ button {
 /* --------------------------------------------------------- command bench
    Milled instrument: nameplate + engraved order plates. No icon chips. */
 
-.command-bench.dimmed,
-.outliner.dimmed {
+.command-bench.dimmed {
   opacity: 0.55;
   pointer-events: none;
 }
-.command-bench.dimmed { pointer-events: none; }
 
 .command-bench {
   position: absolute;
@@ -949,54 +1009,133 @@ button {
     radial-gradient(ellipse at 50% 42%, rgba(18, 16, 12, 0.35), rgba(6, 7, 9, 0.82) 70%);
 }
 
-/* Briefing sits on the map. No curtain — outliner and bench stay dimmed-alive. */
-.brief-over {
+/* Briefing sits on the map. No curtain — clicks pass through; paper is the only hit target. */
+.hud > .brief-over {
   position: absolute;
   inset: 0;
   z-index: 28;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 118px;
   pointer-events: none;
-  background: radial-gradient(ellipse at 50% 48%, rgba(18, 16, 12, 0.12), transparent 62%);
+  background: radial-gradient(ellipse at 50% 46%, rgba(18, 16, 12, 0.10), transparent 52%);
 }
-.brief-over > * { pointer-events: auto; }
-.brief-sheet {
-  width: 560px;
-  max-width: calc(100vw - 280px);
+.hud > .brief-over > * { pointer-events: auto; }
+.brief-sheet,
+.assault-brief.dispatch.brief-sheet {
+  width: 520px;
+  max-width: calc(100vw - 320px);
   background:
-    linear-gradient(180deg, rgba(52, 46, 34, 0.55), rgba(18, 16, 14, 0.72)),
+    linear-gradient(180deg, rgba(198, 178, 138, 0.28), rgba(42, 32, 22, 0.48)),
+    repeating-linear-gradient(
+      180deg,
+      rgba(90, 60, 28, 0.07) 0 1px,
+      transparent 1px 26px
+    ),
     var(--tex-field);
-  background-size: auto, 192px 192px;
+  background-size: auto, auto, 192px 192px;
+  background-blend-mode: normal, multiply, soft-light;
+  backdrop-filter: blur(1.5px) saturate(1.02);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(240, 224, 180, 0.2);
+}
+.brief-sheet::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 22px;
+  width: 1px;
+  background: rgba(176, 74, 58, 0.45);
+  pointer-events: none;
+  z-index: 2;
+}
+.brief-holes {
+  position: absolute;
+  left: 7px;
+  top: 28px;
+  bottom: 28px;
+  width: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 3;
+  pointer-events: none;
+}
+.brief-holes i {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(8, 8, 10, 0.15), rgba(8, 8, 10, 0.72));
+  box-shadow:
+    inset 0 1px 1px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(201, 163, 82, 0.2);
 }
 .brief-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin: 8px 0 10px;
+  padding-left: 8px;
 }
 .brief-chip {
+  display: inline-block;
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 2px 7px;
+  padding: 3px 8px;
   border: 1px solid var(--line);
   color: var(--ink);
+  background: rgba(0, 0, 0, 0.18);
+  box-shadow: inset 0 1px 0 rgba(230, 220, 190, 0.06);
 }
 .brief-chip.isolated, .brief-chip.low { border-color: rgba(176, 74, 58, 0.5); color: var(--red); }
 .brief-chip.strained { border-color: rgba(201, 163, 82, 0.5); color: var(--amber); }
+.factor-ledger.named {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  grid-template-columns: none;
+}
+.factor-kicker {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin-bottom: 4px;
+}
 .factor-ledger.named .factor-line {
+  display: grid;
+  grid-template-columns: 18px 1fr 56px;
+  align-items: center;
+  gap: 8px;
   border-bottom: 1px solid rgba(190, 180, 150, 0.1);
-  padding: 4px 0;
+  padding: 5px 0;
+}
+.factor-ledger.named .fk-rank {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-dim);
 }
 .factor-ledger.named .hurts .fk { color: var(--ink); }
 .factor-ledger.named .helps .fk { color: var(--ink-bright); }
+.fk-tick {
+  height: 4px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(190, 180, 150, 0.18);
+}
+.fk-tick i { display: block; height: 100%; background: var(--gold); }
+.fk-tick.hurts i { background: var(--red); }
+.fk-tick.helps i { background: var(--green); }
+.brief-plates { gap: 10px; }
 .plate-commit {
-  min-width: 200px;
-  font-family: var(--font-display);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  min-width: 168px;
+  max-width: 220px;
 }
 .aar { width: 620px; padding-top: 8px; }
 
@@ -1047,8 +1186,8 @@ button {
 .aar.dispatch {
   overflow-x: hidden;
 }
-.assault-brief { width: min(640px, calc(100vw - 48px)); }
-.assault-brief .aar-headline { font-size: 28px; }
+.assault-brief { width: min(520px, calc(100vw - 48px)); padding-left: 8px; }
+.assault-brief .aar-headline { font-size: 26px; }
 .assault-brief .aar-detail { font-size: 14px; max-width: 38em; }
 .brief-bill {
   border: 1px solid var(--line);
@@ -1525,10 +1664,27 @@ button {
 .tooltip.lexicon {
   max-width: 360px;
   padding: 12px 14px 11px;
+  background:
+    linear-gradient(180deg, rgba(46, 40, 28, 0.55), rgba(16, 14, 12, 0.88)),
+    repeating-linear-gradient(
+      180deg,
+      rgba(201, 163, 82, 0.04) 0 1px,
+      transparent 1px 22px
+    ),
+    var(--tex-field);
+  background-size: auto, auto, 192px 192px;
   box-shadow:
     0 10px 28px rgba(0, 0, 0, 0.6),
     inset 0 1px 0 rgba(230, 220, 190, 0.08),
     inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+.tooltip.lexicon .tt-kicker {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 4px;
 }
 .tooltip.lexicon .tt-title {
   font-family: var(--font-display);
@@ -1538,6 +1694,12 @@ button {
   margin-bottom: 8px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--line);
+}
+.tooltip.lexicon .tt-doctrine {
+  font-family: var(--font-display);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink);
 }
 .tooltip.lexicon p { margin: 0 0 8px; }
 .tooltip.lexicon p:last-child { margin-bottom: 0; }
@@ -1570,20 +1732,38 @@ button {
 .tutorial-prompt a:hover { color: var(--ink-bright); }
 
 /* ------------------------------------------------------------- outliner
-   Army at a glance: who can still act this week. Click selects + focuses.
-   A start — not Vic 3's country list. */
+   Ops rail: type + strength + left-rail glyph matching board states. */
 
 .outliner {
   position: absolute;
-  top: 58px;
+  top: 64px;
   left: 12px;
-  width: 196px;
-  max-height: calc(100% - 340px);
+  bottom: 392px;
+  width: 214px;
   display: flex;
   flex-direction: column;
   z-index: 14;
   overflow: hidden;
 }
+.outliner.rail {
+  width: 96px;
+  opacity: 0.88;
+  z-index: 29;
+}
+.outliner.rail .outliner-head .sub,
+.outliner.rail .or-mp,
+.outliner.rail .or-dot,
+.outliner.rail .or-kind { display: none; }
+.outliner.rail .outliner-row {
+  grid-template-columns: 12px 14px 1fr;
+  padding: 5px 6px;
+  gap: 4px;
+}
+.outliner.rail .or-name {
+  font-size: 9px;
+  grid-column: 2 / -1;
+}
+.outliner.rail .or-str { grid-column: 1 / -1; }
 .outliner-head {
   padding: 8px 10px 6px;
   border-bottom: 1px solid var(--line);
@@ -1620,7 +1800,7 @@ button {
 }
 .outliner-row {
   display: grid;
-  grid-template-columns: auto 1fr 36px auto auto auto;
+  grid-template-columns: 10px 14px 1fr 36px auto auto auto;
   align-items: center;
   gap: 5px;
   width: 100%;
@@ -1638,18 +1818,62 @@ button {
 }
 .outliner-row.selected {
   background: rgba(201, 163, 82, 0.1);
-  border-left-color: var(--gold);
+  border-left-color: #d8c48a;
   color: var(--ink-bright);
 }
 .outliner-row.contact { border-left-color: var(--gold); }
-.outliner-row.spent { opacity: 0.48; }
-.outliner-row .or-glyph {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--ink-dim);
-  width: 1.4em;
+.outliner-row.spent { opacity: 0.52; }
+.or-mark {
+  width: 12px;
+  height: 14px;
+  position: relative;
+  flex-shrink: 0;
 }
-.outliner-row.contact .or-glyph { color: var(--gold); }
+.or-mark.assault i {
+  position: absolute;
+  left: 1px;
+  top: 2px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 6px 0 6px 9px;
+  border-color: transparent transparent transparent #c9a352;
+  filter: drop-shadow(0 0 3px rgba(201, 163, 82, 0.55));
+}
+.or-mark.contact {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+}
+.or-mark.contact i {
+  display: block;
+  width: 1.5px;
+  height: 9px;
+  background: #c9a352;
+  box-shadow: 0 0 3px rgba(201, 163, 82, 0.35);
+}
+.or-mark.spent {
+  background: linear-gradient(180deg, transparent, rgba(180, 176, 160, 0.35));
+  height: 8px;
+  margin-top: 2px;
+}
+.or-mark.selected {
+  background: #d8c48a;
+  box-shadow: 0 0 0 1px rgba(40, 32, 16, 0.55);
+}
+.or-mark.idle {
+  background: rgba(190, 180, 150, 0.18);
+  height: 6px;
+  margin-top: 3px;
+}
+.outliner-row .or-type {
+  display: flex;
+  color: var(--ink-dim);
+  width: 14px;
+}
+.outliner-row.contact .or-type { color: var(--gold); }
+.outliner-row.selected .or-type { color: var(--ink-bright); }
 .outliner-row .or-str {
   height: 5px;
   background: rgba(0, 0, 0, 0.35);
@@ -1714,20 +1938,28 @@ button {
 /* ----------------------------------------------------- bound journal
    Week, weather, engagements with dice. A book, not a toast strip. */
 
+.bound-journal.tucked {
+  opacity: 0;
+  pointer-events: none;
+}
 .bound-journal {
   position: absolute;
   left: 12px;
   bottom: 148px;
-  width: 272px;
-  max-height: calc(100% - 420px);
+  width: 286px;
+  max-height: 228px;
   display: flex;
   z-index: 13;
   pointer-events: auto;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
 }
 .bj-spine {
-  width: 10px;
+  width: 12px;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
   background:
     repeating-linear-gradient(
       180deg,
@@ -1738,19 +1970,33 @@ button {
   border: 1px solid rgba(90, 70, 40, 0.6);
   box-shadow: inset -2px 0 0 rgba(0, 0, 0, 0.35);
 }
+.bj-spine i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #8a6a3a, #2a1c10);
+  box-shadow: inset 0 1px 0 rgba(230, 210, 160, 0.25);
+}
 .bj-page {
   flex: 1;
   min-width: 0;
   background:
-    linear-gradient(180deg, rgba(36, 32, 26, 0.94), rgba(18, 16, 14, 0.94)),
+    linear-gradient(90deg, rgba(176, 74, 58, 0.18) 0 1px, transparent 1px),
+    repeating-linear-gradient(
+      180deg,
+      rgba(201, 163, 82, 0.05) 0 1px,
+      transparent 1px 20px
+    ),
+    linear-gradient(180deg, rgba(42, 36, 26, 0.9), rgba(20, 16, 12, 0.92)),
     var(--tex-field);
-  background-size: auto, 192px 192px;
+  background-size: auto, auto, auto, 192px 192px;
   border: 1px solid var(--line);
   border-left: none;
-  padding: 8px 10px 10px;
+  padding: 8px 10px 10px 14px;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(190, 180, 150, 0.25) transparent;
+  color: #d4c4a0;
 }
 .bj-head {
   display: grid;
@@ -1785,6 +2031,23 @@ button {
   font-size: 10px;
   color: var(--ink-dim);
 }
+.bj-week-block { margin-bottom: 8px; }
+.bj-week-lab {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-bright);
+  margin-bottom: 3px;
+}
+.bj-kind {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  padding-top: 2px;
+}
 .bj-section { margin-bottom: 8px; }
 .bj-kicker {
   font-family: var(--font-mono);
@@ -1796,7 +2059,7 @@ button {
 }
 .bj-fight {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 52px 1fr auto;
   gap: 6px;
   align-items: start;
   padding: 4px 0;
@@ -1804,6 +2067,9 @@ button {
   font-size: 11px;
   line-height: 1.35;
 }
+.bj-fight.capture .bj-kind { color: var(--green); }
+.bj-fight.warning .bj-kind,
+.bj-fight.supply .bj-kind { color: var(--amber); }
 .bj-turn {
   font-family: var(--font-mono);
   font-size: 9.5px;
