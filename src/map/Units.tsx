@@ -57,18 +57,18 @@ function AgencyMarks({
   const inkH = height * 1.62;
   const paperW = width * 1.28;
   const paperH = height * 1.38;
-  const chevR = height * 0.72;
+  const chevR = height * 0.95;
   return (
     <Billboard position={[0, y, 0]} follow>
       {selected && (
         <group>
           <mesh position={[0, 0, -0.02]}>
             <planeGeometry args={[inkW, inkH]} />
-            <meshBasicMaterial color="#1e1b14" depthWrite={false} />
+            <meshBasicMaterial color="#2a2418" depthWrite={false} />
           </mesh>
           <mesh position={[0, 0, -0.01]}>
             <planeGeometry args={[paperW, paperH]} />
-            <meshBasicMaterial color="#efe6d0" depthWrite={false} />
+            <meshBasicMaterial color="#d8c89a" depthWrite={false} />
           </mesh>
         </group>
       )}

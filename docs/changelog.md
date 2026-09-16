@@ -30,7 +30,7 @@ add a row for them here.
 
 Presentation only. Rules are unchanged (PC2 2d6, same power model). Cut #2's rings did not survive campaign zoom; this cut replaces decoration with command furniture.
 
-- **Squint-readable agency.** One selected language: a thick opaque parchment annulus on the ground (same on mini and counter LOD). Can-attack is an amber chevron — a different silhouette, not a second ring. Contact-only is thinner gold ticks on the plate. Spent is plate dim only (no spent ring). Threatened is a parchment edge on the enemy counter, not a hex wash. MP stays a brass stamp on the plate. The army-wide badge swarm is gone.
+- **Squint-readable agency.** One selected language: a camera-facing parchment mat with an ink rim behind the plate (ground washers vanished into the terrain and under the billboard). Can-attack is an amber chevron on the same billboard — a different silhouette, not a second ring. Contact-only is thinner gold ticks on the plate. Spent is plate dim only (no spent ring). Threatened is a parchment edge on the enemy counter, not a hex wash. MP stays a brass stamp on the plate. The army-wide badge swarm is gone.
 - **Encyclopedia tooltips.** Hover Strength, Readiness, Morale, Attack, Defence, Movement, Supply, the clock needles, and the bench plates for a doctrine paragraph plus *why this colour now*.
 - **Command bench.** Legal orders as milled plates: engraved label, large numeral, no icon chips. Nameplate with MP pips. Assault is a gold-inlaid plate. Theatre plates and End Week sit to the right.
 - **Victory clock.** Cities / war support / army as three dials and a headline (Holding / Pressing / Slipping / Breaking). Replaces the ledger cells for VP, score and support.
