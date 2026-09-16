@@ -17,8 +17,7 @@ import { IntelRecord, Unit } from '../game/types';
 import { tileWorldById } from '../game/hex';
 import { BoardChrome, boardChrome, threatenedIds } from '../ui/boardChrome';
 import {
-  agencyBadgeKey, AgencyBadgeSpec, counterKey, CounterSpec,
-  makeAgencyBadgeTexture, makeCounterTexture,
+  counterKey, CounterSpec, makeCounterTexture,
   makeStandardTexture, standardKey, StandardSpec,
 } from './textures';
 import { tileGroundY } from './terrain/heightfield';
@@ -36,22 +35,25 @@ const fadeState = { value: 0 };
 const COUNTER_ZOOM_IN = 20;  // counters (and their stamps) come in earlier
 const COUNTER_ZOOM_FULL = 30;
 
-// Solid marks, not hairline rings. A filled tab/blade reads at campaign zoom;
-// a 0.2-wide ring on a NATO flag does not.
-const BLADE_GEO = new THREE.CircleGeometry(0.72, 3);
-const NOTCH_GEO = new THREE.CircleGeometry(0.4, 3);
+// ONE selected language: a thick opaque parchment annulus sitting outside
+// the counter plate so it still halos at campaign zoom. Can-attack is an
+// amber chevron — a different silhouette, not a second ring. Contact-only
+// and threatened live on the plate texture, not here.
+const SELECT_ANNULUS = new THREE.RingGeometry(1.05, 1.72, 6);
+SELECT_ANNULUS.rotateX(-Math.PI / 2);
+const CHEVRON_GEO = new THREE.CircleGeometry(0.95, 3);
 
-function AgencyMarks({ chrome }: { chrome: BoardChrome }) {
+function AgencyMarks({ chrome, selected }: { chrome: BoardChrome; selected: boolean }) {
   return (
     <group>
-      {chrome.canAttack && (
-        <mesh position={[0.95, 0.024, 0]} rotation={[-Math.PI / 2, 0, -Math.PI / 2]} geometry={BLADE_GEO}>
-          <meshBasicMaterial color="#d4b05a" depthWrite={false} />
+      {selected && (
+        <mesh position={[0, 0.02, 0]} geometry={SELECT_ANNULUS}>
+          <meshBasicMaterial color="#efe6d0" depthWrite={false} />
         </mesh>
       )}
-      {chrome.inContact && !chrome.canAttack && (
-        <mesh position={[0.82, 0.022, 0]} rotation={[-Math.PI / 2, 0, -Math.PI / 2]} geometry={NOTCH_GEO}>
-          <meshBasicMaterial color="#c9a352" depthWrite={false} />
+      {chrome.canAttack && (
+        <mesh position={[1.95, 0.03, 0]} rotation={[-Math.PI / 2, 0, -Math.PI / 2]} geometry={CHEVRON_GEO}>
+          <meshBasicMaterial color="#d4b05a" depthWrite={false} />
         </mesh>
       )}
     </group>
@@ -189,11 +191,11 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
           emissive={
             selected
               ? FACTION_STRONG[unit.faction]
-              : chrome.canAttack || chrome.threatened
-                ? '#c9a352'
+              : chrome.threatened
+                ? '#cfc6a8'
                 : '#000000'
           }
-          emissiveIntensity={selected ? 0.55 : chrome.threatened ? 0.4 : chrome.canAttack ? 0.32 : 0}
+          emissiveIntensity={selected ? 0.55 : chrome.threatened ? 0.28 : 0}
         />
       </mesh>
       {/* The machines: hero vehicles as instances, everything else — foot
@@ -213,7 +215,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
           <meshBasicMaterial color="#b04a3a" transparent opacity={0.4} depthWrite={false} />
         </mesh>
       )}
-      <AgencyMarks chrome={chrome} />
+      <AgencyMarks chrome={chrome} selected={selected} />
       {/* The standard. */}
       <Billboard position={[0, 0.5, 0]} follow>
         <mesh>
@@ -304,64 +306,18 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
           emissive={
             selected
               ? FACTION_STRONG[unit.faction]
-              : chrome.canAttack || chrome.threatened
-                ? '#c9a352'
+              : chrome.threatened
+                ? '#cfc6a8'
                 : '#000000'
           }
-          emissiveIntensity={selected ? 0.5 : chrome.threatened ? 0.38 : chrome.canAttack ? 0.3 : 0}
+          emissiveIntensity={selected ? 0.5 : chrome.threatened ? 0.26 : 0}
         />
       </mesh>
-      <AgencyMarks chrome={chrome} />
+      <AgencyMarks chrome={chrome} selected={selected} />
       <Billboard position={[0, 0.78, 0]} follow>
         <mesh>
           <planeGeometry args={[2.05, 1.28]} />
           <meshBasicMaterial ref={plateMatRef} map={texture} transparent depthWrite={false} />
-        </mesh>
-      </Billboard>
-    </group>
-  );
-}
-
-function AgencyBadge({ unit, chrome, selected }: { unit: Unit; chrome: BoardChrome; selected: boolean }) {
-  const groupRef = useRef<THREE.Group>(null);
-  const target = useRef(new THREE.Vector3());
-  const spec: AgencyBadgeSpec = {
-    mp: chrome.mp,
-    selected,
-    spent: chrome.spent,
-    canAttack: chrome.canAttack,
-    hasAttacked: chrome.hasAttacked,
-  };
-  const texture = useMemo(() => makeAgencyBadgeTexture(spec), [agencyBadgeKey(spec)]);
-  useEffect(() => () => texture.dispose(), [texture]);
-
-  const { wx, wz } = tileWorldById(unit.tile);
-  const y = tileGroundY(unit.tile);
-  useEffect(() => {
-    target.current.set(wx, y, wz);
-    if (groupRef.current && groupRef.current.position.lengthSq() === 0) {
-      groupRef.current.position.copy(target.current);
-    }
-  }, [wx, wz, y]);
-  const badgeRef = useRef<THREE.Mesh>(null);
-  useFrame(({ camera }, delta) => {
-    const g = groupRef.current;
-    if (!g) return;
-    if (g.position.distanceTo(target.current) > 0.002) {
-      g.position.lerp(target.current, Math.min(1, delta * 7));
-    }
-    // Grow with camera height: a postage stamp near, a plate at campaign zoom.
-    const t = THREE.MathUtils.smoothstep(camera.position.y, 14, 36);
-    const s = THREE.MathUtils.lerp(0.2, 1.35, t);
-    if (badgeRef.current) badgeRef.current.scale.setScalar(s);
-  });
-
-  return (
-    <group ref={groupRef}>
-      <Billboard position={[0.95, 1.25, 0]} follow>
-        <mesh ref={badgeRef}>
-          <planeGeometry args={[1.55, 1.55]} />
-          <meshBasicMaterial map={texture} transparent depthWrite={false} />
         </mesh>
       </Billboard>
     </group>
@@ -440,11 +396,6 @@ export function Units() {
       {shown.map((u) => {
         const chrome = boardChrome(game, u, threatened.has(u.id));
         return <UnitCounter key={`c-${u.id}`} unit={u} selected={u.id === selectedUnitId} chrome={chrome} />;
-      })}
-      {shown.map((u) => {
-        const chrome = boardChrome(game, u, threatened.has(u.id));
-        if (!chrome.showMp) return null;
-        return <AgencyBadge key={`b-${u.id}`} unit={u} selected={u.id === selectedUnitId} chrome={chrome} />;
       })}
       {ghosts.map((r) => (
         <GhostMarker key={`ghost-${r.unitId}`} rec={r} />

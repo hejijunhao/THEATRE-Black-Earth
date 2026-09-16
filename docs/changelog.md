@@ -9,7 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
-| [0.2.8](#028--2026-09-16--ui-authority-cut) | 2026-09-16 | UI authority cut | squint-readable agency (tabs/blades/MP stamp), encyclopedia tooltips, milled command bench, victory clock, bound journal |
+| [0.2.8](#028--2026-09-16--ui-authority-cut) | 2026-09-16 | UI authority cut | squint-readable agency (parchment annulus / amber chevron / contact ticks), encyclopedia, command bench, victory clock, bound journal |
 | [0.2.7](#027--2026-09-16--ui-hardening-cut) | 2026-09-16 | UI hardening cut | board chrome (MP / spent / contact), assault briefing card, command bench plates, dispatch paper, strength lexicon |
 | [0.2.6](#026--2026-09-16--readable-engagements) | 2026-09-16 | Readable engagements | explicit 2d6 per side, attack/defence rolls decide damage given/taken, after-action report, combat unit tests |
 | [0.2.5](#025--2026-08-08--hero-terrain-tier-ground) | 2026-08-08 | Hero terrain tier (ground) | five diorama ground tiles, blade-geometry grass, soil strata, analytic AO, aTer channels, map vegetation layer from geodata fractions |
@@ -30,7 +30,7 @@ add a row for them here.
 
 Presentation only. Rules are unchanged (PC2 2d6, same power model). Cut #2's rings did not survive campaign zoom; this cut replaces decoration with command furniture.
 
-- **Squint-readable agency.** Counters carry a brass MP stamp and a solid contact blade. Selected is a parchment tab, not a hairline ring. Spent plates stay readable (no 50% fade). Ground marks are filled tabs/blades. A camera-scaled MP/FIGHT/SPENT badge sits on every friendly plate — postage-stamp near the lens, a readable numeral at campaign zoom. The NATO flag alone cannot carry week-state at operational height.
+- **Squint-readable agency.** One selected language: a thick opaque parchment annulus on the ground (same on mini and counter LOD). Can-attack is an amber chevron — a different silhouette, not a second ring. Contact-only is thinner gold ticks on the plate. Spent is plate dim only (no spent ring). Threatened is a parchment edge on the enemy counter, not a hex wash. MP stays a brass stamp on the plate. The army-wide badge swarm is gone.
 - **Encyclopedia tooltips.** Hover Strength, Readiness, Morale, Attack, Defence, Movement, Supply, the clock needles, and the bench plates for a doctrine paragraph plus *why this colour now*.
 - **Command bench.** Legal orders as milled plates: engraved label, large numeral, no icon chips. Nameplate with MP pips. Assault is a gold-inlaid plate. Theatre plates and End Week sit to the right.
 - **Victory clock.** Cities / war support / army as three dials and a headline (Holding / Pressing / Slipping / Breaking). Replaces the ledger cells for VP, score and support.

@@ -44,7 +44,7 @@ const u3 = await page.evaluate(() => {
 console.log('u3', u3);
 await sleep(800);
 
-// Campaign zoom + Tab counters so the MP stamp / blade is the read.
+// Campaign zoom + Tab counters: parchment annulus + amber chevron must squint.
 await page.evaluate((u) => {
   const cam = window.__TBE_CAMERA__;
   if (cam) cam.set(u.wx, 38, u.wz + 18, u.wx, u.wz);

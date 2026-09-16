@@ -141,34 +141,17 @@ function drawMpStamp(
   ctx.fillText(spent ? 'SPENT' : attacked ? 'ATK' : 'MP', x + w / 2, y + h * 0.78);
 }
 
-/** Solid blade on the left edge — reads at campaign zoom; ticks do not. */
-function drawContactBlade(
-  ctx: CanvasRenderingContext2D,
-  h: number,
-  color: string,
-): void {
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.moveTo(0, h * 0.22);
-  ctx.lineTo(34, h * 0.5);
-  ctx.lineTo(0, h * 0.78);
-  ctx.closePath();
-  ctx.fill();
-}
-
-/** Heavy parchment corner ticks — selected language, not a ring. */
-function drawCornerTicks(
+/** Thin gold corner ticks — contact-only. Not a ring, not a blade. */
+function drawContactTicks(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
-  color: string,
-  weight = 8,
-  arm = 28,
 ): void {
-  ctx.strokeStyle = color;
-  ctx.lineWidth = weight;
+  ctx.strokeStyle = '#c9a352';
+  ctx.lineWidth = 5;
   ctx.lineCap = 'square';
-  const inset = 12;
+  const inset = 10;
+  const arm = 16;
   const corners: Array<[number, number, number, number, number, number]> = [
     [inset, inset + arm, inset, inset, inset + arm, inset],
     [w - inset - arm, inset, w - inset, inset, w - inset, inset + arm],
@@ -184,8 +167,9 @@ function drawCornerTicks(
   }
 }
 
-// Renders a unit counter to a canvas texture (320×192) — agency is the
-// stamp and the blade, not a hairline around the NATO symbol.
+// Renders a unit counter to a canvas texture (320×192). Selected is the
+// ground annulus; can-attack is the ground chevron; contact-only is thin
+// gold ticks; threatened is a parchment edge; spent is plate dim.
 export function makeCounterTexture(spec: CounterSpec): THREE.CanvasTexture {
   const w = 320;
   const h = 192;
@@ -198,18 +182,12 @@ export function makeCounterTexture(spec: CounterSpec): THREE.CanvasTexture {
   ctx.globalAlpha = alpha;
 
   const bg = spec.spent ? (spec.faction === 'UA' ? '#1c2838' : '#3a201c') : FACTION_BG[spec.faction];
-  const edge = spec.selected
-    ? '#efe6d0'
-    : spec.threatened
-      ? '#efe6d0'
-      : spec.canAttack
-        ? '#d4b05a'
-        : spec.inContact
-          ? '#c9a352'
-          : FACTION_EDGE[spec.faction];
+  // Selected lives on the ground annulus. Threatened is the only parchment
+  // plate edge. Can-attack is the amber chevron. Spent is dim only.
+  const edge = spec.threatened ? '#efe6d0' : FACTION_EDGE[spec.faction];
   ctx.fillStyle = bg;
   ctx.strokeStyle = edge;
-  ctx.lineWidth = spec.selected || spec.threatened || spec.canAttack ? 10 : 5;
+  ctx.lineWidth = spec.threatened ? 12 : 5;
   ctx.beginPath();
   ctx.roundRect(5, 5, w - 10, h - 10, 12);
   ctx.fill();
@@ -219,10 +197,8 @@ export function makeCounterTexture(spec: CounterSpec): THREE.CanvasTexture {
     ctx.fill();
   }
 
-  if (spec.selected) drawCornerTicks(ctx, w, h, '#efe6d0', 9, 32);
-  if (!spec.ghost) {
-    if (spec.canAttack) drawContactBlade(ctx, h, '#d4b05a');
-    else if (spec.inContact && !spec.selected) drawContactBlade(ctx, h, 'rgba(201, 163, 82, 0.45)');
+  if (!spec.ghost && spec.inContact && !spec.selected && !spec.canAttack && !spec.threatened) {
+    drawContactTicks(ctx, w, h);
   }
 
   const hasStamp = !spec.ghost && spec.movementMax != null && spec.movement != null;
@@ -353,18 +329,10 @@ export function makeStandardTexture(spec: StandardSpec): THREE.CanvasTexture {
   const ctx = canvas.getContext('2d')!;
 
   const bg = spec.spent ? (spec.faction === 'UA' ? '#1c2838' : '#3a201c') : FACTION_BG[spec.faction];
-  const edge = spec.selected
-    ? '#efe6d0'
-    : spec.threatened
-      ? '#efe6d0'
-      : spec.canAttack
-        ? '#d4b05a'
-        : spec.inContact
-          ? '#c9a352'
-          : FACTION_EDGE[spec.faction];
+  const edge = spec.threatened ? '#efe6d0' : FACTION_EDGE[spec.faction];
   ctx.fillStyle = bg;
   ctx.strokeStyle = edge;
-  ctx.lineWidth = spec.selected || spec.threatened || spec.canAttack ? 7 : 3;
+  ctx.lineWidth = spec.threatened ? 8 : 3;
   ctx.beginPath();
   ctx.roundRect(3, 3, w - 6, h - 6, 10);
   ctx.fill();
@@ -373,9 +341,9 @@ export function makeStandardTexture(spec: StandardSpec): THREE.CanvasTexture {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.38)';
     ctx.fill();
   }
-  if (spec.selected) drawCornerTicks(ctx, w, h, '#efe6d0', 7, 20);
-  if (spec.canAttack) drawContactBlade(ctx, h, '#d4b05a');
-  else if (spec.inContact && !spec.selected) drawContactBlade(ctx, h, 'rgba(201, 163, 82, 0.45)');
+  if (spec.inContact && !spec.selected && !spec.canAttack && !spec.threatened) {
+    drawContactTicks(ctx, w, h);
+  }
 
   drawSymbol(ctx, spec.type, 16, 18, 48, 40, spec.spent ? '#8a8474' : '#e8e2d2');
 
@@ -460,58 +428,4 @@ export function makeLabelTexture(name: string, size: CitySize, faction: 'UA' | '
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = 4;
   return { texture, aspect: canvas.width / canvas.height };
-}
-
-// ---------------------------------------------------------------- agency badge
-// A 128² stamp that survives campaign zoom: one numeral, one word.
-// The NATO plate cannot — at y=38 it is ~50px and the in-plate MP box is ~12.
-
-export interface AgencyBadgeSpec {
-  mp: number;
-  selected: boolean;
-  spent: boolean;
-  canAttack: boolean;
-  hasAttacked: boolean;
-}
-
-export function agencyBadgeKey(s: AgencyBadgeSpec): string {
-  return ['badge', s.mp.toFixed(1), s.selected ? 1 : 0, s.spent ? 1 : 0, s.canAttack ? 1 : 0, s.hasAttacked ? 1 : 0].join('|');
-}
-
-export function makeAgencyBadgeTexture(spec: AgencyBadgeSpec): THREE.CanvasTexture {
-  const w = 128;
-  const h = 128;
-  const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext('2d')!;
-
-  const bg = spec.spent ? '#161614' : spec.canAttack ? '#3a3018' : spec.selected ? '#3a3428' : '#2a2418';
-  const edge = spec.selected ? '#efe6d0' : spec.canAttack ? '#d4b05a' : spec.spent ? '#5a5648' : '#c9a352';
-  ctx.fillStyle = bg;
-  ctx.strokeStyle = edge;
-  ctx.lineWidth = 10;
-  ctx.beginPath();
-  ctx.roundRect(6, 6, w - 12, h - 12, 10);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.fillStyle = spec.spent ? '#8a8474' : '#f3ead0';
-  ctx.font = font(MONO, 58, 700);
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(mpLabel(spec.mp), w / 2, h * 0.42);
-
-  ctx.fillStyle = spec.canAttack ? '#d4b05a' : spec.spent ? '#6d6858' : '#c9a352';
-  ctx.font = font(MONO, 18, 700);
-  ctx.fillText(
-    spec.spent ? (spec.hasAttacked ? 'ATK' : 'SPENT') : spec.canAttack ? 'FIGHT' : 'MP',
-    w / 2,
-    h * 0.76,
-  );
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.anisotropy = 4;
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
 }
