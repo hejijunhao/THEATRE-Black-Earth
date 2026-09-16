@@ -9,6 +9,7 @@ import { useStore } from './game/state/store';
 import { MapScene } from './map/MapScene';
 import { AIOverlay } from './ui/AIOverlay';
 import { CommandBar, MapModes } from './ui/CommandBar';
+import { OrdersHint } from './ui/OrdersHint';
 import { MainMenu } from './ui/MainMenu';
 import {
   CombatResultPanel,
@@ -254,6 +255,7 @@ export default function App() {
         <TopBar />
         <SidePanel />
         <CommandBar />
+        <OrdersHint />
         <MapModes />
         <Notifications />
         <AIOverlay />

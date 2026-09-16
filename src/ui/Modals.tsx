@@ -4,6 +4,7 @@
 import { SLOT_COUNT, slotHeaders } from '../game/state/save';
 import { useStore } from '../game/state/store';
 import { opposing } from '../game/types';
+import { DieFace, LossMeter, StrengthStrip, VERDICT_LABEL } from './combatChrome';
 
 export function EventModal() {
   const game = useStore((s) => s.game);
@@ -67,28 +68,6 @@ export function EndTurnDialog() {
   );
 }
 
-function Die({ value }: { value: number }) {
-  return <span className="die" aria-label={`d6 showing ${value}`}>{value}</span>;
-}
-
-function RollRow({ label, roll, hint }: { label: string; roll: { dice: number[]; total: number; fortune: number }; hint: string }) {
-  return (
-    <div className="aar-roll">
-      <div className="aar-roll-meta">
-        <span className="k">{label}</span>
-        <span className="hint">{hint}</span>
-      </div>
-      <div className="aar-dice">
-        {roll.dice.map((d, i) => <Die key={i} value={d} />)}
-        <span className="aar-total">= {roll.total}</span>
-        <span className={`aar-fortune ${roll.fortune >= 1 ? 'pos' : 'neg'}`}>
-          ×{roll.fortune.toFixed(2)}
-        </span>
-      </div>
-    </div>
-  );
-}
-
 export function CombatResultPanel() {
   const game = useStore((s) => s.game);
   const result = useStore((s) => s.lastCombat);
@@ -96,18 +75,25 @@ export function CombatResultPanel() {
   if (!game || !result || game.phase !== 'player') return null;
 
   const isFire = result.kind === 'bombardment';
-  const outcome = result.defenderDestroyed
-    ? 'The defending formation was destroyed.'
+  const headline = result.defenderDestroyed
+    ? 'Destroyed'
     : result.defenderRetreated
-      ? 'The defenders fell back.'
+      ? 'Fell back'
       : isFire
-        ? 'The fires mission landed. Ground is not taken by bombardment.'
-        : 'The line held. Repeated pressure may still break it.';
+        ? 'Fires landed'
+        : 'The line held';
   const outcomeCls = result.defenderDestroyed
     ? 'bad'
     : result.defenderRetreated
       ? 'warn'
       : '';
+  const detail = result.defenderDestroyed
+    ? 'The defending formation ceased to exist as a fighting body.'
+    : result.defenderRetreated
+      ? 'They gave the ground. The attacker may have stepped forward.'
+      : isFire
+        ? 'The battery struck. Bombardment does not take the hex.'
+        : 'Repeated pressure may still break the position.';
 
   return (
     <div className="modal-backdrop aar-backdrop" onClick={dismissCombat}>
@@ -117,25 +103,22 @@ export function CombatResultPanel() {
         role="dialog"
         aria-labelledby="aar-title"
       >
-        <div className="stamp">{isFire ? 'Fires' : 'After Action'}</div>
-        <div className="panel-title" id="aar-title">
-          {isFire ? 'Fire Mission' : 'Engagement'}
-          <span className="sub">Turn {game.turn}</span>
+        <div className="stamp">{isFire ? 'Fires' : 'Dispatch'}</div>
+        <div className="aar-head">
+          <div className="aar-kicker">After action · week {game.turn}</div>
+          <h2 className={`aar-headline ${outcomeCls}`} id="aar-title">{headline}</h2>
+          <p className="aar-detail">{detail}</p>
         </div>
         <div className="body">
           <div className="aar-matchup">
             <div className="aar-side">
               <div className="type">Attacker</div>
               <div className="name">{result.attackerName}</div>
-              <div className="aar-str">
-                {Math.round(result.attackerStrengthBefore)}%
-                <span className="arrow">→</span>
-                {Math.round(result.attackerStrengthAfter)}%
-              </div>
+              <StrengthStrip before={result.attackerStrengthBefore} after={result.attackerStrengthAfter} />
             </div>
             <div className="aar-odds">
               <div className={`verdict ${result.resolvedVerdict}`}>
-                {result.resolvedVerdict}
+                {VERDICT_LABEL[result.resolvedVerdict]}
               </div>
               <div className="aar-odds-n">
                 {result.baseRatio >= 1
@@ -147,54 +130,61 @@ export function CombatResultPanel() {
             <div className="aar-side right">
               <div className="type">Defender</div>
               <div className="name">{result.defenderName}</div>
-              <div className="aar-str">
-                {Math.round(result.defenderStrengthBefore)}%
-                <span className="arrow">→</span>
-                {Math.round(result.defenderStrengthAfter)}%
+              <StrengthStrip before={result.defenderStrengthBefore} after={result.defenderStrengthAfter} align="right" />
+            </div>
+          </div>
+
+          <div className="aar-fortune">
+            <div className="aar-roll">
+              <div className="aar-roll-meta">
+                <span className="k">{isFire ? 'Fire roll' : 'Attack roll'}</span>
+                <span className="hint">{isFire ? 'Scales the mission' : 'Damage given'}</span>
+              </div>
+              <div className="aar-dice">
+                {result.attackerRoll.dice.map((d, i) => <DieFace key={i} value={d} />)}
+                <span className="aar-total">{result.attackerRoll.total}</span>
+                <span className={`aar-fortune-n ${result.attackerRoll.fortune >= 1 ? 'pos' : 'neg'}`}>
+                  ×{result.attackerRoll.fortune.toFixed(2)}
+                </span>
               </div>
             </div>
+            {result.defenderRoll && (
+              <div className="aar-roll">
+                <div className="aar-roll-meta">
+                  <span className="k">Defence roll</span>
+                  <span className="hint">Damage taken</span>
+                </div>
+                <div className="aar-dice">
+                  {result.defenderRoll.dice.map((d, i) => <DieFace key={i} value={d} />)}
+                  <span className="aar-total">{result.defenderRoll.total}</span>
+                  <span className={`aar-fortune-n ${result.defenderRoll.fortune >= 1 ? 'pos' : 'neg'}`}>
+                    ×{result.defenderRoll.fortune.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
-          <RollRow
-            label={isFire ? 'Fire roll (2d6)' : 'Attack roll (2d6)'}
-            roll={result.attackerRoll}
-            hint={isFire ? 'Scales effect of the mission' : 'Decides damage given'}
-          />
-          {result.defenderRoll && (
-            <RollRow
-              label="Defence roll (2d6)"
-              roll={result.defenderRoll}
-              hint="Decides damage taken"
-            />
-          )}
-
-          <div className="aar-exchange">
-            <div className="kv-line">
-              <span className="k">Damage given</span>
-              <span className="v">−{Math.round(result.defenderLoss)} str · −{Math.round(result.defenderReadinessLoss)} rdy · −{Math.round(result.defenderMoraleLoss)} mor</span>
-            </div>
-            <div className="kv-line">
-              <span className="k">Damage taken</span>
-              <span className="v">
-                {isFire
-                  ? '— (fires do not expose the battery)'
-                  : `−${Math.round(result.attackerLoss)} str · −${Math.round(result.attackerReadinessLoss)} rdy · −${Math.round(result.attackerMoraleLoss)} mor`}
-              </span>
-            </div>
+          <div className="aar-bill">
+            <LossMeter label="Damage given" amount={result.defenderLoss} tone="given" />
+            {!isFire && <LossMeter label="Damage taken" amount={result.attackerLoss} tone="taken" />}
+            {isFire && (
+              <p className="hint">The battery is not exposed. No return fire.</p>
+            )}
           </div>
 
-          <p className={`aar-outcome ${outcomeCls}`}>{outcome}</p>
           {result.tileCaptured && (
-            <p className="aar-outcome gold">Ground captured. The attacker advanced.</p>
+            <p className="aar-flag gold">Ground taken. The attacker advanced onto the hex.</p>
           )}
           {!isFire && result.previewVerdict !== result.resolvedVerdict && (
             <p className="hint">
-              Preview was {result.previewVerdict}; the dice made it {result.resolvedVerdict}.
+              Staff estimate was {VERDICT_LABEL[result.previewVerdict].toLowerCase()};
+              the dice made it {VERDICT_LABEL[result.resolvedVerdict].toLowerCase()}.
             </p>
           )}
 
-          <div className="btn-row">
-            <button className="btn primary" onClick={dismissCombat}>Continue (Esc)</button>
+          <div className="btn-row aar-actions">
+            <button className="btn primary" onClick={dismissCombat}>Continue the week · Esc</button>
           </div>
         </div>
       </div>

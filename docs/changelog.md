@@ -35,10 +35,14 @@ power model.
   damage taken. A 7 is average (fortune ×1.00); 2 is ×0.70; 12 is ×1.30.
   Odds still come from `attackPower` / `defensePower` so the preview stays
   honest. Retreat and advance use the post-dice ratio.
-- **After-action report.** Named formations, odds, stamped dice, fortune,
-  damage given/taken, strength before → after, held / fell back / destroyed /
-  ground captured. Esc dismisses. Preview now shows odds and estimated
-  losses before the roll.
+- **After-action dispatch.** Outcome as the headline, pip dice, strength
+  strips (before ghost / after fill), given/taken meters. Preview is a
+  two-sided confrontation (odds between the names) rather than a property
+  list. Esc dismisses. Preview still shows estimated losses before the roll.
+- **Orders whisper + week pill.** A centered line under the command bench
+  says what to do next (select / move / enemy in contact / spent). The
+  ledger marks *Your week* / *Enemy week*. The side panel yields the stage
+  while a dispatch is open.
 - **Journal and AI banner** print the dice and the exchange, so an enemy
   assault is as legible as the player's.
 - **Tests.** `combat.test.ts` covers fortune mapping, exchange direction
