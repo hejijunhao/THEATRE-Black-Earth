@@ -1066,7 +1066,7 @@ button {
   justify-content: center;
   padding-top: 108px;
   pointer-events: none;
-  background: radial-gradient(ellipse at 50% 46%, rgba(18, 16, 12, 0.08), transparent 46%);
+  background: radial-gradient(ellipse at 42% 48%, rgba(18, 16, 12, 0.04), transparent 42%);
 }
 .hud > .brief-over.dock-east {
   justify-content: flex-end;
@@ -1079,9 +1079,8 @@ button {
 .hud > .brief-over.bias-high { padding-top: 72px; }
 .hud > .brief-over.bias-mid { padding-top: 108px; }
 .hud > .brief-over.bias-low {
-  align-items: flex-end;
-  padding-top: 0;
-  padding-bottom: 168px;
+  align-items: flex-start;
+  padding-top: 96px;
 }
 .hud > .brief-over > * { pointer-events: auto; }
 .paper-callout {
@@ -1099,25 +1098,31 @@ button {
   stroke-linecap: round;
 }
 .brief-sheet {
+  --ink: #3a3226;
+  --ink-dim: #6a5e4a;
+  --ink-bright: #1e1810;
+  --line: rgba(90, 70, 40, 0.28);
+  --panel: transparent;
   position: relative;
   width: 500px;
   max-width: calc(100vw - 340px);
   z-index: 1;
+  color: #3a3226;
   background:
-    linear-gradient(180deg, rgba(198, 178, 138, 0.28), rgba(42, 32, 22, 0.48)),
+    linear-gradient(180deg, rgba(236, 220, 184, 0.96), rgba(214, 192, 150, 0.97)),
     repeating-linear-gradient(
       180deg,
-      rgba(90, 60, 28, 0.07) 0 1px,
+      rgba(90, 60, 28, 0.08) 0 1px,
       transparent 1px 26px
     ),
     var(--tex-field);
   background-size: auto, auto, 192px 192px;
   background-blend-mode: normal, multiply, soft-light;
-  backdrop-filter: blur(1.5px) saturate(1.02);
-  border: 1px solid rgba(190, 170, 130, 0.35);
+  border: 1px solid rgba(90, 70, 40, 0.4);
+  border-radius: 0;
   box-shadow:
-    0 16px 40px rgba(0, 0, 0, 0.32),
-    inset 0 1px 0 rgba(240, 224, 180, 0.2);
+    2px 3px 0 rgba(40, 28, 16, 0.16),
+    0 14px 28px rgba(0, 0, 0, 0.22);
 }
 .brief-sheet::after {
   content: '';
@@ -1168,8 +1173,8 @@ button {
   padding: 3px 8px;
   border: 1px solid var(--line);
   color: var(--ink);
-  background: rgba(0, 0, 0, 0.18);
-  box-shadow: inset 0 1px 0 rgba(230, 220, 190, 0.06);
+  background: rgba(255, 244, 214, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 240, 210, 0.35);
 }
 .brief-chip.isolated, .brief-chip.low { border-color: rgba(176, 74, 58, 0.5); color: var(--red); }
 .brief-chip.strained { border-color: rgba(201, 163, 82, 0.5); color: var(--amber); }
@@ -1256,13 +1261,28 @@ button {
   box-shadow:
     1px 1px 0 rgba(176, 74, 58, 0.25),
     inset 0 0 8px rgba(176, 74, 58, 0.08);
-  background: rgba(48, 22, 18, 0.25);
+  background: rgba(176, 74, 58, 0.08);
   z-index: 3;
+}
+.brief-sheet .stamp {
+  color: #8a3228;
+  border-color: rgba(138, 50, 40, 0.7);
+  background: rgba(176, 74, 58, 0.08);
 }
 
 .brief-sheet.dispatch {
   overflow-x: hidden;
   padding-left: 8px;
+  background:
+    linear-gradient(180deg, rgba(236, 220, 184, 0.96), rgba(214, 192, 150, 0.97)),
+    repeating-linear-gradient(
+      180deg,
+      rgba(90, 60, 28, 0.08) 0 1px,
+      transparent 1px 26px
+    ),
+    var(--tex-field);
+  background-size: auto, auto, 192px 192px;
+  background-blend-mode: normal, multiply, soft-light;
 }
 .brief-sheet .aar-headline { font-size: 26px; }
 .brief-sheet .aar-detail { font-size: 14px; max-width: 38em; }
