@@ -114,9 +114,15 @@ if (chrome.mapModeButtons !== 1) {
 await page.screenshot({ path: join(OUT, '01-rest-map.png') });
 await page.screenshot({ path: join(OUT, 'rest-map-primary.png') });
 
+const toggle = await page.$('.outliner.chip .or-toggle');
+if (!toggle) {
+  console.error('FAIL: rest chip missing open chevron');
+  process.exitCode = 1;
+} else {
+  await toggle.click();
+  await sleep(250);
+}
 const opened = await page.evaluate(() => {
-  const toggle = document.querySelector('.outliner.chip .or-toggle');
-  if (toggle instanceof HTMLElement) toggle.click();
   const el = document.querySelector('.outliner');
   return {
     cls: el?.className ?? '',
@@ -131,11 +137,11 @@ if (!/\bopen\b/.test(opened.cls) || opened.rows < 4 || opened.selected) {
   process.exitCode = 1;
 }
 await page.screenshot({ path: join(OUT, 'outliner-open.png') });
-await page.evaluate(() => {
-  const toggle = document.querySelector('.outliner.open .or-toggle');
-  if (toggle instanceof HTMLElement) toggle.click();
-});
-await sleep(150);
+const collapse = await page.$('.outliner.open .or-toggle');
+if (collapse) {
+  await collapse.click();
+  await sleep(200);
+}
 
 // Boot frame is already the tight Kupiansk–Sloviansk mid-zoom (lod.ts).
 // Re-assert it so the rest plate shot is the scar, not a whole-Donbas pullback.
