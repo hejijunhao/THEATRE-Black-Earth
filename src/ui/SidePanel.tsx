@@ -6,6 +6,7 @@ import { TERRAIN_DEFS, UNIT_DEFS } from '../game/data/defs';
 import { supplyStateFromLevel } from '../game/rules/supply';
 import { useStore } from '../game/state/store';
 import { Unit } from '../game/types';
+import { showDossierPanel } from './hudChrome';
 import { LEXICON, LEXICON_SECTIONS, LexiconId, moraleNow, movementNow, readinessNow, strengthNow, supplyNow } from './lexicon';
 import { MiniViewport } from './MiniViewport';
 import { LexiconTip, Tip } from './Tip';
@@ -255,14 +256,31 @@ export function SidePanel() {
   const pendingOp = useStore((s) => s.pendingOp);
   const lastCombat = useStore((s) => s.lastCombat);
   const pinnedLexiconId = useStore((s) => s.pinnedLexiconId);
+  const showJournal = useStore((s) => s.showJournal);
+  const showDossier = useStore((s) => s.showDossier);
+  const showTheatreClock = useStore((s) => s.showTheatreClock);
   const cancelInteraction = useStore((s) => s.cancelInteraction);
+  const setShowDossier = useStore((s) => s.setShowDossier);
+  const pinLexicon = useStore((s) => s.pinLexicon);
 
   if (!game) return null;
   const pinned = pinnedLexiconId && pinnedLexiconId in LEXICON
     ? (pinnedLexiconId as LexiconId)
     : null;
-  const paperUp = Boolean((lastCombat || pendingAttackId) && game.phase === 'player');
-  if (paperUp && !pinned) return null;
+  const inspect: Parameters<typeof showDossierPanel>[0] = {
+    selectedUnitId,
+    showJournal,
+    showDossier,
+    showTheatreClock,
+    pinnedLexiconId,
+    pendingAttackId,
+    lastCombat,
+    interactionMode,
+  };
+  if (!showDossierPanel(inspect)) return null;
+
+  const paperMounted = Boolean((lastCombat || pendingAttackId) && game.phase === 'player');
+  if (paperMounted && !pinned) return null;
 
   let content: JSX.Element | null = null;
   let title = 'Theatre';
@@ -279,7 +297,7 @@ export function SidePanel() {
         </div>
       </>
     );
-  } else if (paperUp && pinned) {
+  } else if (pinned) {
     title = 'Encyclopedia';
     content = <EncyclopediaLedger id={pinned} />;
   } else if (interactionMode === 'deploy') {
@@ -294,26 +312,31 @@ export function SidePanel() {
         </div>
       </>
     );
-  } else if (selectedUnitId && game.units[selectedUnitId]) {
+  } else if (showDossier && selectedUnitId && game.units[selectedUnitId]) {
     title = 'Formation';
     content = <UnitDetails unit={game.units[selectedUnitId]} />;
-  } else if (selectedTileId) {
+  } else if (showDossier && selectedTileId) {
     title = 'Sector';
     content = <TileDetails />;
-  } else if (pinned) {
-    title = 'Encyclopedia';
   } else {
     return null;
   }
 
+  const close = () => {
+    if (pinned) pinLexicon(null);
+    if (showDossier) setShowDossier(false);
+  };
+
   return (
-    <div className="side-panel panel panel-framed">
+    <div className="side-panel panel panel-framed on-demand">
       <div className="panel-title">
         {title}
         <span className="sub">{game.scenario.dateLabel}</span>
+        <button type="button" className="lex-unpin" onClick={close}>
+          Close
+        </button>
       </div>
       <div className="body">
-        {pinned && !paperUp && <EncyclopediaLedger id={pinned} />}
         {content}
       </div>
     </div>

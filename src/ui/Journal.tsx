@@ -7,6 +7,7 @@ import { neighborIds } from '../game/hex';
 import { formatTurnDate } from '../game/rules/weather';
 import { useStore } from '../game/state/store';
 import { opposing } from '../game/types';
+import { showJournalPanel } from './hudChrome';
 import { bindChronology, chronologyTile } from './journalChronology';
 
 interface Note {
@@ -20,6 +21,13 @@ export function Journal() {
   const game = useStore((s) => s.game);
   const pendingAttackId = useStore((s) => s.pendingAttackId);
   const lastCombat = useStore((s) => s.lastCombat);
+  const showJournal = useStore((s) => s.showJournal);
+  const showDossier = useStore((s) => s.showDossier);
+  const showTheatreClock = useStore((s) => s.showTheatreClock);
+  const pinnedLexiconId = useStore((s) => s.pinnedLexiconId);
+  const selectedUnitId = useStore((s) => s.selectedUnitId);
+  const interactionMode = useStore((s) => s.interactionMode);
+  const setShowJournal = useStore((s) => s.setShowJournal);
   const focusCamera = useStore((s) => s.focusCamera);
   const selectTile = useStore((s) => s.selectTile);
   const hoverTile = useStore((s) => s.hoverTile);
@@ -84,12 +92,27 @@ export function Journal() {
   }, [game]);
 
   if (!game || game.phase !== 'player') return null;
+  if (!showJournalPanel({
+    selectedUnitId,
+    showJournal,
+    showDossier,
+    showTheatreClock,
+    pinnedLexiconId,
+    pendingAttackId,
+    lastCombat,
+    interactionMode,
+  })) return null;
 
   return (
-    <div className={`bound-journal${pendingAttackId || lastCombat ? ' tucked' : ''}`} aria-label="Theatre journal">
-      <div className="bj-spine" aria-hidden>
+    <div className="bound-journal on-demand" aria-label="Theatre journal">
+      <button
+        type="button"
+        className="bj-spine"
+        onClick={() => setShowJournal(false)}
+        title="Close journal · J"
+      >
         <span className="bj-spine-title">Journal</span>
-      </div>
+      </button>
       <div className="bj-page">
         <div className="bj-head">
           <span className="bj-week">Week {game.turn}</span>

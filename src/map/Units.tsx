@@ -32,8 +32,18 @@ import { FACTION_STRONG } from './palette';
 // unit's per-frame material update. Driven by camera height or the Tab
 // override — the zoom metaphor's unit dial.
 const fadeState = { value: 0 };
-const COUNTER_ZOOM_IN = 20;  // counters (and their stamps) come in earlier
-const COUNTER_ZOOM_FULL = 30;
+const COUNTER_ZOOM_IN = 16;  // counters (and their stamps) come in earlier
+const COUNTER_ZOOM_FULL = 26;
+
+/** Sit the token on the earth — a contact shadow, not another ring. */
+function GroundPresence({ radius }: { radius: number }) {
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.012, 0]} raycast={() => null}>
+      <circleGeometry args={[radius, 28]} />
+      <meshBasicMaterial color="#0c0b08" transparent opacity={0.42} depthWrite={false} />
+    </mesh>
+  );
+}
 
 // ONE selected language: a camera-facing parchment mat with an ink rim,
 // sitting behind the plate / standard so it frames the token. Ground
@@ -206,6 +216,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
       }}
       onPointerOver={(e) => e.stopPropagation()}
     >
+      <GroundPresence radius={0.58} />
       {/* Base plate: faction identity lives here, not on the vehicles. */}
       <mesh position={[0, 0.016, 0]} castShadow>
         <boxGeometry args={[0.74, 0.032, 0.52]} />
@@ -322,8 +333,9 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
       }}
       onPointerOver={(e) => e.stopPropagation()}
     >
+      <GroundPresence radius={0.72} />
       <mesh position={[0, 0.09, 0]} castShadow>
-        <boxGeometry args={[0.66, 0.16, 0.46]} />
+        <boxGeometry args={[0.78, 0.18, 0.54]} />
         <meshStandardMaterial
           ref={baseMatRef}
           color={chrome.spent
@@ -341,10 +353,10 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
           emissiveIntensity={selected ? 0.5 : chrome.threatened ? 0.26 : 0}
         />
       </mesh>
-      <AgencyMarks chrome={chrome} selected={selected} width={2.05} height={1.28} y={0.70} />
-      <Billboard position={[0, 0.78, 0]} follow>
+      <AgencyMarks chrome={chrome} selected={selected} width={2.42} height={1.52} y={0.78} />
+      <Billboard position={[0, 0.86, 0]} follow>
         <mesh>
-          <planeGeometry args={[2.05, 1.28]} />
+          <planeGeometry args={[2.42, 1.52]} />
           <meshBasicMaterial ref={plateMatRef} map={texture} transparent depthWrite={false} />
         </mesh>
       </Billboard>
