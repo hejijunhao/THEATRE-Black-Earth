@@ -47,30 +47,71 @@ export function counterKey(s: CounterSpec): string {
   ].join('|');
 }
 
-const FACTION_BG: Record<'UA' | 'RU', string> = {
-  UA: '#2c405e',
-  RU: '#59302a',
-};
 const FACTION_EDGE: Record<'UA' | 'RU', string> = {
   UA: '#7fa8d0',
   RU: '#c08a76',
 };
+const FACTION_RAIL: Record<'UA' | 'RU', string> = {
+  UA: '#3d5a82',
+  RU: '#6e3c34',
+};
+const PAPER = '#3c3930';
+const PAPER_SPENT = '#26241e';
+const INK = '#efe6d0';
+const INK_DIM = '#8a8474';
+
+function paperGrain(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): void {
+  const img = ctx.getImageData(x, y, w, h);
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const p = i / 4;
+    const px = (p % w) | 0;
+    const py = (p / w) | 0;
+    let n = Math.imul(px * 374761393 + py * 668265263, 1274126177);
+    n = ((n ^ (n >>> 13)) >>> 0) / 4294967296;
+    const k = (n - 0.5) * 18;
+    d[i] = Math.max(0, Math.min(255, d[i] + k));
+    d[i + 1] = Math.max(0, Math.min(255, d[i + 1] + k * 0.92));
+    d[i + 2] = Math.max(0, Math.min(255, d[i + 2] + k * 0.8));
+  }
+  ctx.putImageData(img, x, y);
+}
+
+function plateBevel(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
+  ctx.clip();
+  ctx.strokeStyle = 'rgba(255, 245, 220, 0.16)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(x + 2, y + h - 4);
+  ctx.lineTo(x + 2, y + 2);
+  ctx.lineTo(x + w - 4, y + 2);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.38)';
+  ctx.beginPath();
+  ctx.moveTo(x + 4, y + h - 2);
+  ctx.lineTo(x + w - 2, y + h - 2);
+  ctx.lineTo(x + w - 2, y + 4);
+  ctx.stroke();
+  ctx.restore();
+}
 
 // Draw the NATO-style symbol for a unit type inside the given frame.
-function drawSymbol(ctx: CanvasRenderingContext2D, type: UnitType, x: number, y: number, w: number, h: number, color: string): void {
+function drawSymbol(ctx: CanvasRenderingContext2D, type: UnitType, x: number, y: number, w: number, h: number, color: string, stroke = 7): void {
   ctx.strokeStyle = color;
-  ctx.lineWidth = 7;
-  ctx.lineCap = 'round';
+  ctx.lineWidth = stroke;
+  ctx.lineCap = 'butt';
+  ctx.lineJoin = 'miter';
   switch (type) {
     case 'infantry':
-      // Crossed diagonals
       ctx.beginPath();
       ctx.moveTo(x, y); ctx.lineTo(x + w, y + h);
       ctx.moveTo(x + w, y); ctx.lineTo(x, y + h);
       ctx.stroke();
       break;
     case 'mechanized': {
-      // Infantry cross + track oval
       ctx.beginPath();
       ctx.moveTo(x, y); ctx.lineTo(x + w, y + h);
       ctx.moveTo(x + w, y); ctx.lineTo(x, y + h);
@@ -81,20 +122,17 @@ function drawSymbol(ctx: CanvasRenderingContext2D, type: UnitType, x: number, y:
       break;
     }
     case 'armored':
-      // Track oval
       ctx.beginPath();
       ctx.ellipse(x + w / 2, y + h / 2, w * 0.44, h * 0.32, 0, 0, Math.PI * 2);
       ctx.stroke();
       break;
     case 'artillery':
-      // Filled dot
       ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.arc(x + w / 2, y + h / 2, w * 0.16, 0, Math.PI * 2);
+      ctx.arc(x + w / 2, y + h / 2, w * 0.14, 0, Math.PI * 2);
       ctx.fill();
       break;
     case 'recon':
-      // Single diagonal
       ctx.beginPath();
       ctx.moveTo(x, y + h); ctx.lineTo(x + w, y);
       ctx.stroke();
@@ -115,30 +153,31 @@ function mpLabel(mp: number): string {
   return Math.abs(mp - Math.round(mp)) < 0.05 ? String(Math.round(mp)) : mp.toFixed(1);
 }
 
-/** Brass MP stamp — a third of the plate, not a delicate box. */
+/** Small brass disc — remaining MP. Hierarchy: NATO first, stamp last. */
 function drawMpStamp(
   ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
+  cx: number,
+  cy: number,
+  r: number,
   mp: number,
   spent: boolean,
   attacked: boolean,
 ): void {
-  ctx.fillStyle = spent ? '#161614' : '#3a3018';
-  ctx.fillRect(x, y, w, h);
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = spent ? '#1a1814' : '#3a3018';
+  ctx.fill();
   ctx.strokeStyle = spent ? '#5a5648' : '#d4b05a';
-  ctx.lineWidth = 6;
-  ctx.strokeRect(x + 2, y + 2, w - 4, h - 4);
+  ctx.lineWidth = Math.max(2, r * 0.12);
+  ctx.stroke();
   ctx.fillStyle = spent ? '#7a7464' : '#f3ead0';
-  ctx.font = font(MONO, Math.round(h * 0.46), 700);
+  ctx.font = font(MONO, Math.round(r * 0.95), 700);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(mpLabel(mp), x + w / 2, y + h * 0.42);
+  ctx.fillText(mpLabel(mp), cx, cy - r * 0.06);
   ctx.fillStyle = spent ? '#6d6858' : attacked ? '#d4b05a' : '#c9a352';
-  ctx.font = font(MONO, Math.max(12, Math.round(h * 0.18)), 700);
-  ctx.fillText(spent ? 'SPENT' : attacked ? 'ATK' : 'MP', x + w / 2, y + h * 0.78);
+  ctx.font = font(MONO, Math.max(8, Math.round(r * 0.32)), 700);
+  ctx.fillText(spent ? '—' : attacked ? 'ATK' : 'MP', cx, cy + r * 0.52);
 }
 
 /** Thin gold corner ticks — contact-only. Not a ring, not a blade. */
@@ -148,10 +187,10 @@ function drawContactTicks(
   h: number,
 ): void {
   ctx.strokeStyle = '#c9a352';
-  ctx.lineWidth = 5;
+  ctx.lineWidth = Math.max(4, w * 0.012);
   ctx.lineCap = 'square';
-  const inset = 10;
-  const arm = 16;
+  const inset = w * 0.035;
+  const arm = w * 0.055;
   const corners: Array<[number, number, number, number, number, number]> = [
     [inset, inset + arm, inset, inset, inset + arm, inset],
     [w - inset - arm, inset, w - inset, inset, w - inset, inset + arm],
@@ -167,12 +206,12 @@ function drawContactTicks(
   }
 }
 
-// Renders a unit counter to a canvas texture (320×192). Selected is the
-// ground annulus; can-attack is the ground chevron; contact-only is thin
-// gold ticks; threatened is a parchment edge; spent is plate dim.
+// Campaign-LOD plate. Cardstock, faction rail, NATO frame as the read,
+// designation and strength below, MP as a small brass disc. Selected is
+// the ground annulus; can-attack is the chevron; contact is ticks.
 export function makeCounterTexture(spec: CounterSpec): THREE.CanvasTexture {
-  const w = 320;
-  const h = 192;
+  const w = 512;
+  const h = 320;
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
@@ -181,99 +220,109 @@ export function makeCounterTexture(spec: CounterSpec): THREE.CanvasTexture {
   const alpha = spec.ghost ? 0.55 : 1;
   ctx.globalAlpha = alpha;
 
-  const bg = spec.spent ? (spec.faction === 'UA' ? '#1c2838' : '#3a201c') : FACTION_BG[spec.faction];
-  // Selected lives on the ground annulus. Threatened is the only parchment
-  // plate edge. Can-attack is the amber chevron. Spent is dim only.
-  const edge = spec.threatened ? '#efe6d0' : FACTION_EDGE[spec.faction];
-  ctx.fillStyle = bg;
+  const paper = spec.spent ? PAPER_SPENT : PAPER;
+  const ink = spec.spent ? INK_DIM : INK;
+  const edge = spec.threatened ? '#efe6d0' : spec.ghost ? FACTION_EDGE[spec.faction] : '#c4b89a';
+
+  ctx.fillStyle = paper;
   ctx.strokeStyle = edge;
-  ctx.lineWidth = spec.threatened ? 12 : 5;
+  ctx.lineWidth = spec.threatened ? 14 : 6;
   ctx.beginPath();
-  ctx.roundRect(5, 5, w - 10, h - 10, 12);
+  ctx.roundRect(8, 8, w - 16, h - 16, 10);
   ctx.fill();
   ctx.stroke();
+  paperGrain(ctx, 8, 8, w - 16, h - 16);
+  plateBevel(ctx, 8, 8, w - 16, h - 16, 10);
   if (spec.spent) {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.38)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+    ctx.beginPath();
+    ctx.roundRect(8, 8, w - 16, h - 16, 10);
     ctx.fill();
   }
+
+  // Faction identity is a rail, not a flood.
+  ctx.fillStyle = spec.spent ? (spec.faction === 'UA' ? '#1c2838' : '#3a201c') : FACTION_RAIL[spec.faction];
+  ctx.fillRect(14, 16, 18, h - 32);
+  ctx.fillStyle = FACTION_EDGE[spec.faction];
+  ctx.fillRect(30, 16, 3, h - 32);
 
   if (!spec.ghost && spec.inContact && !spec.selected && !spec.canAttack && !spec.threatened) {
     drawContactTicks(ctx, w, h);
   }
 
   const hasStamp = !spec.ghost && spec.movementMax != null && spec.movement != null;
-  const fx = 48;
-  const fy = 20;
-  const fw = hasStamp ? 168 : 220;
-  const fh = 88;
-  ctx.strokeStyle = edge;
-  ctx.lineWidth = 5;
+  const fx = 52;
+  const fy = 28;
+  const fw = 300;
+  const fh = 168;
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 7;
   ctx.strokeRect(fx, fy, fw, fh);
 
   if (spec.ghost && (spec.intelLevel ?? 0) < 2) {
-    ctx.fillStyle = edge;
-    ctx.font = font(MONO, 56);
+    ctx.fillStyle = ink;
+    ctx.font = font(MONO, 88);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('?', fx + fw / 2, fy + fh / 2 + 4);
   } else {
-    drawSymbol(ctx, spec.type, fx + 22, fy + 12, fw - 44, fh - 24, spec.spent ? '#8a8474' : '#e8e2d2');
+    drawSymbol(ctx, spec.type, fx + 28, fy + 18, fw - 56, fh - 36, ink, 10);
   }
 
-  ctx.fillStyle = spec.spent ? '#8a8474' : '#e8e2d2';
+  ctx.fillStyle = ink;
   ctx.font = font(MONO, 28, 700);
-  ctx.textAlign = 'center';
+  ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
-  ctx.fillText(abbreviate(spec.name, spec.type), hasStamp ? 132 : w / 2, 140);
+  ctx.fillText(abbreviate(spec.name, spec.type), fx, 230);
 
   if (!spec.ghost || (spec.intelLevel ?? 0) >= 3) {
-    const bw = hasStamp ? 200 : w - 56;
-    const bx = 28;
-    const by = 152;
-    ctx.fillStyle = 'rgba(0,0,0,0.45)';
-    ctx.fillRect(bx, by, bw, 16);
+    const bw = 300;
+    const bx = 52;
+    const by = 252;
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(bx, by, bw, 18);
     const t = Math.max(0, Math.min(1, spec.strength / 100));
     ctx.fillStyle = t > 0.6 ? '#8fae72' : t > 0.35 ? '#c9a352' : '#b04a3a';
-    ctx.fillRect(bx, by, bw * t, 16);
-    ctx.strokeStyle = 'rgba(232,226,210,0.55)';
+    ctx.fillRect(bx, by, bw * t, 18);
+    ctx.strokeStyle = 'rgba(232,226,210,0.4)';
     ctx.lineWidth = 2;
-    ctx.strokeRect(bx, by, bw, 16);
+    ctx.strokeRect(bx, by, bw, 18);
   }
 
   if (!spec.ghost) {
     ctx.fillStyle = SUPPLY_COLOR[spec.supply];
     ctx.beginPath();
-    ctx.arc(28, 36, 11, 0, Math.PI * 2);
+    ctx.arc(23, 36, 7, 0, Math.PI * 2);
     ctx.fill();
     if (spec.entrenchment > 0) {
       ctx.strokeStyle = '#cfc9b8';
-      ctx.lineWidth = 5;
+      ctx.lineWidth = 3;
       for (let i = 0; i < Math.min(spec.entrenchment, 4); i++) {
         ctx.beginPath();
-        ctx.moveTo(16, 58 + i * 14);
-        ctx.lineTo(40, 58 + i * 14);
+        ctx.moveTo(16, 56 + i * 12);
+        ctx.lineTo(30, 56 + i * 12);
         ctx.stroke();
       }
     }
     if (spec.reinforcing) {
       ctx.fillStyle = '#8fae72';
-      ctx.font = font(MONO, 24, 700);
+      ctx.font = font(MONO, 20, 700);
       ctx.textAlign = 'center';
-      ctx.fillText('+', 28, 128);
+      ctx.fillText('+', 23, 118);
     }
     if (spec.disorganized) {
       ctx.fillStyle = '#c9a352';
-      ctx.font = font(MONO, 24, 700);
+      ctx.font = font(MONO, 20, 700);
       ctx.textAlign = 'center';
-      ctx.fillText('!', 28, spec.reinforcing ? 150 : 128);
+      ctx.fillText('!', 23, spec.reinforcing ? 140 : 118);
     }
     if (hasStamp) {
-      drawMpStamp(ctx, 220, 16, 90, 120, spec.movement!, Boolean(spec.spent), Boolean(spec.hasAttacked));
+      drawMpStamp(ctx, 448, 70, 36, spec.movement!, Boolean(spec.spent), Boolean(spec.hasAttacked));
     }
   }
 
   const texture = new THREE.CanvasTexture(canvas);
-  texture.anisotropy = 8;
+  texture.anisotropy = 16;
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
 }
@@ -321,41 +370,48 @@ export function abbreviate(name: string, type: UnitType): string {
 }
 
 export function makeStandardTexture(spec: StandardSpec): THREE.CanvasTexture {
-  const w = 256;
-  const h = 84;
+  const w = 320;
+  const h = 96;
   const canvas = document.createElement('canvas');
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext('2d')!;
 
-  const bg = spec.spent ? (spec.faction === 'UA' ? '#1c2838' : '#3a201c') : FACTION_BG[spec.faction];
-  const edge = spec.threatened ? '#efe6d0' : FACTION_EDGE[spec.faction];
-  ctx.fillStyle = bg;
+  const paper = spec.spent ? PAPER_SPENT : PAPER;
+  const ink = spec.spent ? INK_DIM : INK;
+  const edge = spec.threatened ? '#efe6d0' : '#c4b89a';
+  ctx.fillStyle = paper;
   ctx.strokeStyle = edge;
-  ctx.lineWidth = spec.threatened ? 8 : 3;
+  ctx.lineWidth = spec.threatened ? 8 : 4;
   ctx.beginPath();
-  ctx.roundRect(3, 3, w - 6, h - 6, 10);
+  ctx.roundRect(3, 3, w - 6, h - 6, 8);
   ctx.fill();
   ctx.stroke();
+  paperGrain(ctx, 3, 3, w - 6, h - 6);
   if (spec.spent) {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.38)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
     ctx.fill();
   }
+  ctx.fillStyle = spec.spent ? (spec.faction === 'UA' ? '#1c2838' : '#3a201c') : FACTION_RAIL[spec.faction];
+  ctx.fillRect(6, 8, 10, h - 16);
   if (spec.inContact && !spec.selected && !spec.canAttack && !spec.threatened) {
     drawContactTicks(ctx, w, h);
   }
 
-  drawSymbol(ctx, spec.type, 16, 18, 48, 40, spec.spent ? '#8a8474' : '#e8e2d2');
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 3;
+  ctx.strokeRect(24, 12, 52, 40);
+  drawSymbol(ctx, spec.type, 28, 16, 44, 32, ink, 4);
 
-  ctx.fillStyle = spec.spent ? '#8a8474' : '#e2dcc8';
-  ctx.font = font(MONO, 28, 700);
+  ctx.fillStyle = ink;
+  ctx.font = font(MONO, 26, 700);
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
-  ctx.fillText(abbreviate(spec.name, spec.type), 74, 32);
+  ctx.fillText(abbreviate(spec.name, spec.type), 86, 32);
 
   for (let i = 0; i < 4; i++) {
     ctx.beginPath();
-    ctx.arc(86 + i * 22, 62, 7, 0, Math.PI * 2);
+    ctx.arc(96 + i * 20, 68, 6, 0, Math.PI * 2);
     if (i < spec.tier) {
       ctx.fillStyle = spec.tier > 2 ? '#8fae72' : spec.tier > 1 ? '#c9a352' : '#b04a3a';
       ctx.fill();
@@ -368,29 +424,29 @@ export function makeStandardTexture(spec: StandardSpec): THREE.CanvasTexture {
 
   ctx.fillStyle = SUPPLY_COLOR[spec.supply];
   ctx.beginPath();
-  ctx.arc(30, 66, 8, 0, Math.PI * 2);
+  ctx.arc(11, 18, 5, 0, Math.PI * 2);
   ctx.fill();
 
   if (spec.experience > 0) {
     ctx.strokeStyle = '#d8cf9a';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2;
     for (let i = 0; i < Math.min(3, spec.experience); i++) {
-      const cx = 168;
-      const cy = 14 + i * 12;
+      const cx = 196;
+      const cy = 16 + i * 10;
       ctx.beginPath();
-      ctx.moveTo(cx - 8, cy + 5);
+      ctx.moveTo(cx - 6, cy + 4);
       ctx.lineTo(cx, cy - 3);
-      ctx.lineTo(cx + 8, cy + 5);
+      ctx.lineTo(cx + 6, cy + 4);
       ctx.stroke();
     }
   }
 
   if (spec.movementMax != null && spec.movement != null) {
-    drawMpStamp(ctx, 188, 8, 60, 68, spec.movement, Boolean(spec.spent), Boolean(spec.hasAttacked));
+    drawMpStamp(ctx, 286, 36, 22, spec.movement, Boolean(spec.spent), Boolean(spec.hasAttacked));
   }
 
   const texture = new THREE.CanvasTexture(canvas);
-  texture.anisotropy = 8;
+  texture.anisotropy = 16;
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
 }

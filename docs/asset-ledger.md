@@ -29,7 +29,8 @@ manufacturer catalogue, no spectacle.
 | `smokePuffs` (post-attack residue) | `src/assets/vehicles.ts` | runtime | quiet grey wisps, no fire | ✓ no explosion-as-fireworks | 2026-08-03 |
 | `makeMiniatureBuild` (composition + state mapping; splits hero vehicles from vertex-coloured props) | `src/assets/units.ts` | runtime | §6.2 state table; echelon layout sized to the base plate | ✓ | 2026-08-07 |
 | `makeEarthworksGeometry` (entrenchment 0–4 + dragon's teeth) | `src/assets/units.ts` | runtime | field fortification profiles | ✓ | 2026-08-03 |
-| counter plates (v1) | `src/map/textures.ts` | fallback | NATO symbology | ✓ | 2026-08-02 |
+| counter plates (v1) | `src/map/textures.ts` | superseded | NATO symbology | ✓ | 2026-08-02 |
+| counter plates (campaign LOD) | `src/map/textures.ts` | runtime | cardstock NATO: faction rail, ink frame, brass MP disc | ✓ no insignia, stamp hierarchy | 2026-09-17 |
 | standards (miniature nameplates) | `src/map/textures.ts` | runtime | distilled counter plate | ✓ | 2026-08-03 |
 
 ## Review checklist

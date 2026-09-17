@@ -1,6 +1,6 @@
-// One thin strip: week / weather / resources. Theatre clock, journal and
-// the dossier wait for a click. End Week and staff ops live here so the
-// command bench can leave the table when nothing is selected.
+// One thin instrument: week / weather, a theatre pulse, one depot.
+// Staff verbs live here so the bench can leave the table at rest.
+// Not a SaaS ledger — no Manpower / Equipment / Command delta chips.
 
 import { useState } from 'react';
 import { OPERATION_DEFS, UNIT_DEFS, WEATHER_DEFS } from '../game/data/defs';
@@ -13,12 +13,6 @@ import { Ico } from './icons';
 import { theatreBalance } from './theatreBalance';
 import { LexiconTip, Tip } from './Tip';
 
-function Delta({ value }: { value: number }) {
-  const cls = value > 0 ? '' : value < 0 ? 'neg' : 'zero';
-  const label = value > 0 ? `+${value}` : `${value}`;
-  return <span className={`delta-chip ${cls}`}>{label}</span>;
-}
-
 const OP_ORDER: OperationId[] = [
   'recon_sweep',
   'artillery_prep',
@@ -27,6 +21,16 @@ const OP_ORDER: OperationId[] = [
   'rapid_reinforcement',
   'fortify_position',
 ];
+
+function closeStaff(
+  setShowOps: (v: boolean) => void,
+  setShowReserves: (v: boolean) => void,
+  setShowDepot: (v: boolean) => void,
+) {
+  setShowOps(false);
+  setShowReserves(false);
+  setShowDepot(false);
+}
 
 export function TopBar() {
   const game = useStore((s) => s.game);
@@ -48,6 +52,7 @@ export function TopBar() {
   const selectedTileId = useStore((s) => s.selectedTileId);
   const [showOps, setShowOps] = useState(false);
   const [showReserves, setShowReserves] = useState(false);
+  const [showDepot, setShowDepot] = useState(false);
 
   if (!game) return null;
 
@@ -57,58 +62,59 @@ export function TopBar() {
   const playerTurn = game.phase === 'player';
   const paper = paperUp({ pendingAttackId, lastCombat });
   const canInspect = Boolean(selectedUnitId || selectedTileId);
+  const phaseLabel = game.phase === 'player' ? 'Your week' : game.phase === 'ai' ? 'Enemy week' : 'Ended';
+
+  const shutStaff = () => closeStaff(setShowOps, setShowReserves, setShowDepot);
 
   return (
-    <div className="top-bar">
+    <div className="top-bar instrument">
       <div className="brand">THEATRE</div>
 
       <LexiconTip
         id="weather"
         now={`Week ${game.turn} of ${game.scenario.maxTurns} · ${weather.label} · ${formatTurnDate(game)}.`}
       >
-        <div className="cell">
-          <span className={`phase-pill ${game.phase}`}>
-            {game.phase === 'player' ? 'Your week' : game.phase === 'ai' ? 'Enemy week' : 'Ended'}
-          </span>
-          <span className="v">{game.turn}/{game.scenario.maxTurns}</span>
-          <span className="v" style={{ color: 'var(--ink-dim)' }}>{weather.label}</span>
-        </div>
-      </LexiconTip>
-
-      <LexiconTip id="manpower" now={`${Math.floor(f.manpower)} in the depot; +${f.manpowerIncome} next week.`}>
-        <div className="cell">
-          <span className="k">Manpower</span>
-          <span className="v">{Math.floor(f.manpower)}</span>
-          <Delta value={f.manpowerIncome} />
-        </div>
-      </LexiconTip>
-
-      <LexiconTip id="equipment" now={`${Math.floor(f.equipment)} in the depot; +${f.equipmentIncome} next week.`}>
-        <div className="cell">
-          <span className="k">Equipment</span>
-          <span className="v">{Math.floor(f.equipment)}</span>
-          <Delta value={f.equipmentIncome} />
-        </div>
-      </LexiconTip>
-
-      <LexiconTip id="command" now={`${f.command} of ${f.commandMax}; regenerates ${f.commandRegen}.`}>
-        <div className="cell">
-          <span className="k">Command</span>
-          <span className="v">{f.command}/{f.commandMax}</span>
-          <Delta value={f.commandRegen} />
+        <div className="week-read">
+          <span className={`phase-mark ${game.phase}`}>{phaseLabel}</span>
+          <span className="week-num">Week {game.turn}</span>
+          <span className="week-of">/{game.scenario.maxTurns}</span>
+          <span className="week-rule" aria-hidden />
+          <span className="week-wx">{weather.label}</span>
+          <span className="week-date">{formatTurnDate(game)}</span>
         </div>
       </LexiconTip>
 
       <button
         type="button"
-        className={`theatre-chip ${b.headline.toLowerCase()}${showTheatreClock ? ' open' : ''}`}
-        onClick={toggleTheatreClock}
+        className={`theatre-pulse ${b.headline.toLowerCase()}${showTheatreClock ? ' open' : ''}`}
+        onClick={() => {
+          shutStaff();
+          toggleTheatreClock();
+        }}
         aria-expanded={showTheatreClock}
         aria-label={`Theatre: ${b.headline}`}
       >
-        <span className="k">Theatre</span>
-        <span className="v">{b.headline}</span>
-        <span className="chip-dec">{b.cities.decisiveHeld}/{b.cities.decisiveTotal}</span>
+        <span className="pulse-word">{b.headline}</span>
+        <span className="pulse-beads" aria-hidden>
+          {b.decisiveCities.map((c) => (
+            <i key={c.id} className={c.held ? 'held' : 'lost'} title={c.name} />
+          ))}
+        </span>
+      </button>
+
+      <button
+        type="button"
+        className={`depot-chip${showDepot ? ' open' : ''}`}
+        onClick={() => {
+          setShowDepot(!showDepot);
+          setShowOps(false);
+          setShowReserves(false);
+        }}
+        aria-expanded={showDepot}
+        title="Depot — manpower, equipment, command"
+      >
+        <Ico name="depot" size={13} />
+        <span>Depot</span>
       </button>
 
       <div className="spacer" />
@@ -136,7 +142,11 @@ export function TopBar() {
           <button
             type="button"
             className={`menu-btn${showOps || Boolean(pendingOp) ? ' on' : ''}`}
-            onClick={() => { setShowOps(!showOps); setShowReserves(false); }}
+            onClick={() => {
+              setShowOps(!showOps);
+              setShowReserves(false);
+              setShowDepot(false);
+            }}
             title="Strategic operations"
           >
             Ops
@@ -144,7 +154,11 @@ export function TopBar() {
           <button
             type="button"
             className={`menu-btn${showReserves ? ' on' : ''}`}
-            onClick={() => { setShowReserves(!showReserves); setShowOps(false); }}
+            onClick={() => {
+              setShowReserves(!showReserves);
+              setShowOps(false);
+              setShowDepot(false);
+            }}
             title="Reserve formations"
           >
             Reserves
@@ -159,6 +173,41 @@ export function TopBar() {
 
       <button className="menu-btn" onClick={() => setShowSettings(true)}>Settings</button>
       <button className="menu-btn" onClick={toMenu}>Menu</button>
+
+      {showDepot && (
+        <div className="staff-flyout depot">
+          <div className="panel-title">
+            Depot
+            <span className="sub">next week</span>
+          </div>
+          <div className="depot-rows">
+            <LexiconTip id="manpower" now={`${Math.floor(f.manpower)} in the depot; +${f.manpowerIncome} next week.`}>
+              <div className="depot-row">
+                <Ico name="manpower" size={14} />
+                <span className="k">Manpower</span>
+                <span className="v">{Math.floor(f.manpower)}</span>
+                <span className="inc">+{f.manpowerIncome}</span>
+              </div>
+            </LexiconTip>
+            <LexiconTip id="equipment" now={`${Math.floor(f.equipment)} in the depot; +${f.equipmentIncome} next week.`}>
+              <div className="depot-row">
+                <Ico name="equipment" size={14} />
+                <span className="k">Equipment</span>
+                <span className="v">{Math.floor(f.equipment)}</span>
+                <span className="inc">+{f.equipmentIncome}</span>
+              </div>
+            </LexiconTip>
+            <LexiconTip id="command" now={`${f.command} of ${f.commandMax}; regenerates ${f.commandRegen}.`}>
+              <div className="depot-row">
+                <Ico name="command" size={14} />
+                <span className="k">Command</span>
+                <span className="v">{f.command}/{f.commandMax}</span>
+                <span className="inc">+{f.commandRegen}</span>
+              </div>
+            </LexiconTip>
+          </div>
+        </div>
+      )}
 
       {showOps && playerTurn && !paper && (
         <div className="staff-flyout ops">
