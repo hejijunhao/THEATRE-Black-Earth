@@ -122,9 +122,11 @@ function useCrossfade() {
 
 const MINI_MATERIAL = new THREE.MeshStandardMaterial({
   vertexColors: true,
-  roughness: 0.82,
-  metalness: 0.05,
+  roughness: 0.72,
+  metalness: 0.08,
   transparent: true,
+  emissive: '#2c2618',
+  emissiveIntensity: 0.28,
 });
 
 function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boolean; chrome: BoardChrome }) {
@@ -238,9 +240,9 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
               ? FACTION_STRONG[unit.faction]
               : chrome.threatened
                 ? '#cfc6a8'
-                : '#000000'
+                : FACTION_STRONG[unit.faction]
           }
-          emissiveIntensity={selected ? 0.55 : chrome.threatened ? 0.28 : 0}
+          emissiveIntensity={selected ? 0.55 : chrome.threatened ? 0.28 : 0.16}
         />
       </mesh>
       {/* The machines: hero vehicles as instances, everything else — foot

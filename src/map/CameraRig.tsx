@@ -27,7 +27,7 @@ export function CameraRig() {
     const controls = controlsRef.current;
     if (!controls) return;
     controls.target.set(BOOT.wx, 0, BOOT.wz);
-    camera.position.set(BOOT.wx - 1.6, 19.5, BOOT.wz + 14.2);
+    camera.position.set(BOOT.wx - 1.2, 16.8, BOOT.wz + 12.4);
     controls.update();
   };
 
