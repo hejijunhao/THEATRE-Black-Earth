@@ -8,7 +8,7 @@ import { aiTurnDone, planAIQueue, stepAI } from '../ai/ai';
 import { UNIT_DEFS, TERRAIN_DEFS } from '../data/defs';
 import { computePreview, describeEngagement, resolveBombardment, resolveCombat } from '../rules/combat';
 import { recomputeFog } from '../rules/fog';
-import { applyMove, attackableTargets, unitOnTile } from '../rules/movement';
+import { applyMove, attackableTargets, reachableTiles, unitOnTile } from '../rules/movement';
 import { applyOperation, canUseOperation, validateOpTarget } from '../rules/ops';
 import { applyEventEffects } from '../rules/events';
 import {
@@ -232,6 +232,15 @@ export const useStore = create<StoreState>((set, get) => {
         const attacker = game.units[selectedUnitId];
         if (attacker && attackableTargets(game, attacker).some((t) => t.id === unit.id)) {
           set({ pendingAttackId: unit.id, selectedTileId: tile });
+          return;
+        }
+      }
+      // Clicking a reachable empty hex issues a move. The pick mesh only
+      // routes through selectTile; overlays already draw reachableTiles.
+      if (!unit && selectedUnitId && game.phase === 'player') {
+        const mover = game.units[selectedUnitId];
+        if (mover && reachableTiles(game, mover).has(tile)) {
+          get().orderMove(tile);
           return;
         }
       }
