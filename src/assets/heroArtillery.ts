@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { FactionId } from '../game/types';
 import {
-  HERO_SCALE, getHeroMaterial, hbox, hcyl, heroMats, htorus, htrap, mergeHero,
+  HERO_SCALE, getStampHeroMaterial, hbox, hcyl, heroMats, htorus, htrap, mergeHero,
 } from './heroParts';
 import { treadWheel } from './heroAssemblies';
 
@@ -131,12 +131,12 @@ const geoCache = new Map<FactionId, THREE.BufferGeometry>();
 
 export function makeArtilleryHero(faction: FactionId): {
   geometry: THREE.BufferGeometry;
-  material: THREE.MeshStandardMaterial;
+  material: THREE.Material;
 } {
   let geometry = geoCache.get(faction);
   if (!geometry) {
     geometry = makeArtilleryHeroGeometry(faction);
     geoCache.set(faction, geometry);
   }
-  return { geometry, material: getHeroMaterial() };
+  return { geometry, material: getStampHeroMaterial() };
 }

@@ -10,7 +10,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { FactionId } from '../game/types';
-import { getHeroMaterial, HeroUnitType, heroGeometry } from '../assets/heroFleet';
+import { HeroUnitType, heroGeometry, heroMaterial } from '../assets/heroFleet';
 import { HeroSlot } from '../assets/units';
 
 export function HeroFormation({ type, faction, slots }: {
@@ -41,7 +41,7 @@ export function HeroFormation({ type, faction, slots }: {
   return (
     <instancedMesh
       ref={ref}
-      args={[geometry, getHeroMaterial(), slots.length]}
+      args={[geometry, heroMaterial(type), slots.length]} // MECH/ARTY unlit stamp; armor wash unchanged
       castShadow
     />
   );
