@@ -41,13 +41,21 @@ export function noise2(x: number, y: number, salt: number): number {
   return vnoise(x, y, salt) * 0.65 + vnoise(x * 2.7, y * 2.7, salt + 1) * 0.35;
 }
 
-// Value-split khaki: straw / cereal / stubble / fallow. Close enough that
-// the north lift stays one field; far enough that a rest camera still
-// reads parcel edges instead of a quiet slab.
-const FIELD_COLORS = ['#f0d488', '#c4a056', '#8a6030', '#e2c070', '#6e4c24', '#a88840'].map(rgb);
-const SHELTER = rgb('#4a3c20');
-const DIRT = rgb('#6a4a24');
-const FURROW = rgb('#523618');
+// Cadastral soil, not printed khaki. Value-split so rest still reads
+// parcel edges; chroma is chernozem / loess / muted stubble / pasture —
+// the diorama field and steppe caps lifted for campaign zoom, not
+// highlighter straw. Lightest parcel must stay under a beige-flood gate.
+const FIELD_COLORS = [
+  '#c4ae78', // dry stubble
+  '#8a6e44', // cereal brown
+  '#5c4430', // chernozem
+  '#a09060', // loess fallow
+  '#4e3a26', // wet plough
+  '#6e7048', // pasture olive
+].map(rgb);
+const SHELTER = rgb('#3a2e18');
+const DIRT = rgb('#5a3e20');
+const FURROW = rgb('#3e2a16');
 
 export interface StripFrame {
   u: number;
@@ -83,7 +91,7 @@ export function stripFrame(wx: number, wz: number): StripFrame {
 
 /**
  * Midground strip-field colour. Parcel edges, shelter belts and furrow
- * dirt are the contact-scale read — not a second khaki wash.
+ * dirt are the contact-scale read — surveyed soil, not a second khaki wash.
  */
 export function fieldColor(wx: number, wz: number): RGB {
   const f = stripFrame(wx, wz);
@@ -94,15 +102,17 @@ export function fieldColor(wx: number, wz: number): RGB {
 
   // Furrow / drill rows: high-frequency dirt inside the parcel.
   const furrow = 0.5 + 0.5 * Math.sin((f.u / f.stripW) * Math.PI * 2 * (3 + ihash(rx, rz, 111) * 3));
-  if (furrow > 0.62) c = mix(c, FURROW, 0.38 * (furrow - 0.62) / 0.38);
+  if (furrow > 0.62) c = mix(c, FURROW, 0.42 * (furrow - 0.62) / 0.38);
 
   // Shelter-belt / headland darkening on both axes.
   if (f.edgeU < 0.12) c = mix(c, SHELTER, 0.58 * (1 - f.edgeU / 0.12));
   if (f.edgeV < 0.10) c = mix(c, DIRT, 0.46 * (1 - f.edgeV / 0.10));
 
-  // Soft clod noise so a parcel is dirt, not a printed swatch.
-  const clod = (noise2(wx * 3.4, wz * 3.4, 73) - 0.5) * 0.16;
-  c = { r: c.r * (1 + clod), g: c.g * (1 + clod * 0.85), b: c.b * (1 + clod * 0.6) };
+  // Soft clod + finer crumb so a parcel is dirt, not a printed swatch.
+  const clod = (noise2(wx * 3.4, wz * 3.4, 73) - 0.5) * 0.18;
+  const crumb = (noise2(wx * 7.2, wz * 7.2, 79) - 0.5) * 0.07;
+  const n = clod + crumb;
+  c = { r: c.r * (1 + n), g: c.g * (1 + n * 0.82), b: c.b * (1 + n * 0.55) };
   return c;
 }
 

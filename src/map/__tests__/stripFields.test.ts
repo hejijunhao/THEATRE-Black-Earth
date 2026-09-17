@@ -31,10 +31,25 @@ describe('contact-scale strip fields', () => {
     expect(northSoilLift(WORLD_H * 0.08, 80)).toBeGreaterThan(0.28);
   });
 
-  it('keeps strip colours khaki-warm, not charcoal', () => {
+  it('keeps strip colours soil-warm, not charcoal', () => {
     const c = fieldColor(BOOT.wx, BOOT.wz);
     expect(c.r).toBeGreaterThan(c.b);
-    expect(c.g).toBeGreaterThan(c.b * 0.9);
-    expect(luma(c)).toBeGreaterThan(60);
+    expect(c.g).toBeGreaterThan(c.b * 0.85);
+    expect(luma(c)).toBeGreaterThan(45);
+  });
+
+  it('keeps cadastral value-split without highlighter khaki', () => {
+    const colors = [];
+    for (let i = 0; i < 48; i++) {
+      colors.push(fieldColor(BOOT.wx + i * 0.37, BOOT.wz + (i % 6) * 0.41));
+    }
+    const lumas = colors.map(luma);
+    expect(Math.max(...lumas) - Math.min(...lumas)).toBeGreaterThan(36);
+    for (const c of colors) {
+      expect(c.r).toBeLessThan(220);
+      expect(c.b).toBeLessThan(c.g + 4);
+      expect(luma(c)).toBeGreaterThan(36);
+      expect(luma(c)).toBeLessThan(200);
+    }
   });
 });

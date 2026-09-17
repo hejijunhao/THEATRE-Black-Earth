@@ -36,10 +36,14 @@ describe('north soil continuity gate', () => {
     expect(north.g).toBeGreaterThan(north.b);
   });
 
-  it('targets the same khaki the midground field uses', () => {
-    expect(KHAKI_FIELD.r).toBeGreaterThan(180);
-    expect(KHAKI_FIELD.g).toBeGreaterThan(150);
-    expect(KHAKI_FIELD.b).toBeLessThan(KHAKI_FIELD.g);
+  it('targets surveyed loess, not painted khaki or cool grey', () => {
+    const l = luma(KHAKI_FIELD);
+    expect(KHAKI_FIELD.r).toBeGreaterThan(KHAKI_FIELD.g);
+    expect(KHAKI_FIELD.g).toBeGreaterThan(KHAKI_FIELD.b);
+    expect(KHAKI_FIELD.r).toBeLessThan(200);
+    expect(KHAKI_FIELD.r - KHAKI_FIELD.b).toBeGreaterThan(40);
+    expect(l).toBeGreaterThan(130);
+    expect(l).toBeLessThan(170);
   });
 });
 

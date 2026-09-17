@@ -101,11 +101,12 @@ export function TerrainMesh() {
 
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardMaterial({
-      roughness: 0.88,
-      metalness: 0.03,
-      // Warm keep-alive, not a floodlight — midground must still show strips.
-      emissive: new THREE.Color('#6e6040'),
-      emissiveIntensity: 0.11,
+      roughness: 0.90,
+      metalness: 0.02,
+      // Quiet soil keep-alive — midground must still show strips, not a
+      // khaki flood. Atmosphere / lights stay locked on other tips.
+      emissive: new THREE.Color('#534836'),
+      emissiveIntensity: 0.08,
     });
     mat.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, uniforms);
@@ -201,12 +202,13 @@ export function TerrainMesh() {
               float shade = smoothstep(0.52, 0.78, cl) * uCloud * (1.0 - uPaper);
               ground *= 1.0 - shade * 0.10;
             }
-            // North keep: far soil stays khaki, not a grey hole. Midground
-            // is left alone so strip-fields still read as a place.
+            // North keep: far soil stays loess/soil, not a grey hole and
+            // not a painted khaki slab. Midground is left alone so strip
+            // fields still read as a place.
             float northLat = 1.0 - clamp(wp.y / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
-            vec3 khakiKeep = vec3(0.72, 0.62, 0.40);
+            vec3 soilKeep = vec3(0.68, 0.60, 0.40);
             float keep = smoothstep(0.48, 0.92, northLat);
-            ground = mix(ground, max(ground, khakiKeep), keep * 0.28);
+            ground = mix(ground, max(ground, soilKeep), keep * 0.22);
             float luma = dot(ground, vec3(0.2126, 0.7152, 0.0722));
             float floorL = 0.20 + 0.10 * keep;
             if (luma < floorL) ground *= floorL / max(luma, 0.001);
@@ -232,8 +234,8 @@ export function TerrainMesh() {
             float litL = dot(outgoingLight, vec3(0.2126, 0.7152, 0.0722));
             float floorLit = 0.15 + 0.16 * keepLit;
             if (litL < floorLit) outgoingLight *= floorLit / max(litL, 0.001);
-            vec3 khakiLit = vec3(0.48, 0.42, 0.26);
-            outgoingLight = mix(outgoingLight, max(outgoingLight, khakiLit), keepLit * 0.14);
+            vec3 soilLit = vec3(0.42, 0.36, 0.24);
+            outgoingLight = mix(outgoingLight, max(outgoingLight, soilLit), keepLit * 0.12);
           }
           #include <opaque_fragment>`,
         );

@@ -17,29 +17,34 @@ const TEX_W = 2048;
 
 export type { RGB };
 
-const GRASS = rgb('#8e9258');
+const GRASS = rgb('#7a7c50');
 // Forests stay lighter than water, and light enough that rain + AO cannot
-// drop a woodland hex into a grey hole.
+// drop a woodland hex into a grey hole. Not retuned — north charcoal
+// was the previous failure, and this slice is soil authenticity.
 const FOREST_FLOOR = rgb('#7a864c');
 const FOREST_DEEP = rgb('#667444');
-const MARSH = rgb('#7a8054');
+const MARSH = rgb('#6c7250');
 const URBAN = rgb('#9a9488');
 const URBAN_DARK = rgb('#7a756c');
 const SEA_FLOOR = rgb('#2a3a4a');
 const BEACH = rgb('#b09864');
-/** Midground khaki the north must match under rain. */
-export const KHAKI_FIELD = rgb('#c8b06a');
+/** Surveyed loess the north must match under rain — soil, not painted khaki. */
+export const KHAKI_FIELD = rgb('#ae9866');
+export const SOIL_FIELD = KHAKI_FIELD;
+export const CHERNOZEM = rgb('#4a3824');
+export const LOESS = rgb('#8a7854');
 
 /**
- * North / high-ground lift toward midground khaki. wz=0 is north (camera
+ * North / high-ground lift toward midground soil. wz=0 is north (camera
  * looks that way from the scar). Without this the geodata forest rows at
  * the top of the grid read as a charcoal hole once rain, AO and vignette
- * pile on. Pure — the painter and the gate test share it.
+ * pile on. Pure — the painter and the gate test share it. The target is
+ * loess/soil, not a beige wash over the rest frame.
  */
 export function northSoilLift(wz: number, heightMetres: number): number {
   const lat = 1 - Math.min(1, Math.max(0, wz / WORLD_H));
   // Midground (the scar) must keep parcel edges. Lift is a weak latitude
-  // grade plus a far-north term — not a khaki wash over the rest frame.
+  // grade plus a far-north term — continuity, not a khaki slab.
   const north = 0.015 * lat + 0.38 * smooth(0.58, 0.96, lat);
   const height = 0.08 * smooth(140, 300, heightMetres);
   return Math.min(0.46, north + height);
@@ -85,6 +90,10 @@ export function paintAlbedo(): { canvas: HTMLCanvasElement; texW: number; texH: 
         const fields = fieldColor(wx, wz);
         // Crop carries the strip; grass only fills the leftover steppe.
         c = mix(GRASS, fields, Math.min(1, 0.55 + crop * 0.7));
+        // Surveyed soil under the crop. Valleys hold chernozem; higher
+        // ground goes loess. Weak enough that strip parcels still lead.
+        const soil = mix(CHERNOZEM, LOESS, smooth(70, 210, m));
+        c = mix(c, soil, 0.14 + (1 - Math.min(1, crop * 1.15)) * 0.12);
         // Forest fields (soft shapes from the hex fractions + noise breakup).
         // Threshold sits above the forest-steppe shelter-belt range: partial
         // tree cover must NOT read as a dark smear over half the map — the
