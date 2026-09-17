@@ -14,6 +14,7 @@ import { tileWorldById } from '../game/hex';
 import { TileId } from '../game/types';
 import {
   classifyReach,
+  nearReachTiles,
   perimeterEdges,
   REACH_EDGE,
   REACH_EDGE_H,
@@ -22,19 +23,17 @@ import {
   REACH_EDGE_OPACITY,
   REACH_EDGE_W,
   REACH_FILL,
-  REACH_FILL_RADIUS,
+  REACH_FILL_LIFT,
   ReachKind,
   reachFillOpacity,
   TelegraphEdge,
 } from './boardTelegraph';
 import { buildEdgeRibbon } from './edgeRibbon';
+import { buildTerritoryGeometry } from './territoryFill';
 import { tileGroundY } from './terrain/heightfield';
 
 function useHexShapes() {
   return useMemo(() => {
-    const fill = new THREE.CircleGeometry(REACH_FILL_RADIUS, 6);
-    fill.rotateZ(Math.PI / 6);
-    fill.rotateX(-Math.PI / 2);
     const disc = new THREE.CircleGeometry(0.9, 6);
     disc.rotateZ(Math.PI / 6);
     disc.rotateX(-Math.PI / 2);
@@ -44,8 +43,38 @@ function useHexShapes() {
     const attack = new THREE.RingGeometry(0.76, 0.88, 6);
     attack.rotateZ(Math.PI / 6);
     attack.rotateX(-Math.PI / 2);
-    return { fill, disc, ring, attack };
+    return { disc, ring, attack };
   }, []);
+}
+
+function ReachTerritory({
+  tiles,
+  lift,
+  color,
+  opacity,
+}: {
+  tiles: readonly TileId[];
+  lift: number;
+  color: string;
+  opacity: number;
+}) {
+  const geo = useMemo(() => buildTerritoryGeometry(tiles, { lift }), [tiles, lift]);
+  useEffect(() => () => { geo?.dispose(); }, [geo]);
+  if (!geo || opacity <= 0.004) return null;
+  return (
+    <mesh geometry={geo} raycast={() => null}>
+      <meshBasicMaterial
+        color={color}
+        transparent
+        opacity={opacity}
+        depthWrite={false}
+        depthTest={false}
+        polygonOffset
+        polygonOffsetFactor={-1}
+        polygonOffsetUnits={-1}
+      />
+    </mesh>
+  );
 }
 
 function tileY(_gameTiles: Record<string, { elevation: number; terrain: string }>, id: string): number {
@@ -121,7 +150,7 @@ export function Overlays() {
   const pendingAttackId = useStore((s) => s.pendingAttackId);
   const lastCombat = useStore((s) => s.lastCombat);
   const mapMode = useStore((s) => s.mapMode);
-  const { fill, disc, ring, attack } = useHexShapes();
+  const { disc, ring, attack } = useHexShapes();
 
   const selectedUnit = game && selectedUnitId ? game.units[selectedUnitId] : null;
 
@@ -130,20 +159,17 @@ export function Overlays() {
     const reach = reachableTiles(game, selectedUnit);
     if (reach.size === 0) return null;
     const interior = new Set<TileId>([selectedUnit.tile, ...reach.keys()]);
-    const fills = [...reach.values()].map((r) => {
+    const plated: Array<{ id: TileId; cost: number; kind: ReachKind }> = [
+      { id: selectedUnit.tile, cost: 0, kind: 'open' },
+    ];
+    for (const r of reach.values()) {
       const enemyGround = game.tiles[r.id].controller !== game.playerFaction;
       const kind = classifyReach(r.entersZOC, enemyGround);
-      return {
-        id: r.id,
-        kind,
-        opacity: reachFillOpacity(kind, r.cost, selectedUnit.movement),
-      };
-    });
-    fills.push({
-      id: selectedUnit.tile,
-      kind: 'open',
-      opacity: reachFillOpacity('open', 0, selectedUnit.movement),
-    });
+      if (kind === 'zoc') continue;
+      plated.push({ id: r.id, cost: r.cost, kind });
+    }
+    const fillTiles = plated.map((p) => p.id);
+    const nearTiles = nearReachTiles(plated, selectedUnit.movement);
     const kindOf = (id: TileId): ReachKind => {
       if (id === selectedUnit.tile) return 'open';
       const r = reach.get(id);
@@ -154,7 +180,14 @@ export function Overlays() {
     for (const e of perimeterEdges(interior)) {
       seams[kindOf(e.inside)].push(e);
     }
-    return { fills, seams };
+    const mp = selectedUnit.movement;
+    return {
+      fillTiles,
+      nearTiles,
+      seams,
+      farOpacity: reachFillOpacity('open', mp, mp),
+      nearOpacity: reachFillOpacity('open', 0, mp),
+    };
   }, [game, selectedUnit]);
 
   const targets = useMemo(() => {
@@ -199,24 +232,27 @@ export function Overlays() {
 
   return (
     <group>
-      {/* Reach wash — soil stain leads; silhouette is the outer seam only.
-          No per-hex rings. Clicks go through to the pick plane. */}
-      {wash &&
-        wash.fills.map((r) => {
-          if (r.opacity <= 0.004 || r.kind === 'zoc') return null;
-          const { wx, wz } = tileWorldById(r.id);
-          return (
-            <mesh key={`reach-${r.id}`} geometry={fill} position={[wx, tileY(tiles, r.id) + 0.02, wz]} raycast={() => null}>
-              <meshBasicMaterial
-                color={r.kind === 'enemy' ? REACH_FILL.enemy : REACH_FILL.open}
-                transparent
-                opacity={r.opacity}
-                depthWrite={false}
-                depthTest={false}
-              />
-            </mesh>
-          );
-        })}
+      {/* Reach wash — one tile-union Shape, not overlapping discs.
+          Secondary interior holds the cost fade. Seam is a supporting ribbon.
+          Clicks go through to the pick plane. */}
+      {wash && (
+        <>
+          <ReachTerritory
+            tiles={wash.fillTiles}
+            lift={REACH_FILL_LIFT}
+            color={REACH_FILL.open}
+            opacity={wash.farOpacity}
+          />
+          {wash.nearTiles.length >= 3 && (
+            <ReachTerritory
+              tiles={wash.nearTiles}
+              lift={REACH_FILL_LIFT + 0.006}
+              color={REACH_FILL.open}
+              opacity={wash.nearOpacity}
+            />
+          )}
+        </>
+      )}
       {wash && (
         <>
           <ReachSeam edges={wash.seams.open} color={REACH_EDGE.open} opacity={REACH_EDGE_OPACITY.open} />

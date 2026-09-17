@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { produce } from 'immer';
 import { buildInitialState } from '../scenarios/build';
-import { hexDistance, neighborIds } from '../hex';
+import { hexCorners, hexDistance, neighborIds, HEX_SIZE } from '../hex';
 import { reachableTiles, unitOnTile } from '../rules/movement';
 import { computePreview, resolveCombat } from '../rules/combat';
 import { planAIQueue, stepAI, aiTurnDone } from '../ai/ai';
@@ -20,6 +20,18 @@ describe('hex grid', () => {
     expect(hexDistance('10,2', '10,2')).toBe(0);
     expect(hexDistance('10,2', '11,2')).toBe(1);
     expect(hexDistance('0,0', '5,0')).toBe(5);
+  });
+
+  it('shares exact corners between adjacent hexes', () => {
+    const a = hexCorners('10,10');
+    expect(a).toHaveLength(6);
+    const n = neighborIds('10,10')[0]!;
+    const b = hexCorners(n);
+    const shared = a.filter((p) =>
+      b.some((q) => Math.hypot(p.x - q.x, p.z - q.z) < 1e-9),
+    );
+    expect(shared).toHaveLength(2);
+    expect(Math.hypot(a[0]!.x - a[3]!.x, a[0]!.z - a[3]!.z)).toBeCloseTo(HEX_SIZE * 2, 6);
   });
 });
 

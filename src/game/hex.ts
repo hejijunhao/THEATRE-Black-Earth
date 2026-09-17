@@ -74,6 +74,17 @@ export function tileWorldById(id: TileId): { wx: number; wz: number } {
   return tileWorld(x, y);
 }
 
+/** Pointy-top corners, CCW from the east-south vertex (Red Blob `60i-30`). */
+export function hexCorners(id: TileId): Array<{ x: number; z: number }> {
+  const { wx, wz } = tileWorldById(id);
+  const out: Array<{ x: number; z: number }> = [];
+  for (let i = 0; i < 6; i++) {
+    const a = (Math.PI / 180) * (60 * i - 30);
+    out.push({ x: wx + HEX_SIZE * Math.cos(a), z: wz + HEX_SIZE * Math.sin(a) });
+  }
+  return out;
+}
+
 // Midpoint and direction of the shared edge between two adjacent tiles,
 // used to render rivers and the frontline along hex edges.
 export function sharedEdge(a: TileId, b: TileId): {
