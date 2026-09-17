@@ -32,9 +32,9 @@ const FRAG = /* glsl */ `
     float veil = (1.0 - smoothstep(0.11, 0.36, l)) * (1.0 - smoothstep(0.016, 0.085, sat));
     veil *= uVeil;
     vec3 khaki = vec3(0.58, 0.50, 0.32);
-    c = mix(c, max(c, khaki), veil * 0.88);
+    c = mix(c, max(c, khaki), veil * 0.62);
     // Power-curve lift: valleys after AO, not a global wash.
-    c += uLift * pow(1.0 - clamp(l, 0.0, 1.0), 1.55);
+    c += uLift * pow(1.0 - clamp(l, 0.0, 1.0), 1.7);
 
     c = (c - 0.5) * uContrast + 0.5;
     l = dot(c, vec3(0.2126, 0.7152, 0.0722));
@@ -56,7 +56,7 @@ export interface GradeParams {
 export const WEATHER_GRADE: Record<WeatherType, GradeParams> = {
   clear:    { temp: 0.38,  tintG: 0.05,  sat: 1.14, contrast: 1.1,  lift: 0.008, veil: 0.12 },
   overcast: { temp: 0.16,  tintG: 0.05,  sat: 1.02, contrast: 1.03, lift: 0.018, veil: 0.28 },
-  rain:     { temp: 0.22,  tintG: 0.06,  sat: 1.02, contrast: 1.0,  lift: 0.046, veil: 1.0 },
+  rain:     { temp: 0.22,  tintG: 0.06,  sat: 1.04, contrast: 1.02, lift: 0.036, veil: 1.0 },
   mud:      { temp: 0.22,  tintG: 0.08,  sat: 1.0,  contrast: 1.01, lift: 0.032, veil: 0.7 },
   snow:     { temp: -0.12, tintG: 0.0,   sat: 0.92, contrast: 1.05, lift: 0.022, veil: 0.15 },
 };

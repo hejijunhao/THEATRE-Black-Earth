@@ -158,6 +158,22 @@ if (!selectedChrome.bench || !selectedChrome.rail || !selectedChrome.strip) {
 }
 await page.screenshot({ path: join(OUT, 'lod-03-selected.png') });
 
+const machine = await page.evaluate(() => {
+  const hook = window.__TBE_DEBUG__;
+  const cam = window.__TBE_CAMERA__;
+  const armored = hook.units()
+    .filter((u) => u.faction === 'UA' && u.type === 'armored')
+    .sort((a, b) => b.strength - a.strength || a.id.localeCompare(b.id))[0];
+  if (armored) {
+    hook.selectUnit(armored.id);
+    if (cam) cam.set(armored.wx - 0.15, 10.4, armored.wz + 6.7, armored.wx, armored.wz);
+  }
+  return { id: armored?.id, type: armored?.type, tile: armored?.tile };
+});
+console.log('machine:', JSON.stringify(machine));
+await sleep(800);
+await page.screenshot({ path: join(OUT, 'lod-04-machine.png') });
+
 await browser.close();
 if (process.exitCode) process.exit(process.exitCode);
 console.log('shot-lod ok', OUT);

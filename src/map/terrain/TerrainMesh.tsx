@@ -206,9 +206,9 @@ export function TerrainMesh() {
             float northLat = 1.0 - clamp(wp.y / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
             vec3 khakiKeep = vec3(0.72, 0.62, 0.40);
             float keep = smoothstep(0.48, 0.92, northLat);
-            ground = mix(ground, max(ground, khakiKeep), keep * 0.38);
+            ground = mix(ground, max(ground, khakiKeep), keep * 0.28);
             float luma = dot(ground, vec3(0.2126, 0.7152, 0.0722));
-            float floorL = 0.22 + 0.12 * keep;
+            float floorL = 0.20 + 0.10 * keep;
             if (luma < floorL) ground *= floorL / max(luma, 0.001);
             uSoilGround = ground;
             diffuseColor.rgb = ground;
@@ -230,10 +230,10 @@ export function TerrainMesh() {
             float valley = 1.0 - smoothstep(0.16, 0.58, vWorldPos3.y);
             float keepLit = max(smoothstep(0.36, 0.90, northLit), valley * 0.8);
             float litL = dot(outgoingLight, vec3(0.2126, 0.7152, 0.0722));
-            float floorLit = 0.17 + 0.20 * keepLit;
+            float floorLit = 0.15 + 0.16 * keepLit;
             if (litL < floorLit) outgoingLight *= floorLit / max(litL, 0.001);
-            vec3 khakiLit = vec3(0.50, 0.44, 0.28);
-            outgoingLight = mix(outgoingLight, max(outgoingLight, khakiLit), keepLit * 0.22);
+            vec3 khakiLit = vec3(0.48, 0.42, 0.26);
+            outgoingLight = mix(outgoingLight, max(outgoingLight, khakiLit), keepLit * 0.14);
           }
           #include <opaque_fragment>`,
         );

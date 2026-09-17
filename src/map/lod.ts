@@ -23,7 +23,7 @@ export const MINI_BASE_W = 0.86;
 export const MINI_BASE_D = 0.60;
 export const MINI_SCALE = 1.18;
 /** Vehicle group only — plates stay at MINI_BASE_*. Must still fit the hex. */
-export const MACHINE_SCALE = 1.72;
+export const MACHINE_SCALE = 1.86;
 
 export function standardOpacityAtHeight(cameraY: number): number {
   if (cameraY <= STANDARD_HIDE_Y) return 0;

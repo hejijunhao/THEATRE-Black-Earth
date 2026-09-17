@@ -80,12 +80,16 @@ describe('north forest instances cannot become a charcoal band', () => {
 });
 
 describe('machine paint silhouettes on khaki', () => {
-  it('keeps a dark hull and a light top against the field', () => {
+  it('keeps a dark hull and a lighter top that still sits under khaki', () => {
+    const field = luma(KHAKI_FIELD);
     for (const side of ['UA', 'RU'] as const) {
       const p = HERO_PAINT[side];
-      expect(luma(hexRgb(p.dark))).toBeLessThan(50);
-      expect(luma(hexRgb(p.light))).toBeGreaterThan(160);
-      expect(luma(hexRgb(p.light)) - luma(hexRgb(p.dark))).toBeGreaterThan(110);
+      const dark = luma(hexRgb(p.dark));
+      const light = luma(hexRgb(p.light));
+      expect(dark).toBeLessThan(40);
+      expect(light).toBeGreaterThan(100);
+      expect(light).toBeLessThan(field * 0.85);
+      expect(light - dark).toBeGreaterThan(70);
     }
   });
 });
