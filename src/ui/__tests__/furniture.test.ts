@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildInitialState } from '../../game/scenarios/build';
 import { cycleUnspent, formationLane } from '../boardChrome';
 import { rankReasons, reasonCopy, reasonWeight } from '../briefingCopy';
-import { paperDock, paperLayoutFromScreen, SHEET_GAP } from '../combatPaper';
+import { paperDock, paperLayoutFromScreen, SHEET_GAP } from '../paperLayout';
 import { chronologyTile } from '../journalChronology';
 import { bindChronology, parseDice } from '../journalChronology';
 import { CombatFactor, NotificationEntry } from '../../game/types';

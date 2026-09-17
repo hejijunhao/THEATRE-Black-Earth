@@ -4,7 +4,7 @@
 import { CSSProperties, ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { projectHex } from '../map/hexScreen';
 import { TileId } from '../game/types';
-import { paperLayoutFromScreen, paperOverClass, SHEET_WIDTH } from './combatPaper';
+import { paperLayoutFromScreen, paperOverClass, SHEET_WIDTH } from './paperLayout';
 
 export function CombatPaper({
   tile,
