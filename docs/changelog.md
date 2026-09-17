@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.22](#0222--2026-09-17--slice-5-reach-retip) | 2026-09-17 | Slice 5 — reach retip | soil-stain wash, seam-only silhouette, warm parchment ink |
 | [0.2.21](#0221--2026-09-17--slice-5-board-chrome) | 2026-09-17 | Slice 5 — board chrome | reach silhouette, hatched frontline, click-through overlays |
 | [0.2.20](#0220--2026-09-17--slice-4-mech-arty-stamp) | 2026-09-17 | Slice 4 — MECH / ARTY silhouette punch | unlit field-green stamp, IFV turret/gun, arty tube |
 | [0.2.19](#0219--2026-09-17--slice-4-non-armor-silhouettes) | 2026-09-17 | Slice 4 — infantry / non-armor silhouettes | rifle ranks, command truck, IFV gun, arty tube |
@@ -38,6 +39,20 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.22] — 2026-09-17 · Slice 5 — reach retip
+
+Presentation only. Slice 5 board chrome, reach path only. Frontline stays the MeshBasic hairline scar from 0.2.21. Ground, atmosphere, unit meshes and HUD panels stay locked. No new rules.
+
+0.2.21's mid-zoom reach still read as a per-hex rim necklace: ink-white `RingGeometry` outlines on every perimeter tile, a whisper interior, and a cool rim that led the silhouette. That is not a Vic / Civ territorial blob.
+
+This retip:
+
+- **Drops the per-hex rims.** Silhouette is the outer seam ribbon alone — no hex-ring soup.
+- **Punches the cost-faded interior wash** so the soil stain leads (near fill outranks the seam).
+- **Warms the reach edge** to parchment / ochre. The seam is supporting ink, not a bright unfilled outline.
+
+Picks still go through (`raycast={() => null}`). The campaign, map, AI, supply and combat math are unchanged. Still not Vic 3 / Civ — this is a warmer stain-plus-seam, not a province-border renderer.
 
 ## [0.2.21] — 2026-09-17 · Slice 5 — board chrome
 

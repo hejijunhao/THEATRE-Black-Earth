@@ -9,9 +9,12 @@ import {
   FRONT_SCAR_H,
   FRONT_SCAR_W,
   perimeterEdges,
+  REACH_EDGE,
   REACH_FILL_OPACITY,
   REACH_FILL_RADIUS,
+  reachFillLeadsRim,
   reachFillOpacity,
+  reachInkIsWarm,
   scarIsHairline,
   seamHatchTs,
 } from '../boardTelegraph';
@@ -24,13 +27,26 @@ describe('board telegraph', () => {
     expect(REACH_FILL_OPACITY.zoc).toBe(0);
     expect(reachFillOpacity('zoc', 1, 4)).toBe(0);
     expect(reachFillOpacity('open', 1, 4)).toBeGreaterThan(reachFillOpacity('open', 4, 4));
-    expect(reachFillOpacity('open', 4, 4)).toBeLessThan(0.1);
+    expect(reachFillOpacity('open', 1, 4)).toBeGreaterThan(0.24);
+    expect(reachFillOpacity('open', 4, 4)).toBeGreaterThan(0.18);
+    expect(reachFillOpacity('open', 4, 4)).toBeLessThan(reachFillOpacity('open', 1, 4));
   });
 
   it('keeps the interior wash inset so soil reads at the hex rim', () => {
     expect(fillFitsHex()).toBe(true);
-    expect(REACH_FILL_RADIUS * 2).toBeLessThan(HEX_W * 0.72);
+    expect(REACH_FILL_RADIUS * 2).toBeLessThan(HEX_W * 0.88);
+    expect(REACH_FILL_RADIUS).toBeLessThan(0.82);
     expect(fillFitsHex(0.9)).toBe(false);
+  });
+
+  it('lets the soil wash lead a warm perimeter seam', () => {
+    expect(reachFillLeadsRim('open')).toBe(true);
+    expect(reachFillLeadsRim('enemy')).toBe(true);
+    expect(reachInkIsWarm(REACH_EDGE.open)).toBe(true);
+    expect(reachInkIsWarm(REACH_EDGE.enemy)).toBe(true);
+    expect(reachInkIsWarm(REACH_EDGE.zoc)).toBe(true);
+    expect(reachInkIsWarm('#f2ead4')).toBe(false);
+    expect(reachInkIsWarm('#ffffff')).toBe(false);
   });
 
   it('draws a blob silhouette, not a ring on every cell', () => {
