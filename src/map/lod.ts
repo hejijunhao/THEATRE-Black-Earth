@@ -4,6 +4,10 @@
 
 import { HEX_H, HEX_W, tileWorld } from '../game/hex';
 
+/** Unscaled tier-4 panzer echelon half-extent (see assets/units.ts). */
+const HERO_ECHELON_HALF_W = 0.085 * 1.5 + 0.162;
+const HERO_ECHELON_HALF_D = 0.115 * 1.5 + 0.0485;
+
 /** Hard world-size caps. A plate that exceeds these buries the hex. */
 export const PLATE_MAX_W = 1.18;
 export const PLATE_MAX_H = 0.74;
@@ -23,7 +27,9 @@ export const MINI_BASE_W = 0.86;
 export const MINI_BASE_D = 0.60;
 export const MINI_SCALE = 1.18;
 /** Vehicle group only — plates stay at MINI_BASE_*. Must still fit the hex. */
-export const MACHINE_SCALE = 1.86;
+export const MACHINE_SCALE = 2.42;
+/** Faction plate opacity while miniatures are the LOD. Full at campaign zoom. */
+export const PLATE_NEAR_OPACITY = 0.22;
 
 export function standardOpacityAtHeight(cameraY: number): number {
   if (cameraY <= STANDARD_HIDE_Y) return 0;
@@ -64,4 +70,8 @@ export function plateFitsHex(w: number, h: number): boolean {
 
 export function selectFitsHex(outer = SELECT_RING_OUT): boolean {
   return outer * 2 < HEX_W && outer < HEX_H * 0.5;
+}
+
+export function machineFitsHex(scale = MACHINE_SCALE): boolean {
+  return HERO_ECHELON_HALF_W * scale * 2 < HEX_W && HERO_ECHELON_HALF_D * scale * 2 < HEX_H;
 }

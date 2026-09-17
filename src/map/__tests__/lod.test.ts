@@ -10,6 +10,7 @@ import {
   COUNTER_PLATE_W,
   COUNTER_ZOOM_IN,
   MACHINE_SCALE,
+  PLATE_NEAR_OPACITY,
   MINI_BASE_D,
   MINI_BASE_W,
   MINI_SCALE,
@@ -20,6 +21,7 @@ import {
   STANDARD_HIDE_Y,
   STANDARD_W,
   bootCamera,
+  machineFitsHex,
   plateFitsHex,
   selectFitsHex,
   standardOpacityAtHeight,
@@ -34,11 +36,11 @@ describe('campaign LOD gate', () => {
     expect(plateFitsHex(MINI_BASE_W, MINI_BASE_D)).toBe(true);
     expect(MINI_BASE_W * MINI_SCALE).toBeLessThan(HEX_W);
     expect(MINI_BASE_D * MINI_SCALE).toBeLessThan(HEX_H);
-    // Machines grow inside the hex; plates do not.
-    expect(MACHINE_SCALE).toBeGreaterThan(1.5);
+    // Machines grow; plates do not. The hex cap is the echelon, not plate*scale.
+    expect(MACHINE_SCALE).toBeGreaterThan(2.2);
     expect(MACHINE_SCALE).toBeGreaterThan(MINI_SCALE);
-    expect(MINI_BASE_W * MACHINE_SCALE).toBeLessThan(HEX_W);
-    expect(MINI_BASE_D * MACHINE_SCALE).toBeLessThan(HEX_H);
+    expect(machineFitsHex()).toBe(true);
+    expect(machineFitsHex(3.4)).toBe(false);
     expect(MINI_BASE_W).toBeLessThanOrEqual(PLATE_MAX_W);
     expect(MINI_BASE_D).toBeLessThanOrEqual(PLATE_MAX_H);
   });

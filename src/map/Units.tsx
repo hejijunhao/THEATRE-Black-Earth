@@ -38,6 +38,7 @@ import {
   MACHINE_SCALE,
   MINI_BASE_D,
   MINI_BASE_W,
+  PLATE_NEAR_OPACITY,
   SELECT_RING_IN,
   SELECT_RING_OUT,
   STANDARD_H,
@@ -203,7 +204,10 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
     // Crossfade against the counters.
     const vis = (1 - fadeState.value) * (chrome.spent ? 0.78 : 1);
     g.visible = vis > 0.02;
-    if (baseMatRef.current) baseMatRef.current.opacity = vis;
+    if (baseMatRef.current) {
+      const plate = PLATE_NEAR_OPACITY + (1 - PLATE_NEAR_OPACITY) * standardOpacityAtHeight(camera.position.y);
+      baseMatRef.current.opacity = vis * plate;
+    }
     // The NATO standard is a plate. At boot height it sits on the hull
     // and the mid-zoom read collapses to "plates only". Drop it while
     // the machines are the LOD.
@@ -238,9 +242,9 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
         <meshStandardMaterial
           ref={baseMatRef}
           color={chrome.spent
-            ? (unit.faction === 'UA' ? '#1c2838' : '#3a201c')
-            : (unit.faction === 'UA' ? '#33507a' : '#67352c')}
-          roughness={0.6}
+            ? (unit.faction === 'UA' ? '#141820' : '#221614')
+            : (unit.faction === 'UA' ? '#1e2a38' : '#2e1c18')}
+          roughness={0.72}
           transparent
           emissive={
             selected
@@ -249,7 +253,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
                 ? '#cfc6a8'
                 : FACTION_STRONG[unit.faction]
           }
-          emissiveIntensity={selected ? 0.55 : chrome.threatened ? 0.28 : 0.16}
+          emissiveIntensity={selected ? 0.22 : chrome.threatened ? 0.14 : 0.06}
         />
       </mesh>
       {/* The machines: hero vehicles as instances, everything else — foot
