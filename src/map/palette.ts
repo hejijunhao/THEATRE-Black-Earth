@@ -26,11 +26,11 @@ export const FACTION_STRONG: Record<FactionId, string> = {
 export const WEATHER_ENV: Record<WeatherType, { sky: string; fog: string; sun: number; ambient: number; fogDensity: number }> = {
   // Air over soil, one place. Fog is warm earth-haze at low density so the
   // north does not drop into a dark-grey veil under rain or mud.
-  clear:    { sky: '#c8d4c4', fog: '#c6be9e', sun: 1.72, ambient: 0.58, fogDensity: 0.0014 },
-  overcast: { sky: '#a8a890', fog: '#b4aa8c', sun: 1.16, ambient: 0.62, fogDensity: 0.0018 },
-  rain:     { sky: '#8e8c78', fog: '#9a9078', sun: 0.92, ambient: 0.6, fogDensity: 0.0022 },
-  mud:      { sky: '#a4987c', fog: '#a89a7c', sun: 1.1, ambient: 0.6, fogDensity: 0.0018 },
-  snow:     { sky: '#c4ccd0', fog: '#d0d2c8', sun: 1.2, ambient: 0.66, fogDensity: 0.002 },
+  clear:    { sky: '#c8d4c4', fog: '#c8c09a', sun: 1.72, ambient: 0.64, fogDensity: 0.0008 },
+  overcast: { sky: '#b0aa90', fog: '#b8ae90', sun: 1.2, ambient: 0.68, fogDensity: 0.001 },
+  rain:     { sky: '#9a947c', fog: '#b0a484', sun: 1.02, ambient: 0.66, fogDensity: 0.0011 },
+  mud:      { sky: '#a89c7c', fog: '#b4a484', sun: 1.14, ambient: 0.66, fogDensity: 0.001 },
+  snow:     { sky: '#c4ccd0', fog: '#d0d2c8', sun: 1.2, ambient: 0.7, fogDensity: 0.0012 },
 };
 
 const tmpA = new THREE.Color();

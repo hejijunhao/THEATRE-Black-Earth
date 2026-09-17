@@ -59,9 +59,9 @@ describe('boot camera gate', () => {
     expect(cam.py).toBeLessThan(COUNTER_ZOOM_IN);
     expect(cam.py).toBeGreaterThan(8);
     const dist = Math.hypot(cam.px - cam.tx, cam.py, cam.pz - cam.tz);
-    // FOV 42°: this distance keeps ~7–8 hexes in the vertical, the scar not Donbas.
-    expect(dist).toBeLessThan(16.5);
-    expect(dist).toBeGreaterThan(12);
-    expect(BOOT_CAM.dz).toBeLessThan(10);
+    // FOV 42°: this distance keeps ~6 hexes in the vertical — the scar, not Donbas.
+    expect(dist).toBeLessThan(14.5);
+    expect(dist).toBeGreaterThan(10);
+    expect(BOOT_CAM.dz).toBeLessThan(8);
   });
 });

@@ -100,7 +100,13 @@ export function TerrainMesh() {
   );
 
   const material = useMemo(() => {
-    const mat = new THREE.MeshStandardMaterial({ roughness: 0.86, metalness: 0.035 });
+    const mat = new THREE.MeshStandardMaterial({
+      roughness: 0.86,
+      metalness: 0.035,
+      // Unlit soil so the far north cannot drop into a grey hole under rain.
+      emissive: new THREE.Color('#6e6040'),
+      emissiveIntensity: 0.36,
+    });
     mat.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, uniforms);
       shader.vertexShader = shader.vertexShader
@@ -210,7 +216,7 @@ export function TerrainMesh() {
     const w = game?.weather;
     uniforms.uSnow.value = w === 'snow' ? 1 : 0;
     uniforms.uCloud.value =
-      w === 'overcast' ? 1 : w === 'rain' ? 0.85 : w === 'mud' ? 0.45 : w === 'snow' ? 0.5 : 0.15;
+      w === 'overcast' ? 0.55 : w === 'rain' ? 0.4 : w === 'mud' ? 0.28 : w === 'snow' ? 0.35 : 0.1;
   }, [game?.weather, uniforms]);
 
   // Hex overlay opacity: stronger while a unit is selected, softer when the

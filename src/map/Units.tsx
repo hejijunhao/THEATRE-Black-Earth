@@ -123,8 +123,8 @@ const MINI_MATERIAL = new THREE.MeshStandardMaterial({
   roughness: 0.72,
   metalness: 0.08,
   transparent: true,
-  emissive: '#2c2618',
-  emissiveIntensity: 0.28,
+  emissive: '#4a4030',
+  emissiveIntensity: 0.48,
 });
 
 function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boolean; chrome: BoardChrome }) {

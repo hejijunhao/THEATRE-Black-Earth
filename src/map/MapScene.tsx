@@ -62,6 +62,7 @@ function Atmosphere() {
     <>
       <primitive attach="fog" object={fog} />
       <primitive attach="background" object={bg} />
+      <ambientLight intensity={0.32} color="#c2b48a" />
       <hemisphereLight args={['#e6d8b6', '#6a5c40', env.ambient]} />
       <primitive object={sunTarget} />
       <directionalLight
@@ -82,8 +83,8 @@ function Atmosphere() {
       {/* North fill: the far soil is the same place, not a grey hole. */}
       <directionalLight
         position={[WORLD_W / 2 + 8, 24, WORLD_H / 2 - 36]}
-        intensity={0.22}
-        color="#c4b890"
+        intensity={0.34}
+        color="#c8bc94"
       />
       <directionalLight
         position={[WORLD_W / 2 - 36, 26, WORLD_H / 2 + 16]}

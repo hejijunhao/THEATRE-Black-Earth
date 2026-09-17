@@ -50,7 +50,7 @@ await sleep(300);
 
 const boot = await page.evaluate(() => {
   const cam = window.__TBE_CAMERA__;
-  if (cam) cam.set(67.1, 12.15, 26.15, 67.55, 18);
+  if (cam) cam.set(67.3, 10.4, 24.7, 67.55, 18);
   const s = window.__TBE_DEBUG__.summary();
   return {
     tile: s.selectedTile,
@@ -74,7 +74,7 @@ await page.screenshot({ path: join(OUT, 'lod-01-rest.png') });
 
 const mid = await page.evaluate(() => {
   const cam = window.__TBE_CAMERA__;
-  if (cam) cam.set(67.1, 14.4, 28.4, 67.55, 18);
+  if (cam) cam.set(67.3, 13.2, 27.2, 67.55, 18);
   return true;
 });
 console.log('midzoom set:', mid);
@@ -86,21 +86,21 @@ const selected = await page.evaluate(() => {
   hook.selectUnit('u3');
   const me = hook.units().find((u) => u.id === 'u3');
   const cam = window.__TBE_CAMERA__;
-  if (cam && me) cam.set(me.wx - 0.4, 12.15, me.wz + 8.15, me.wx, me.wz);
-  return {
-    id: me?.id,
-    tile: me?.tile,
-    bench: Boolean(document.querySelector('.command-bench')),
-    rail: Boolean(document.querySelector('.outliner')),
-    strip: Boolean(document.querySelector('.top-bar')),
-  };
+  if (cam && me) cam.set(me.wx - 0.25, 10.4, me.wz + 6.7, me.wx, me.wz);
+  return { id: me?.id, tile: me?.tile };
 });
-console.log('selected:', JSON.stringify(selected));
-if (!selected.bench || !selected.rail || !selected.strip) {
+await sleep(700);
+const selectedChrome = await page.evaluate(() => ({
+  bench: Boolean(document.querySelector('.command-bench')),
+  rail: Boolean(document.querySelector('.outliner')),
+  strip: Boolean(document.querySelector('.top-bar')),
+  selected: window.__TBE_DEBUG__.summary()?.selected,
+}));
+console.log('selected:', JSON.stringify({ ...selected, ...selectedChrome }));
+if (!selectedChrome.bench || !selectedChrome.rail || !selectedChrome.strip) {
   console.error('FAIL: selected state lost strip, rail, or bench');
   process.exitCode = 1;
 }
-await sleep(800);
 await page.screenshot({ path: join(OUT, 'lod-03-selected.png') });
 
 await browser.close();

@@ -33,8 +33,8 @@ export const BOOT_COL = 39;
 export const BOOT_ROW = 12;
 export const BOOT = tileWorld(BOOT_COL, BOOT_ROW);
 
-/** Mid-zoom, tight. Camera height stays below the counter crossfade. */
-export const BOOT_CAM = { dx: -0.45, y: 12.15, dz: 8.15 } as const;
+/** Mid-zoom, tight on the scar. Height stays below the counter crossfade. */
+export const BOOT_CAM = { dx: -0.25, y: 10.4, dz: 6.7 } as const;
 
 export function bootCamera(): { px: number; py: number; pz: number; tx: number; tz: number } {
   return {

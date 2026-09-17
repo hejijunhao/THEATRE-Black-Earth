@@ -191,6 +191,9 @@ export function makeHeroMaterial(): THREE.MeshStandardMaterial {
     vertexColors: true,
     roughness: 1.0,
     metalness: 1.0,
+    // Mid-zoom must still silhouette under flat rain light.
+    emissive: new THREE.Color('#3d3628'),
+    emissiveIntensity: 0.4,
   });
   mat.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader

@@ -90,7 +90,7 @@ await page.screenshot({ path: join(OUT, '01-rest-map.png') });
 // Re-assert it so the rest plate shot is the scar, not a whole-Donbas pullback.
 await page.evaluate(() => {
   const cam = window.__TBE_CAMERA__;
-  if (cam) cam.set(67.1, 12.15, 26.15, 67.55, 18);
+  if (cam) cam.set(67.3, 10.4, 24.7, 67.55, 18);
 });
 await sleep(600);
 await page.screenshot({ path: join(OUT, '01b-campaign-lod.png') });
@@ -111,7 +111,7 @@ const u3 = await page.evaluate(() => {
 await page.evaluate((u) => {
   const cam = window.__TBE_CAMERA__;
   // Selected at mid-zoom — select must not promote to blotting cards.
-  if (cam) cam.set(u.wx - 0.4, 12.15, u.wz + 8.15, u.wx, u.wz);
+  if (cam) cam.set(u.wx - 0.25, 10.4, u.wz + 6.7, u.wx, u.wz);
 }, u3);
 await sleep(900);
 
