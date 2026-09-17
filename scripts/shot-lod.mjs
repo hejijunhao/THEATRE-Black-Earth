@@ -39,6 +39,11 @@ await page.goto(URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
 await page.waitForFunction(() => window.__TBE_DEBUG__, { timeout: 20000 });
 await page.evaluate(() => window.__TBE_DEBUG__.newGame('UA', 42));
 await sleep(2800);
+await page.evaluate(() => {
+  window.__TBE_DEBUG__.setWeather('rain');
+  window.__TBE_DEBUG__.setMapMode('terrain');
+});
+await sleep(400);
 
 const skip = await page.$$eval('.tutorial-prompt a', (as) => {
   const el = as.find((a) => a.textContent.includes('Skip all'));

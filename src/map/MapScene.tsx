@@ -62,8 +62,8 @@ function Atmosphere() {
     <>
       <primitive attach="fog" object={fog} />
       <primitive attach="background" object={bg} />
-      <ambientLight intensity={0.32} color="#c2b48a" />
-      <hemisphereLight args={['#e6d8b6', '#6a5c40', env.ambient]} />
+      <ambientLight intensity={0.46} color="#d2c498" />
+      <hemisphereLight args={['#efe4c4', '#8a7c58', env.ambient]} />
       <primitive object={sunTarget} />
       <directionalLight
         position={sunPos}
@@ -82,14 +82,25 @@ function Atmosphere() {
       />
       {/* North fill: the far soil is the same place, not a grey hole. */}
       <directionalLight
-        position={[WORLD_W / 2 + 8, 24, WORLD_H / 2 - 36]}
-        intensity={0.34}
-        color="#c8bc94"
+        position={[WORLD_W / 2 + 8, 28, WORLD_H / 2 - 40]}
+        intensity={0.72}
+        color="#e0d4a4"
+      />
+      <directionalLight
+        position={[WORLD_W / 2 - 20, 22, -8]}
+        intensity={0.38}
+        color="#d8cc98"
       />
       <directionalLight
         position={[WORLD_W / 2 - 36, 26, WORLD_H / 2 + 16]}
-        intensity={0.1}
-        color="#c8b888"
+        intensity={0.16}
+        color="#d0c490"
+      />
+      {/* Machine key: hulls must silhouette at boot height under flat rain. */}
+      <directionalLight
+        position={[WORLD_W / 2 + 16, 12, WORLD_H / 2 + 24]}
+        intensity={0.4}
+        color="#f0e6c4"
       />
     </>
   );
@@ -110,7 +121,7 @@ export function MapScene() {
       onCreated={({ gl }) => {
         // ACES crushes the mids; the sober palette needs the headroom back
         // (the post chain's AO + grade + vignette take another slice).
-        gl.toneMappingExposure = 1.4;
+        gl.toneMappingExposure = 1.52;
       }}
       style={{ position: 'absolute', inset: 0 }}
     >

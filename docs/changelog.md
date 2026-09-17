@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.16](#0216--2026-09-17--north-soil-machines) | 2026-09-17 | North soil + mid-zoom machines | khaki field edge-to-edge, rain air, vehicles at boot height |
 | [0.2.15](#0215--2026-09-17--lod-boot-north) | 2026-09-17 | LOD + boot + north air | plate cap, select ring not card, tight Kupiansk–Sloviansk, soil-continuous air |
 | [0.2.14](#0214--2026-09-17--theatre-presence-lod) | 2026-09-17 | Theatre presence + campaign LOD | terrain rest, front-framed camera, mid-zoom machines, sector rail, milled strip |
 | [0.2.13](#0213--2026-09-17--instrument-hud-craft) | 2026-09-17 | Instrument HUD craft | strip as war instrument, depot popover, week-runner rail, NATO counter plates, ground lighting, thin clock/journal overlays |
@@ -32,6 +33,15 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.16] — 2026-09-17 · North soil continuity + mid-zoom machines
+
+Presentation only. Hierarchy from 0.2.12–0.2.15 stays locked: LOD hex caps, select ground ring, Kupiansk–Sloviansk boot, instrument strip + sector rail. No new panels. No HUD rearrange. Select → move → attack → AAR is unchanged.
+
+- **North is the same field.** Albedo lifts by latitude and height toward midground khaki. Rain fog is warm and thin. Fill light and a luma floor kill the charcoal veil on far/north hexes. The rest frame must read as one place under rain.
+- **Machines at boot height.** With plates still inside the hex, hero vehicles scale and lift so they read as machines, not only NATO plates. No size past the hex caps.
+
+The campaign, map, AI, supply and combat math are unchanged.
 
 ## [0.2.15] — 2026-09-17 · LOD discipline, tight boot, north air
 

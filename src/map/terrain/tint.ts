@@ -15,7 +15,7 @@ const UA = new THREE.Color(FACTION_TINT.UA);
 const RU = new THREE.Color(FACTION_TINT.RU);
 // Off-map fade colour: LIGHT haze (mist over the unmodeled beyond), never
 // dark — darkness reads as ocean at map scale.
-const FOG_FAR = new THREE.Color('#b4ae94');
+const FOG_FAR = new THREE.Color('#c8bc90');
 const SUPPLY_CUT = new THREE.Color('#7d2f2f');
 const SUPPLY_LOW = new THREE.Color('#274a33');
 const SUPPLY_GOOD = new THREE.Color('#7fae7a');
@@ -148,8 +148,8 @@ export function updateTintTexture(
         // a printed document: it shows control, not observation, so no fog.
         if (!isVisible && mode !== 'intel' && mode !== 'political' && tile.terrain !== 'water') {
           if (a === 0) {
-            tmp.set('#4a463c');
-            a = 0.07;
+            tmp.set('#6a6048');
+            a = 0.04;
           } else {
             tmp.lerp(new THREE.Color('#4a463c'), 0.15);
             a = Math.min(1, a + 0.03);
