@@ -8,7 +8,7 @@ import { aiTurnDone, planAIQueue, stepAI } from '../ai/ai';
 import { UNIT_DEFS, TERRAIN_DEFS } from '../data/defs';
 import { computePreview, describeEngagement, resolveBombardment, resolveCombat } from '../rules/combat';
 import { recomputeFog } from '../rules/fog';
-import { applyMove, attackableTargets, unitOnTile } from '../rules/movement';
+import { applyMove, attackableTargets, reachableTiles, unitOnTile } from '../rules/movement';
 import { applyOperation, canUseOperation, validateOpTarget } from '../rules/ops';
 import { applyEventEffects } from '../rules/events';
 import {
@@ -220,6 +220,20 @@ export const useStore = create<StoreState>((set, get) => {
         set({ selectedTileId: null, selectedUnitId: null, interactionMode: 'idle', pendingAttackId: null });
         return;
       }
+      // A highlighted legal march hex is an order, not a deselect. Must run
+      // before the empty-hex fallthrough or clicking a reach wash does nothing
+      // (or drops the selection).
+      const selectedId = get().selectedUnitId;
+      if (selectedId && game.phase === 'player') {
+        const selected = game.units[selectedId];
+        if (selected && selected.faction === game.playerFaction && selected.movement > 0) {
+          const occupant = unitOnTile(game, tile);
+          if (!occupant && reachableTiles(game, selected).has(tile)) {
+            get().orderMove(tile);
+            return;
+          }
+        }
+      }
       const unit = unitOnTile(game, tile);
       if (unit && unit.faction === game.playerFaction && game.phase === 'player') {
         set({ selectedUnitId: unit.id, selectedTileId: tile, interactionMode: 'idle', pendingAttackId: null });
@@ -267,7 +281,7 @@ export const useStore = create<StoreState>((set, get) => {
         }
         recomputeFog(draft);
       });
-      set({ game: next, selectedTileId: dest });
+      set({ game: next, selectedTileId: dest, pendingAttackId: null });
     },
 
     orderAttack: (defenderId) => {

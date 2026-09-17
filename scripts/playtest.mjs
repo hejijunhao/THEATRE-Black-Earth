@@ -103,6 +103,29 @@ if (!outliner || !/contact/i.test(outliner)) {
 }
 
 if (hasHook) {
+  // Hex-click path: the pick plane calls selectTile, not orderMove.
+  const marched = await page.evaluate(() => {
+    const hook = window.__TBE_DEBUG__;
+    hook.selectUnit('u1');
+    const dests = hook.reachable();
+    if (!dests.length) return { ok: false, reason: 'no reachable hex' };
+    const before = hook.units().find((u) => u.id === 'u1');
+    hook.selectTile(dests[0]);
+    const after = hook.units().find((u) => u.id === 'u1');
+    return {
+      ok: Boolean(after && before && after.tile === dests[0] && after.tile !== before.tile),
+      from: before?.tile,
+      to: after?.tile,
+      dest: dests[0],
+    };
+  });
+  console.log('hex-click march:', JSON.stringify(marched));
+  if (!marched?.ok) {
+    console.error('FAIL: selectTile on a highlighted hex did not move the unit');
+    process.exitCode = 1;
+  }
+  await page.evaluate(() => window.__TBE_DEBUG__.selectUnit('u3'));
+
   const info = await page.evaluate(() => window.__TBE_DEBUG__.summary());
   console.log('before:', JSON.stringify(info.selected));
   const targets = await page.evaluate(() => window.__TBE_DEBUG__.attackTargets());
