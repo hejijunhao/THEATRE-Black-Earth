@@ -17,7 +17,7 @@ const TEX_W = 2048;
 
 export type { RGB };
 
-const GRASS = rgb('#5c5a3c');
+const GRASS = rgb('#3e3c24');
 // Forests stay lighter than water, and light enough that rain + AO cannot
 // drop a woodland hex into a grey hole. Not retuned — north charcoal
 // was the previous failure, and this slice is soil authenticity.
@@ -51,11 +51,18 @@ export function northSoilLift(wz: number, heightMetres: number): number {
 }
 
 export function applySoilContinuity(c: RGB, wz: number, heightMetres: number): RGB {
-  const lift = northSoilLift(wz, heightMetres);
-  let out = mix(c, KHAKI_FIELD, lift);
-  const luma = 0.2126 * out.r + 0.7152 * out.g + 0.0722 * out.b;
   const lat = 1 - Math.min(1, Math.max(0, wz / WORLD_H));
-  const floor = 90 + 34 * lat;
+  // Midground crush toward chernozem/loam — rain lighting still lifts, so
+  // the paint has to start dark or campaign zoom stays an ochre plate.
+  // Far north keeps loft; the scar is not washed toward khaki.
+  const crush = 0.62 + 0.30 * smooth(0.62, 0.97, lat);
+  let out: RGB = { r: c.r * crush, g: c.g * crush * 0.93, b: c.b * crush * 0.86 };
+  const lift = northSoilLift(wz, heightMetres);
+  out = mix(out, KHAKI_FIELD, lift);
+  const luma = 0.2126 * out.r + 0.7152 * out.g + 0.0722 * out.b;
+  // Floor is far-north only. A midground floor was the ochre plate —
+  // it lifted crushed chernozem back to khaki.
+  const floor = 48 + 76 * smooth(0.70, 0.97, lat);
   if (luma < floor) {
     // Lift toward warm soil, not a grey scale-up of cool forest.
     const k = (floor - luma) / Math.max(1, floor);
@@ -101,7 +108,7 @@ export function paintAlbedo(): { canvas: HTMLCanvasElement; texW: number; texH: 
         // ground goes loess. Strong enough to kill the mustard plate;
         // strip parcels still lead via fieldColor.
         const soil = mix(CHERNOZEM, LOESS, smooth(70, 210, m));
-        c = mix(c, soil, 0.18 + (1 - Math.min(1, crop * 1.15)) * 0.16);
+        c = mix(c, soil, 0.26 + (1 - Math.min(1, crop * 1.15)) * 0.20);
         // Forest fields (soft shapes from the hex fractions + noise breakup).
         // Threshold sits above the forest-steppe shelter-belt range: partial
         // tree cover must NOT read as a dark smear over half the map — the

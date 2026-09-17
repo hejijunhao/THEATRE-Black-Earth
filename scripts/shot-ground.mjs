@@ -133,7 +133,7 @@ function assertNotPaintedKhaki(path, label) {
   }
   // Mustard / ochre plate: yellow-dominant midground at campaign zoom.
   // Highlighter straw is already gone; this is the leftover khaki field.
-  if (mid.luma > 118 && mid.g > mid.r * 0.88 && mid.r - mid.b > 42) {
+  if (mid.luma > 100 && mid.g > mid.r * 0.80 && mid.r - mid.b > 48) {
     console.error(`FAIL: ${label} still reads as mustard ochre plate`);
     process.exitCode = 1;
   }

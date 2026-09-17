@@ -46,19 +46,19 @@ export function noise2(x: number, y: number, salt: number): number {
 // darker than the ochre plate that survived highlighter removal.
 // Lightest parcel must stay under a beige-flood gate.
 const FIELD_COLORS = [
-  '#8a6a40', // dry stubble — muted straw, not mustard
-  '#58401e', // cereal brown
-  '#3c2614', // chernozem
-  '#6e5e3c', // loess fallow
-  '#2e1c10', // wet plough
-  '#4a4c2c', // pasture olive
+  '#6a4e28', // dry stubble — muted straw, not mustard
+  '#3e2a12', // cereal brown
+  '#2c1a0c', // chernozem
+  '#5a4a2c', // loess fallow
+  '#24140a', // wet plough
+  '#3a3c20', // pasture olive
 ].map(rgb);
 /** 14-unit cadastral districts — rest zoom must see soil families, not one ochre. */
 const REGION_SOILS = [
-  rgb('#3a2210'), // chernozem — dark red-brown
-  rgb('#5a3c20'), // brown loam
-  rgb('#7a6844'), // loess — tan, less yellow
-  rgb('#465028'), // pasture — greener olive
+  rgb('#2c1808'), // chernozem — dark red-brown
+  rgb('#4a3016'), // brown loam
+  rgb('#6a5834'), // loess — tan, less yellow
+  rgb('#3a4420'), // pasture — greener olive
 ];
 const SHELTER = rgb('#3a2e18');
 const DIRT = rgb('#5a3e20');
@@ -113,7 +113,7 @@ export function fieldColor(wx: number, wz: number): RGB {
   const rz = Math.floor(wz / 14);
   const pick = Math.floor(ihash(rx * 517 + f.strip, rz * 763 + f.parcel, 109) * FIELD_COLORS.length);
   // District soil leads at rest; parcel chroma is the contact-scale read.
-  let c = mix(regionSoil(wx, wz), FIELD_COLORS[pick], 0.42);
+  let c = mix(regionSoil(wx, wz), FIELD_COLORS[pick], 0.34);
 
   // Furrow / drill rows: high-frequency dirt inside the parcel.
   const furrow = 0.5 + 0.5 * Math.sin((f.u / f.stripW) * Math.PI * 2 * (3 + ihash(rx, rz, 111) * 3));

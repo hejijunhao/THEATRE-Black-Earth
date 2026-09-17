@@ -62,7 +62,8 @@ describe('slice 1 ground albedo — cadastral soil', () => {
   it('darkens midground field paint off the mustard plate', () => {
     const colors = [];
     for (let i = 0; i < 48; i++) {
-      colors.push(fieldColor(BOOT.wx + i * 0.37, BOOT.wz + (i % 6) * 0.41));
+      const raw = fieldColor(BOOT.wx + i * 0.37, BOOT.wz + (i % 6) * 0.41);
+      colors.push(applySoilContinuity(raw, BOOT.wz, 80));
     }
     const avg = colors.reduce(
       (a, c) => ({ r: a.r + c.r, g: a.g + c.g, b: a.b + c.b }),
@@ -71,8 +72,8 @@ describe('slice 1 ground albedo — cadastral soil', () => {
     avg.r /= colors.length;
     avg.g /= colors.length;
     avg.b /= colors.length;
-    expect(luma(avg)).toBeLessThan(110);
-    expect(avg.g).toBeLessThan(avg.r * 0.96);
+    expect(luma(avg)).toBeLessThan(88);
+    expect(avg.g).toBeLessThan(avg.r * 0.92);
     expect(avg.r - avg.b).toBeGreaterThan(18);
     expect(luma(CHERNOZEM)).toBeLessThan(58);
   });
