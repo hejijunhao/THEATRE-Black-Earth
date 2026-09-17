@@ -139,6 +139,11 @@ export function Overlays() {
         opacity: reachFillOpacity(kind, r.cost, selectedUnit.movement),
       };
     });
+    fills.push({
+      id: selectedUnit.tile,
+      kind: 'open',
+      opacity: reachFillOpacity('open', 0, selectedUnit.movement),
+    });
     const kindOf = (id: TileId): ReachKind => {
       if (id === selectedUnit.tile) return 'open';
       const r = reach.get(id);

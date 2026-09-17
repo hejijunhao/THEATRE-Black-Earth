@@ -32,11 +32,12 @@ describe('board telegraph', () => {
     expect(reachFillOpacity('open', 4, 4)).toBeLessThan(reachFillOpacity('open', 1, 4));
   });
 
-  it('keeps the interior wash inset so soil reads at the hex rim', () => {
+  it('overlaps adjacent hexes so the wash reads as a blob, not a plate necklace', () => {
     expect(fillFitsHex()).toBe(true);
-    expect(REACH_FILL_RADIUS * 2).toBeLessThan(HEX_W * 0.92);
-    expect(REACH_FILL_RADIUS).toBeLessThan(0.84);
-    expect(fillFitsHex(0.9)).toBe(false);
+    expect(REACH_FILL_RADIUS * 2).toBeGreaterThan(HEX_W);
+    expect(REACH_FILL_RADIUS).toBeLessThan(1.05);
+    expect(fillFitsHex(0.56)).toBe(false);
+    expect(fillFitsHex(1.2)).toBe(false);
   });
 
   it('lets the soil wash lead a warm perimeter seam', () => {

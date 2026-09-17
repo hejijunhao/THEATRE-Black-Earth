@@ -49,7 +49,7 @@ Presentation only. Slice 5 board chrome, reach path only. Frontline stays the Me
 This retip:
 
 - **Drops the per-hex rims.** Silhouette is the outer seam ribbon alone — no hex-ring soup.
-- **Punches the cost-faded interior wash** so a darker umber soil stain leads (near fill outranks the seam). A cream wash on khaki/beige is invisible — the stain has to sit below the field.
+- **Punches the cost-faded interior wash** so a darker umber soil stain leads (near fill outranks the seam). Adjacent discs overlap and the origin hex is stained, so the wash is one territorial blob instead of a honeycomb of inset plates.
 - **Warms the reach edge** to umber / ochre. The seam is supporting ink, not a bright unfilled outline.
 
 Picks still go through (`raycast={() => null}`). The campaign, map, AI, supply and combat math are unchanged. Still not Vic 3 / Civ — this is a warmer stain-plus-seam, not a province-border renderer.

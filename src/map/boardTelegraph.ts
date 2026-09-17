@@ -6,15 +6,15 @@ import { TileId } from '../game/types';
 
 export type ReachKind = 'open' | 'enemy' | 'zoc';
 
-/** Inset of the hex apothem so soil still reads at the rim — not a 0.9 plate. */
-export const REACH_FILL_RADIUS = 0.78;
+/** Overlaps the hex width so adjacent stains merge into one blob, not a plate necklace. */
+export const REACH_FILL_RADIUS = 0.94;
 export const REACH_FILL = {
   open: '#7a5c28',
   enemy: '#7a4a1c',
 } as const;
 export const REACH_FILL_OPACITY = {
-  open: 0.48,
-  enemy: 0.52,
+  open: 0.52,
+  enemy: 0.56,
   zoc: 0,
 } as const;
 
@@ -130,8 +130,9 @@ export function seamHatchTs(contact: boolean): readonly number[] {
   return contact ? FRONT_CONTACT_HATCH : FRONT_QUIET_HATCH;
 }
 
+/** Adjacent discs must overlap (blob) without becoming a 1.1 vertex cap. */
 export function fillFitsHex(radius = REACH_FILL_RADIUS): boolean {
-  return radius * 2 < HEX_W * 0.92 && radius < 0.84;
+  return radius * 2 > HEX_W && radius < 1.05;
 }
 
 export function scarIsHairline(width = FRONT_SCAR_W, height = FRONT_SCAR_H): boolean {
