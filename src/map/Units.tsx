@@ -133,14 +133,9 @@ const MINI_MATERIAL = new THREE.MeshStandardMaterial({
 // Infantry props only. The shared mini wash lifts olive toward khaki and
 // turns a rifle rank into a pale plate. Keep-alive is dim so the authored
 // person + rifle + truck colours stamp.
-const INF_MATERIAL = new THREE.MeshStandardMaterial({
+const INF_MATERIAL = new THREE.MeshBasicMaterial({
   vertexColors: true,
-  roughness: 0.78,
-  metalness: 0.05,
   transparent: true,
-  // Olive keep-alive, not khaki. Near-black figures alias into the plate.
-  emissive: '#1c2414',
-  emissiveIntensity: 0.14,
 });
 
 function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boolean; chrome: BoardChrome }) {

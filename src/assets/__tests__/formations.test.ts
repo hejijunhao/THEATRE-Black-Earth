@@ -40,8 +40,11 @@ describe('non-armor boot silhouettes', () => {
     const parts = figure();
     expect(parts.length).toBeGreaterThan(8);
     const col = parts[0].getAttribute('color');
-    expect(col.getX(0)).toBeLessThan(0.22);
-    expect(col.getY(0)).toBeLessThan(0.26);
+    // Linear vertex colour (three ColorManagement). Green channel must
+    // outrun red/blue or the rain veil treats the rank as grey khaki.
+    expect(col.getY(0)).toBeGreaterThan(0.08);
+    expect(col.getY(0)).toBeGreaterThan(col.getX(0) * 2);
+    expect(col.getZ(0)).toBeLessThan(col.getY(0));
 
     const mergedX = parts.reduce((m, g) => {
       g.computeBoundingBox();

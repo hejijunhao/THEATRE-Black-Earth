@@ -43,7 +43,7 @@ Presentation only. Hierarchy from 0.2.12–0.2.18 stays locked: LOD hex caps, se
 
 0.2.18 put a rank and a truck on the plate and kept MECH/ARTY on hero hulls. The harness passed with `tbe-counters` off; the craft still failed: non-armor at mid-zoom read as pale abstract blobs. This cut authors the silhouettes:
 
-- **INF.** Figure is a person — stride legs, torso, helmet, pack, long rifle — not a three-box pin. Command truck is cab / glass / dark canvas / wheels / whip antenna. Infantry props drop the shared mini wash so olive does not lift back to khaki.
+- **INF.** Figure is a person — stride legs, torso, helmet, pack, long rifle — not a three-box pin. Command truck is cab / glass / canvas / wheels / whip antenna. Infantry props are unlit and field-green so the rain veil-break cannot lift a grey-olive rank back to khaki.
 - **MECH.** IFV roof stays BODY. Track band and skirts thicken. Autocannon is an oversized finger so hull / turret / gun read at boot height.
 - **ARTY.** Elevated tube, muzzle brake and split trails thicken so the gun, not a carriage plate, owns the read.
 

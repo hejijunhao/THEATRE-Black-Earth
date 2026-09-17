@@ -25,7 +25,7 @@ manufacturer catalogue, no spectacle.
 | `supplyTruck` (truck + fuel drums) | `src/assets/vehicles.ts` | runtime | logistics element; drums signal supply state | ✓ | 2026-08-03 |
 | `towedGun` (split-trail howitzer) | `src/assets/vehicles.ts` | superseded | towed artillery class | ✓ | 2026-08-07 |
 | `mrap` (v-hull patrol vehicle + mast) | `src/assets/vehicles.ts` | superseded | recon vehicle class | ✓ | 2026-08-07 |
-| `figure` (dismount, abstract) | `src/assets/vehicles.ts` | runtime | silhouette-level only; no faces, no wounds. 0.2.19: stride legs, helmet, pack, long rifle — a person, not a pale block. Infantry composition scales it; mech/recon dismounts keep raw size | ✓ §1.4: attrition = fewer figures, never bodies | 2026-09-17 |
+| `figure` (dismount, abstract) | `src/assets/vehicles.ts` | runtime | silhouette-level only; no faces, no wounds. 0.2.19: stride legs, helmet, pack, long rifle; field-green so the rain veil cannot khaki a grey-olive rank. Infantry composition scales it; mech/recon dismounts keep raw size | ✓ §1.4: attrition = fewer figures, never bodies | 2026-09-17 |
 | `droneMast` (drone team marker) | `src/assets/vehicles.ts` | superseded | abstract ISR marker; `reconHero` carries its own mast, so **no remaining references** — deletion candidate | ✓ | 2026-08-07 |
 | `smokePuffs` (post-attack residue) | `src/assets/vehicles.ts` | runtime | quiet grey wisps, no fire | ✓ no explosion-as-fireworks | 2026-08-03 |
 | `makeMiniatureBuild` (composition + state mapping; splits hero vehicles from vertex-coloured props) | `src/assets/units.ts` | runtime | §6.2 state table; echelon layout sized to the base plate. 0.2.19: infantry is a rifle rank + command truck; mech/arty stay on punched hero hulls | ✓ | 2026-09-17 |

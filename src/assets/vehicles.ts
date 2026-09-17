@@ -17,11 +17,16 @@ const PAINT: Record<FactionId, { hull: string; dark: string; accent: string }> =
 const TRACK = '#2e2c26';
 const TIRE = '#1a1814';
 const CANVAS_TOP = '#2a281e';
-const FIGURE = '#2e3824';
-const FIGURE_DARK = '#1c2416';
-const FIGURE_HELM = '#24301c';
-const FIGURE_RIM = '#3c4a2c';
-const RIFLE = '#14160e';
+// Punchy field-green. THREE.Color stores linear, and the rain veil-break
+// lifts dark+grey linear pixels to khaki. Grey olive vanished; this sat
+// stays above the gate so a rank stamps.
+const FIGURE = '#0a5816';
+const FIGURE_DARK = '#064010';
+const FIGURE_HELM = '#085014';
+const FIGURE_RIM = '#14701c';
+const RIFLE = '#032008';
+const INF_HULL = '#084812';
+const INF_CANVAS = '#0a4010';
 const BARREL = '#3a3d36';
 const GLASS = '#101410';
 
@@ -190,14 +195,23 @@ export function lightTruck(faction: FactionId): THREE.BufferGeometry[] {
 }
 
 // Infantry command wagon: cab / canvas / wheels / whip antenna. Same
-// scale as lightTruck so it stays a truck, not a barn, but the parts
-// separate so mid-zoom reads "soft-skin" instead of a pale plate.
-export function commandTruck(faction: FactionId): THREE.BufferGeometry[] {
-  const parts = lightTruck(faction);
-  const p = PAINT[faction];
-  parts.push(ccyl(0.0022, 0.0022, 0.055, p.dark, 0.042, 0.094, 0.018, 'y', 5));
-  parts.push(cbox(0.012, 0.008, 0.028, p.dark, 0.052, 0.074, 0.028)); // wing mirror block
-  parts.push(cbox(0.018, 0.006, 0.062, p.accent, 0.078, 0.030, 0)); // bumper
+// scale as lightTruck so it stays a truck, not a barn. Saturated dark
+// green so the rain veil cannot lift it back to a pale plate.
+export function commandTruck(_faction: FactionId): THREE.BufferGeometry[] {
+  const parts: THREE.BufferGeometry[] = [];
+  for (const zx of [-0.05, 0.05]) {
+    parts.push(ccyl(0.016, 0.016, 0.02, TIRE, zx, 0.016, -0.036, 'z', 8));
+    parts.push(ccyl(0.010, 0.010, 0.008, FIGURE_DARK, zx, 0.016, -0.036, 'z', 6));
+    parts.push(ccyl(0.016, 0.016, 0.02, TIRE, zx, 0.016, 0.036, 'z', 8));
+    parts.push(ccyl(0.010, 0.010, 0.008, FIGURE_DARK, zx, 0.016, 0.036, 'z', 6));
+  }
+  parts.push(cbox(0.11, 0.012, 0.068, FIGURE_DARK, 0.0, 0.022, 0));
+  parts.push(cbox(0.048, 0.038, 0.068, INF_HULL, 0.052, 0.052, 0));
+  parts.push(cbox(0.028, 0.016, 0.056, GLASS, 0.068, 0.058, 0));
+  parts.push(cbox(0.092, 0.032, 0.066, INF_CANVAS, -0.028, 0.048, 0));
+  parts.push(ccyl(0.0022, 0.0022, 0.055, FIGURE_DARK, 0.042, 0.094, 0.018, 'y', 5));
+  parts.push(cbox(0.012, 0.008, 0.028, FIGURE_DARK, 0.052, 0.074, 0.028));
+  parts.push(cbox(0.018, 0.006, 0.062, FIGURE_RIM, 0.078, 0.030, 0));
   return parts;
 }
 
