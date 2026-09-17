@@ -40,6 +40,9 @@ npm test         # 16 vitest rule tests
 node scripts/geo/build-scenario.mjs   # regenerate the scenario from geodata
 ```
 
+No GitHub Actions — local `tsc` / `npm test` / playtest only. Do not add
+`.github/workflows`.
+
 ---
 
 ## 2. The one architectural idea
