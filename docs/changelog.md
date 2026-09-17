@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.12](#0212--2026-09-17--subtractive-hud) | 2026-09-17 | Subtractive HUD | rest-state map hero, one strip, one rail, on-demand journal/clock/dossier, collapsed map modes, campaign-zoom counters |
 | [0.2.11](#0211--2026-09-16--ui-cut-6-world-anchor) | 2026-09-16 | UI cut #6 | world-anchored combat paper, bench stays through AAR, encyclopedia index, journal→map |
 | [0.2.10](#0210--2026-09-16--ui-cut-5-combat-paper-craft) | 2026-09-16 | UI cut #5 | unified combat paper, wash-not-curtain AAR, ops rail through AAR, one-ritual clock, chronology journal, pin encyclopedia |
 | [0.2.9](#029--2026-09-16--ui-cut-4-staff-furniture) | 2026-09-16 | UI cut #4 | staff-estimate briefing, ops rail, doctrine encyclopedia, analog victory clock, bound chronology |
@@ -28,6 +29,18 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.12] — 2026-09-17 · Subtractive HUD
+
+Presentation only. Rules, click-to-move, combat paper and the thin ops rail through AAR are unchanged.
+
+- **Rest state is the map.** One thin top strip (week / weather / resources). One left formations rail. No second KPI cluster: the theatre clock is a strip chip that opens the ritual on demand. The command bench, journal, dossier and encyclopedia stay off the table until asked.
+- **Bench is selection-only.** Legal-order plates mount when a formation is selected and stay through the AAR. End Week, Ops and Reserves live on the strip so the week can still be run from rest.
+- **On demand.** `J` journal, `I` / nameplate dossier, `E` encyclopedia, click the Theatre chip for the clock. The orders banner is gone whenever the bench already names the next act; it whispers only for op-target and reserve drop.
+- **Map modes demoted.** A single current-layer chip, expand to switch.
+- **Campaign-zoom read.** Larger, sharper counters, bigger MP stamp, contact shadow under the token. No new panels.
+
+The campaign, map, AI, supply and combat math are unchanged.
 
 ## [0.2.11] — 2026-09-16 · UI cut #6 — world-anchor
 

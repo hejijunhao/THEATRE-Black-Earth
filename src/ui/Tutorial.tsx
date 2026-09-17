@@ -22,7 +22,7 @@ const STEPS: StepDef[] = [
   },
   {
     title: 'Supply',
-    text: 'Open the SUPPLY map mode (bottom left). Green territory is connected to your hubs; red is cut off. Formations out of supply fight at half power and eventually wither. Return to Political mode when done.',
+    text: 'Open the map-mode chip (bottom left) and choose SUPPLY. Green territory is connected to your hubs; red is cut off. Formations out of supply fight at half power and eventually wither. Return to Political mode when done.',
   },
   {
     title: 'Combat preview',
@@ -36,12 +36,12 @@ const STEPS: StepDef[] = [
   },
   {
     title: 'Strategic operations',
-    text: 'Open Operations on the command bench. Command points buy reconnaissance sweeps, artillery preparation, close support, emergency resupply and fortification. Open the list (and pick one if you wish).',
+    text: 'Open Ops on the top strip. Command points buy reconnaissance sweeps, artillery preparation, close support, emergency resupply and fortification. Open the list (and pick one if you wish).',
     skippable: true,
   },
   {
     title: 'End the turn',
-    text: 'When your orders are placed, press END TURN. You will see the enemy act, then supply, reinforcement and recovery resolve. You will be warned about anything left undone.',
+    text: 'When your orders are placed, press END WEEK on the top strip. You will see the enemy act, then supply, reinforcement and recovery resolve. You will be warned about anything left undone.',
   },
   {
     title: 'The objective',

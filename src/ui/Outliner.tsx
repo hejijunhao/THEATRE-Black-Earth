@@ -71,7 +71,8 @@ export function Outliner() {
   const nContact = rows.filter((r) => r.kind === 'contact').length;
   const nMarch = rows.filter((r) => r.kind === 'march').length;
   const nSpent = rows.filter((r) => r.kind === 'spent').length;
-  const paperUp = Boolean(pendingAttackId || lastCombat);
+  const paperMounted = Boolean(pendingAttackId || lastCombat);
+  const selected = Boolean(selectedUnitId);
 
   const openEstimate = (unit: Unit, defenderId: string) => {
     if (lastCombat) dismissCombat();
@@ -90,7 +91,7 @@ export function Outliner() {
 
   return (
     <div
-      className={`outliner panel${paperUp ? ' rail' : ''}`}
+      className={`outliner panel${paperMounted ? ' rail' : selected ? ' selected' : ' rest'}`}
       role="navigation"
       aria-label="Formations"
     >

@@ -137,8 +137,9 @@ src/
     data/terrainData.ts  generated heightfield + land-cover fractions
 
   ui/                  ── HUD (map-table design system) ──
-    TopBar (ledger) · SidePanel (+MiniViewport) · Journal · TurnCard
-    CommandBar · Modals (briefing events) · Notifications · icons.tsx
+    TopBar (one strip) · Outliner (rail) · CommandBar (selected only)
+    Journal / VictoryClock / SidePanel on demand · TurnCard
+    Modals (briefing events) · Notifications · icons.tsx
     AIOverlay · Tutorial · MainMenu (live-map backdrop) · AssetsView (#assets)
 
   audio/audio.ts       procedural WebAudio + weather beds + map-table foley

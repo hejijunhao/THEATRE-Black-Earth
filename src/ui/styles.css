@@ -172,12 +172,12 @@ button {
   font-family: var(--font-display);
   font-weight: 600;
   letter-spacing: 0.14em;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--ink-bright);
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 18px;
+  gap: 8px;
+  padding: 0 14px;
   border-right: 1px solid var(--line);
   white-space: nowrap;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
@@ -243,11 +243,83 @@ button {
   border: none;
   border-left: 1px solid var(--line);
   color: var(--ink-dim);
-  padding: 0 16px;
-  font-size: 12px;
+  padding: 0 12px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+.top-bar .menu-btn.on {
+  color: var(--gold);
+  background: rgba(201, 163, 82, 0.08);
+}
+.top-bar .menu-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.theatre-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 100%;
+  padding: 0 12px;
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  color: var(--ink);
+  cursor: pointer;
+}
+.theatre-chip .k {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-dim);
+}
+.theatre-chip .v {
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-bright);
+}
+.theatre-chip.pressing .v { color: var(--green); }
+.theatre-chip.slipping .v { color: var(--amber); }
+.theatre-chip.breaking .v { color: var(--red); }
+.theatre-chip.holding .v { color: var(--gold); }
+.theatre-chip .chip-dec {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+.theatre-chip:hover,
+.theatre-chip.open {
+  background: rgba(201, 163, 82, 0.08);
+}
+.theatre-chip.open { color: var(--gold); }
+
+.end-turn-btn.strip {
+  height: 28px;
+  margin: 8px 8px 8px 4px;
+  padding: 0 14px;
+  min-width: 0;
+  font-size: 11px;
+}
+
+.staff-flyout {
+  position: absolute;
+  top: 48px;
+  right: 12px;
+  width: 420px;
+  z-index: 30;
+  background:
+    linear-gradient(180deg, rgba(28, 30, 34, 0.96), rgba(14, 16, 19, 0.94)),
+    var(--tex-field);
+  background-size: auto, 192px 192px;
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+}
+.staff-flyout.reserves { width: 360px; }
 
 /* Living victory clock — hanging instrument, not a ledger cell. */
 .clock-head {
@@ -317,6 +389,20 @@ button {
     0 0 0 1px rgba(201, 163, 82, 0.12);
 }
 .victory-clock.ritual { min-width: 420px; }
+.victory-clock.on-demand { z-index: 22; }
+.clock-close {
+  align-self: flex-start;
+  margin: 2px 0 0 4px;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-dim);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+}
+.clock-close:hover { color: var(--ink-bright); border-color: var(--line-strong); }
 .clock-hero {
   display: flex;
   align-items: center;
@@ -684,7 +770,11 @@ button {
   align-items: baseline;
   gap: 12px;
   min-width: 0;
+  width: 100%;
   padding: 4px 10px 5px 14px;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
   background:
     linear-gradient(180deg, rgba(44, 40, 30, 0.55), rgba(16, 16, 18, 0.7)),
     var(--tex-plate);
@@ -962,8 +1052,13 @@ button {
   bottom: 12px;
   left: 12px;
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   gap: 3px;
+  z-index: 12;
+}
+.map-modes.collapsed .map-mode-btn.current {
+  min-width: 88px;
+  opacity: 0.82;
 }
 
 .map-mode-btn {
@@ -1950,15 +2045,16 @@ button {
 
 .outliner {
   position: absolute;
-  top: 64px;
+  top: 58px;
   left: 12px;
-  bottom: 392px;
+  bottom: 56px;
   width: 214px;
   display: flex;
   flex-direction: column;
   z-index: 14;
   overflow: hidden;
 }
+.outliner.selected { bottom: 128px; }
 .outliner.rail {
   width: 96px;
   opacity: 0.88;
@@ -2179,21 +2275,25 @@ button {
 }
 .bound-journal {
   position: absolute;
-  left: 12px;
-  bottom: 148px;
+  left: 236px;
+  bottom: 16px;
   width: 286px;
-  max-height: 228px;
+  max-height: min(320px, calc(100vh - 180px));
   display: flex;
-  z-index: 13;
+  z-index: 20;
   pointer-events: auto;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
 }
+.hud-selected .bound-journal { bottom: 128px; }
 .bj-spine {
   width: 18px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  color: inherit;
   background:
     linear-gradient(90deg, #2a1c12 0 2px, #4a3424 2px, #3a2818 70%, #1e140c);
   border: 1px solid rgba(90, 70, 40, 0.6);

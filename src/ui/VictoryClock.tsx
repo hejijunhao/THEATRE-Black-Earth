@@ -1,7 +1,8 @@
-// Living victory clock — one ritual: theatre headline + decisive-city arc.
-// Support and army sit as secondary ink, not equal dials.
+// Theatre clock — on demand from the strip chip. Not a second KPI cluster
+// sitting on the map at rest.
 
 import { useStore } from '../game/state/store';
+import { showTheatreClockPanel } from './hudChrome';
 import { LEXICON } from './lexicon';
 import { theatreBalance } from './theatreBalance';
 import { Tip } from './Tip';
@@ -36,11 +37,13 @@ function TheatreArc({
 
 export function VictoryClock() {
   const game = useStore((s) => s.game);
-  if (!game) return null;
+  const showTheatreClock = useStore((s) => s.showTheatreClock);
+  const setShowTheatreClock = useStore((s) => s.setShowTheatreClock);
+  if (!game || !showTheatreClockPanel({ showTheatreClock })) return null;
   const b = theatreBalance(game);
 
   return (
-    <div className="victory-clock ritual" role="status" aria-label={`Theatre balance: ${b.headline}`}>
+    <div className="victory-clock ritual on-demand" role="dialog" aria-label={`Theatre balance: ${b.headline}`}>
       <Tip
         lexicon
         lexiconId="cities"
@@ -87,6 +90,14 @@ export function VictoryClock() {
           )}
         </div>
       </Tip>
+      <button
+        type="button"
+        className="clock-close"
+        onClick={() => setShowTheatreClock(false)}
+        aria-label="Close theatre clock"
+      >
+        Close
+      </button>
     </div>
   );
 }

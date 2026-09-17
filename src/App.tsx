@@ -7,6 +7,7 @@ import { attackableTargets as attackableTargetsForDebug, reachableTiles as reach
 import { tileWorldById } from './game/hex';
 import { useStore } from './game/state/store';
 import { cycleUnspent } from './ui/boardChrome';
+import { hudFrame } from './ui/hudChrome';
 import { LEXICON, LexiconId } from './ui/lexicon';
 import { MapScene } from './map/MapScene';
 import { AIOverlay } from './ui/AIOverlay';
@@ -121,13 +122,26 @@ function useKeyboard() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
       if (e.key === 'Escape') {
         const s = useStore.getState();
         if (s.showSettings) setShowSettings(false);
         else if (s.lastCombat) s.dismissCombat();
         else if (s.interactionMode !== 'idle' || s.pendingAttackId) cancelInteraction();
         else if (s.pinnedLexiconId) s.pinLexicon(null);
+        else if (s.showTheatreClock) s.setShowTheatreClock(false);
+        else if (s.showJournal) s.setShowJournal(false);
+        else if (s.showDossier) s.setShowDossier(false);
         else selectTile(null);
+      } else if (!typing && (e.key === 'j' || e.key === 'J')) {
+        const s = useStore.getState();
+        if (!s.game || s.showSettings) return;
+        s.toggleJournal();
+      } else if (!typing && (e.key === 'i' || e.key === 'I')) {
+        const s = useStore.getState();
+        if (!s.game || s.showSettings) return;
+        if (!s.selectedUnitId && !s.selectedTileId) return;
+        s.toggleDossier();
       } else if (e.key === 'Enter' && e.shiftKey) {
         requestEndTurn();
       } else if (e.key === 'n' || e.key === 'N') {
@@ -259,6 +273,19 @@ function useDebugHook() {
 
 export default function App() {
   const screen = useStore((s) => s.screen);
+  const selectedUnitId = useStore((s) => s.selectedUnitId);
+  const pendingAttackId = useStore((s) => s.pendingAttackId);
+  const lastCombat = useStore((s) => s.lastCombat);
+  const frame = hudFrame({
+    selectedUnitId,
+    showJournal: false,
+    showDossier: false,
+    showTheatreClock: false,
+    pinnedLexiconId: null,
+    pendingAttackId,
+    lastCombat,
+    interactionMode: 'idle',
+  });
   useAIDriver();
   useAudioWiring();
   useKeyboard();
@@ -283,7 +310,7 @@ export default function App() {
   return (
     <div className="app-root">
       <MapScene />
-      <div className="hud">
+      <div className={`hud hud-${frame}`}>
         <TopBar />
         <VictoryClock />
         <Outliner />

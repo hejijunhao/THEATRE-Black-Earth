@@ -39,7 +39,7 @@ No backend, accounts or external services. Saves live in `localStorage`.
 2. Click a friendly formation — movement range highlights.
 3. Click a highlighted hex to **move**, or an adjacent enemy (or the Assault plate) to open the **briefing**.
 4. Confirm the roll. Each side rolls **2d6**. Read the after-action **dispatch** (Esc to dismiss). Counters show remaining movement; spent plates dim.
-5. **End week** (`Shift+Enter` or the command bench). Watch the enemy act, then the week resolves.
+5. **End week** (`Shift+Enter` or **End Week** on the top strip). Watch the enemy act, then the week resolves. Journal `J`, dossier `I`, encyclopedia `E`.
 6. The campaign ends on decisive objectives, war-support collapse, army destruction, or turn 36.
 
 Browser smokes (need a local Chrome/Chromium; playtest/golden hardcode port **5199**):

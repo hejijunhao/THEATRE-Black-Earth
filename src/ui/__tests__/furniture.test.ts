@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { buildInitialState } from '../../game/scenarios/build';
 import { cycleUnspent, formationLane } from '../boardChrome';
+import {
+  hudFrame,
+  showCommandBench,
+  showDossierPanel,
+  showJournalPanel,
+  showOrdersHint,
+  showTheatreClockPanel,
+} from '../hudChrome';
 import { rankReasons, reasonCopy, reasonWeight } from '../briefingCopy';
 import { paperDock, paperLayoutFromScreen, SHEET_GAP } from '../paperLayout';
 import { chronologyTile } from '../journalChronology';
@@ -67,6 +75,56 @@ describe('combat paper dock', () => {
     expect(eastHex.side).toBe('west');
     expect(eastHex.left + eastHex.width).toBeLessThan(1180 - SHEET_GAP + 1);
     expect(eastHex.callout.x2).toBe(eastHex.left + eastHex.width);
+  });
+});
+
+describe('subtractive HUD gate', () => {
+  const rest = {
+    selectedUnitId: null,
+    showJournal: false,
+    showDossier: false,
+    showTheatreClock: false,
+    pinnedLexiconId: null,
+    pendingAttackId: null,
+    lastCombat: null,
+    interactionMode: 'idle' as const,
+  };
+
+  it('keeps the map empty of furniture at rest', () => {
+    expect(hudFrame(rest)).toBe('rest');
+    expect(showCommandBench(rest)).toBe(false);
+    expect(showJournalPanel(rest)).toBe(false);
+    expect(showDossierPanel(rest)).toBe(false);
+    expect(showOrdersHint(rest)).toBe(false);
+    expect(showTheatreClockPanel(rest)).toBe(false);
+  });
+
+  it('mounts the bench only for a selected formation, not the orders banner', () => {
+    const selected = { ...rest, selectedUnitId: 'u3' };
+    expect(hudFrame(selected)).toBe('selected');
+    expect(showCommandBench(selected)).toBe(true);
+    expect(showOrdersHint(selected)).toBe(false);
+    expect(showDossierPanel(selected)).toBe(false);
+  });
+
+  it('opens journal, dossier and clock only on demand', () => {
+    expect(showJournalPanel({ ...rest, showJournal: true })).toBe(true);
+    expect(showDossierPanel({ ...rest, showDossier: true })).toBe(true);
+    expect(showTheatreClockPanel({ showTheatreClock: true })).toBe(true);
+    expect(showDossierPanel({ ...rest, pinnedLexiconId: 'cities' })).toBe(true);
+  });
+
+  it('keeps the bench through AAR and hides the journal', () => {
+    const aar = { ...rest, selectedUnitId: 'u3', lastCombat: { kind: 'assault' } };
+    expect(hudFrame(aar)).toBe('paper');
+    expect(showCommandBench(aar)).toBe(true);
+    expect(showJournalPanel({ ...aar, showJournal: true })).toBe(false);
+    expect(showOrdersHint(aar)).toBe(false);
+  });
+
+  it('whispers only when targeting an op or reserve drop', () => {
+    expect(showOrdersHint({ ...rest, interactionMode: 'op-target' })).toBe(true);
+    expect(showOrdersHint({ ...rest, interactionMode: 'deploy' })).toBe(true);
   });
 });
 

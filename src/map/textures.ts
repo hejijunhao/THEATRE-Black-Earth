@@ -268,12 +268,12 @@ export function makeCounterTexture(spec: CounterSpec): THREE.CanvasTexture {
       ctx.fillText('!', 28, spec.reinforcing ? 150 : 128);
     }
     if (hasStamp) {
-      drawMpStamp(ctx, 228, 22, 78, 108, spec.movement!, Boolean(spec.spent), Boolean(spec.hasAttacked));
+      drawMpStamp(ctx, 220, 16, 90, 120, spec.movement!, Boolean(spec.spent), Boolean(spec.hasAttacked));
     }
   }
 
   const texture = new THREE.CanvasTexture(canvas);
-  texture.anisotropy = 4;
+  texture.anisotropy = 8;
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
 }
@@ -390,7 +390,7 @@ export function makeStandardTexture(spec: StandardSpec): THREE.CanvasTexture {
   }
 
   const texture = new THREE.CanvasTexture(canvas);
-  texture.anisotropy = 4;
+  texture.anisotropy = 8;
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
 }
