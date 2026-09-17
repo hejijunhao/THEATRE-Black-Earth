@@ -102,6 +102,7 @@ function ReachSeam({
         transparent
         opacity={opacity}
         depthWrite={false}
+        depthTest={false}
         polygonOffset
         polygonOffsetFactor={-1}
         polygonOffsetUnits={-1}
@@ -200,12 +201,13 @@ export function Overlays() {
           if (r.opacity <= 0.004 || r.kind === 'zoc') return null;
           const { wx, wz } = tileWorldById(r.id);
           return (
-            <mesh key={`reach-${r.id}`} geometry={fill} position={[wx, tileY(tiles, r.id), wz]} raycast={() => null}>
+            <mesh key={`reach-${r.id}`} geometry={fill} position={[wx, tileY(tiles, r.id) + 0.02, wz]} raycast={() => null}>
               <meshBasicMaterial
                 color={r.kind === 'enemy' ? REACH_FILL.enemy : REACH_FILL.open}
                 transparent
                 opacity={r.opacity}
                 depthWrite={false}
+                depthTest={false}
               />
             </mesh>
           );
