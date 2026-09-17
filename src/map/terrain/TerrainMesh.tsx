@@ -104,9 +104,9 @@ export function TerrainMesh() {
       roughness: 0.90,
       metalness: 0.02,
       // Quiet soil keep-alive — midground must still show strips, not a
-      // khaki flood. Atmosphere / lights stay locked on other tips.
-      emissive: new THREE.Color('#534836'),
-      emissiveIntensity: 0.08,
+      // mustard flood. Atmosphere / lights stay locked on other tips.
+      emissive: new THREE.Color('#3c2e1c'),
+      emissiveIntensity: 0.055,
     });
     mat.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, uniforms);
@@ -202,15 +202,19 @@ export function TerrainMesh() {
               float shade = smoothstep(0.52, 0.78, cl) * uCloud * (1.0 - uPaper);
               ground *= 1.0 - shade * 0.10;
             }
-            // Far-north keep only. A wide keep washed the scar into one
-            // loess swatch — the quiet khaki slab. Midground is left alone.
+            // Far-north keep only. A midground luma floor was the ochre
+            // plate — it lifted crushed chernozem back to umber wash.
             float northLat = 1.0 - clamp(wp.y / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
-            vec3 soilKeep = vec3(0.74, 0.58, 0.34);
-            float keep = smoothstep(0.70, 0.92, northLat);
-            ground = mix(ground, mix(max(ground, soilKeep), soilKeep, 0.5), keep * 0.32);
+            vec3 soilKeep = vec3(0.55, 0.40, 0.22);
+            float keep = smoothstep(0.68, 0.94, northLat);
+            ground = mix(ground, mix(max(ground, soilKeep), soilKeep, 0.55), keep * 0.44);
             float luma = dot(ground, vec3(0.2126, 0.7152, 0.0722));
-            float floorL = 0.20 + 0.10 * keep;
-            if (luma < floorL) ground *= floorL / max(luma, 0.001);
+            float floorL = 0.07 + 0.27 * keep;
+            if (keep > 0.001 && luma < floorL) {
+              vec3 lifted = mix(ground, soilKeep, 0.45);
+              float luma2 = dot(lifted, vec3(0.2126, 0.7152, 0.0722));
+              ground = luma2 < floorL ? lifted * (floorL / max(luma2, 0.001)) : lifted;
+            }
             uSoilGround = ground;
             diffuseColor.rgb = ground;
           }`,
@@ -219,22 +223,20 @@ export function TerrainMesh() {
           '#include <emissivemap_fragment>',
           `#include <emissivemap_fragment>
           float northEmit = 1.0 - clamp(vWorldPos3.z / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
-          totalEmissiveRadiance += uSoilGround * (0.02 + 0.18 * smoothstep(0.72, 0.96, northEmit));`,
+          totalEmissiveRadiance += uSoilGround * (0.03 + 0.26 * smoothstep(0.70, 0.96, northEmit));`,
         )
         .replace(
           '#include <opaque_fragment>',
           `{
-            // Lit-path floor — albedo floors die under rain lighting + AO.
-            // Valleys (low world Y) and far north cannot collapse to charcoal
-            // after the light accumulation.
+            // Lit-path floor — far-north only. A valley floor lifted the
+            // scar back to one ochre plate after the albedo crush.
             float northLit = 1.0 - clamp(vWorldPos3.z / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
-            float valley = 1.0 - smoothstep(0.16, 0.58, vWorldPos3.y);
-            float keepLit = max(smoothstep(0.68, 0.94, northLit), valley * 0.8);
+            float keepLit = smoothstep(0.68, 0.94, northLit);
             float litL = dot(outgoingLight, vec3(0.2126, 0.7152, 0.0722));
-            float floorLit = 0.15 + 0.16 * keepLit;
-            if (litL < floorLit) outgoingLight *= floorLit / max(litL, 0.001);
-            vec3 soilLit = vec3(0.44, 0.36, 0.22);
-            outgoingLight = mix(outgoingLight, max(outgoingLight, soilLit), keepLit * 0.10);
+            float floorLit = 0.08 + 0.24 * keepLit;
+            if (keepLit > 0.001 && litL < floorLit) outgoingLight *= floorLit / max(litL, 0.001);
+            vec3 soilLit = vec3(0.50, 0.36, 0.18);
+            outgoingLight = mix(outgoingLight, max(outgoingLight, soilLit), keepLit * 0.16);
           }
           #include <opaque_fragment>`,
         );

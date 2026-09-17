@@ -37,12 +37,12 @@ Target: thin strip, flag left, icon+number resource chips, week/weather chip, se
 
 Target: Vic 3 / HOI4 peacetime collapse — **map-primary at rest**. Next-unspent is a chip; the sector week-runner mounts on select or explicit open. Combat paper keeps the thin rail. Live Paradox screenshots still TODO; notes record the honest delta.
 
-## Ground albedo (tipped)
+## Ground albedo (retipped)
 
 Target: Vic 3 / HOI4 **terrain** soil — cadastral quiet earth, not
-political-map colour and not a painted khaki slab. Strip/parcel language
-from 0.2.18 stays. Live Paradox shots still TODO; notes record the honest
-delta.
+political-map colour and not a mustard ochre plate. Strip/parcel language
+from 0.2.18 stays. 0.2.28 darkens midground and warms the far-north keep.
+Live Paradox shots still TODO; notes record the honest delta.
 
 ## Combat paper (seeded, notes)
 
