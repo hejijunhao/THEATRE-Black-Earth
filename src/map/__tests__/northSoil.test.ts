@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { HERO_PAINT } from '../../assets/heroParts';
 import { WORLD_H } from '../data/terrainData';
+import { FOREST_NORTH, FOREST_SOUTH, forestStemCount, northForestWeight } from '../forestPaint';
 import { WEATHER_ENV } from '../palette';
+import { WEATHER_GRADE } from '../postfx/Grade';
+import { RAIN_AO, RAIN_VIGNETTE } from '../postfx/rainStack';
 import { applySoilContinuity, KHAKI_FIELD, northSoilLift } from '../terrain/albedo';
 
 function luma(c: { r: number; g: number; b: number }): number {
@@ -49,5 +53,39 @@ describe('rain air is warm khaki, not a charcoal veil', () => {
     expect(fog.g).toBeGreaterThan(fog.b * 0.95);
     expect(rain.ambient).toBeGreaterThan(0.75);
     expect(rain.sun).toBeGreaterThan(1.1);
+  });
+
+  it('refuses rain AO/vignette values that crush the north into charcoal', () => {
+    expect(RAIN_AO.intensity).toBeLessThan(0.32);
+    const ao = hexRgb(RAIN_AO.color);
+    expect(luma(ao)).toBeGreaterThan(110);
+    expect(ao.r).toBeGreaterThan(ao.b);
+    expect(RAIN_VIGNETTE.darkness).toBeLessThan(0.02);
+    expect(RAIN_VIGNETTE.offset).toBeGreaterThan(0.75);
+    expect(WEATHER_GRADE.rain.veil).toBe(1);
+    expect(WEATHER_GRADE.rain.lift).toBeGreaterThan(0.035);
+  });
+});
+
+describe('north forest instances cannot become a charcoal band', () => {
+  it('thins and lightens stems on the far north', () => {
+    expect(northForestWeight(WORLD_H * 0.08, WORLD_H)).toBeGreaterThan(0.7);
+    expect(northForestWeight(WORLD_H * 0.6, WORLD_H)).toBeLessThan(0.25);
+    const north = forestStemCount(true, 0.8, WORLD_H * 0.08, 3, WORLD_H);
+    const mid = forestStemCount(true, 0.8, WORLD_H * 0.6, 3, WORLD_H);
+    expect(north).toBeLessThan(mid);
+    expect(luma(hexRgb(FOREST_NORTH))).toBeGreaterThan(luma(hexRgb(FOREST_SOUTH)));
+    expect(luma(hexRgb(FOREST_NORTH))).toBeGreaterThan(130);
+  });
+});
+
+describe('machine paint silhouettes on khaki', () => {
+  it('keeps a dark hull and a light top against the field', () => {
+    for (const side of ['UA', 'RU'] as const) {
+      const p = HERO_PAINT[side];
+      expect(luma(hexRgb(p.dark))).toBeLessThan(50);
+      expect(luma(hexRgb(p.light))).toBeGreaterThan(160);
+      expect(luma(hexRgb(p.light)) - luma(hexRgb(p.dark))).toBeGreaterThan(110);
+    }
   });
 });

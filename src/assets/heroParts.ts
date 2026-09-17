@@ -17,8 +17,9 @@ export const HERO_SCALE = 0.026;
 // production line, not four art styles.
 export const HERO_PAINT: Record<'UA' | 'RU', { base: string; dark: string; light: string }> = {
   // Value split against khaki soil: dark hull, lighter top plates.
-  UA: { base: '#4a5242', dark: '#2e342c', light: '#7a8466' },
-  RU: { base: '#4c4838', dark: '#302c24', light: '#7c7460' },
+  // Mid-zoom fail is a khaki blob — hull must sit under the field, top above it.
+  UA: { base: '#2a3026', dark: '#141610', light: '#d4d09a' },
+  RU: { base: '#2e2a20', dark: '#16140e', light: '#d8c89a' },
 };
 
 export interface HeroMatSet {
@@ -192,9 +193,10 @@ export function makeHeroMaterial(): THREE.MeshStandardMaterial {
     vertexColors: true,
     roughness: 1.0,
     metalness: 1.0,
-    // Mid-zoom must still silhouette under flat rain light.
-    emissive: new THREE.Color('#6a5c40'),
-    emissiveIntensity: 0.62,
+    // Flat flood wash erased the hull/top split. Keep-alive is dim;
+    // the shader adds light only on up-facing plates.
+    emissive: new THREE.Color('#1c1810'),
+    emissiveIntensity: 0.16,
   });
   mat.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader
@@ -269,7 +271,12 @@ export function makeHeroMaterial(): THREE.MeshStandardMaterial {
         float vertMask = 1.0 - smoothstep(0.25, 0.5, abs(vNrmObj.y));
         float streak = heroNoise(vec3(pM.x * 7.0, pM.y * 0.9, pM.z * 7.0));
         streak = smoothstep(0.55, 0.9, streak) * vertMask;
-        diffuseColor.rgb *= 1.0 - streak * 0.13;`,
+        diffuseColor.rgb *= 1.0 - streak * 0.13;
+        // Dark hull / light top — the boot-height silhouette on khaki.
+        float upFace = clamp(vNrmObj.y, 0.0, 1.0);
+        vec3 hullDark = vec3(0.10, 0.09, 0.07);
+        vec3 topLight = vec3(0.62, 0.58, 0.40);
+        diffuseColor.rgb = mix(mix(hullDark, diffuseColor.rgb, 0.62), mix(diffuseColor.rgb, topLight, 0.55), upFace);`,
       )
       .replace(
         '#include <normal_fragment_begin>',
@@ -291,6 +298,11 @@ export function makeHeroMaterial(): THREE.MeshStandardMaterial {
         '#include <metalnessmap_fragment>',
         `float metalnessFactor = clamp(
           vMat.y * (1.0 - dust * 0.7) + wearN * 0.3, 0.0, 1.0);`,
+      )
+      .replace(
+        '#include <emissivemap_fragment>',
+        `#include <emissivemap_fragment>
+        totalEmissiveRadiance += vec3(0.46, 0.42, 0.26) * pow(max(vNrmObj.y, 0.0), 1.35) * 0.95;`,
       );
   };
   return mat;

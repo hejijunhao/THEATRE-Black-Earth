@@ -2,13 +2,18 @@
 // markers, city label sprites and fortification rings. Everything is
 // deterministic from tile coordinates (no per-frame randomness).
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { hashSeed } from '../game/rng';
 import { useStore } from '../game/state/store';
 import { tileWorld, tileWorldById } from '../game/hex';
+import {
+  FOREST_EMIT_SOUTH, FOREST_NORTH, FOREST_SNOW, FOREST_SOUTH,
+  forestStemCount, forestStemScale, northForestWeight,
+} from './forestPaint';
 import { makeLabelTexture } from './textures';
 import { groundY, hexFracs, tileGroundY } from './terrain/heightfield';
+import { WORLD_H } from './worldDims';
 
 function jitter(x: number, y: number, salt: number): number {
   return ((hashSeed(`${x}:${y}:${salt}`) % 1000) / 1000 - 0.5);
@@ -29,12 +34,13 @@ export function Forests() {
       // partial cover reads as woodland rather than as albedo darkening.
       if (!isForest && (frac < 0.14 || tile.terrain === 'water')) continue;
       const { wx, wz } = tileWorld(tile.x, tile.y);
-      // Density follows the geodata forest fraction for this hex.
-      const n = isForest ? 2 + Math.round(frac * 6) + (hashSeed(tile.id) % 2) : 1 + (hashSeed(tile.id) % 2);
+      // Density follows the geodata forest fraction, thinned on the far
+      // north so rain AO cannot pile a charcoal band on the horizon.
+      const n = forestStemCount(isForest, frac, wz, hashSeed(tile.id), WORLD_H);
       for (let k = 0; k < n; k++) {
         const dx = jitter(tile.x, tile.y, k * 3 + 1) * 1.15;
         const dz = jitter(tile.x, tile.y, k * 3 + 2) * 1.05;
-        const s = 0.75 + (jitter(tile.x, tile.y, k * 3 + 3) + 0.5) * 0.6;
+        const s = forestStemScale(0.75 + (jitter(tile.x, tile.y, k * 3 + 3) + 0.5) * 0.6, wz, WORLD_H);
         const gy = groundY(wx + dx, wz + dz);
         const m = new THREE.Matrix4()
           .makeScale(s, s, s)
@@ -45,27 +51,36 @@ export function Forests() {
     return { geometry, count: matrices.length, matrices };
   }, [game?.scenario.id]);
 
-  const meshRef = useMemo(() => ({ current: null as THREE.InstancedMesh | null }), []);
+  const meshRef = useRef<THREE.InstancedMesh | null>(null);
+
+  useEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh || count === 0) return;
+    const col = new THREE.Color();
+    matrices.forEach((m, i) => {
+      mesh.setMatrixAt(i, m);
+      const wz = m.elements[14];
+      const north = northForestWeight(wz, WORLD_H);
+      if (snow) col.set(FOREST_SNOW);
+      else col.set(FOREST_SOUTH).lerp(new THREE.Color(FOREST_NORTH), north);
+      mesh.setColorAt(i, col);
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  }, [matrices, count, snow]);
 
   if (!geometry || count === 0) return null;
   return (
     <instancedMesh
       args={[geometry, undefined, count]}
-      ref={(mesh) => {
-        if (mesh && meshRef.current !== mesh) {
-          meshRef.current = mesh;
-          matrices.forEach((m, i) => mesh.setMatrixAt(i, m));
-          mesh.instanceMatrix.needsUpdate = true;
-        }
-      }}
-      castShadow
+      ref={meshRef}
     >
       <meshStandardMaterial
-        color={snow ? '#6d7b68' : '#627048'}
-        roughness={0.88}
+        color="#ffffff"
+        roughness={0.9}
         flatShading
-        emissive={snow ? '#3a4438' : '#4a5434'}
-        emissiveIntensity={0.22}
+        emissive={snow ? FOREST_SNOW : FOREST_EMIT_SOUTH}
+        emissiveIntensity={snow ? 0.18 : 0.34}
       />
     </instancedMesh>
   );

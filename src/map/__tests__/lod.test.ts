@@ -17,10 +17,12 @@ import {
   PLATE_MAX_W,
   SELECT_RING_OUT,
   STANDARD_H,
+  STANDARD_HIDE_Y,
   STANDARD_W,
   bootCamera,
   plateFitsHex,
   selectFitsHex,
+  standardOpacityAtHeight,
 } from '../lod';
 
 describe('campaign LOD gate', () => {
@@ -33,6 +35,7 @@ describe('campaign LOD gate', () => {
     expect(MINI_BASE_W * MINI_SCALE).toBeLessThan(HEX_W);
     expect(MINI_BASE_D * MINI_SCALE).toBeLessThan(HEX_H);
     // Machines grow inside the hex; plates do not.
+    expect(MACHINE_SCALE).toBeGreaterThan(1.5);
     expect(MACHINE_SCALE).toBeGreaterThan(MINI_SCALE);
     expect(MINI_BASE_W * MACHINE_SCALE).toBeLessThan(HEX_W);
     expect(MINI_BASE_D * MACHINE_SCALE).toBeLessThan(HEX_H);
@@ -70,5 +73,13 @@ describe('boot camera gate', () => {
     expect(dist).toBeLessThan(14.5);
     expect(dist).toBeGreaterThan(10);
     expect(BOOT_CAM.dz).toBeLessThan(8);
+  });
+
+  it('drops the standard billboard at boot so hulls are not plated over', () => {
+    expect(STANDARD_HIDE_Y).toBeGreaterThan(BOOT_CAM.y);
+    expect(standardOpacityAtHeight(BOOT_CAM.y)).toBe(0);
+    expect(standardOpacityAtHeight(10.4)).toBe(0);
+    expect(standardOpacityAtHeight(13.2)).toBe(0);
+    expect(standardOpacityAtHeight(24)).toBe(1);
   });
 });

@@ -42,6 +42,7 @@ import {
   SELECT_RING_OUT,
   STANDARD_H,
   STANDARD_W,
+  standardOpacityAtHeight,
 } from './lod';
 
 // Global crossfade state (0 = miniatures, 1 = counters), shared by every
@@ -123,8 +124,9 @@ const MINI_MATERIAL = new THREE.MeshStandardMaterial({
   roughness: 0.68,
   metalness: 0.1,
   transparent: true,
-  emissive: '#5a4e38',
-  emissiveIntensity: 0.62,
+  // Flat flood wash killed the dark-hull / light-top split.
+  emissive: '#2a2418',
+  emissiveIntensity: 0.18,
 });
 
 function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boolean; chrome: BoardChrome }) {
@@ -192,7 +194,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
     }
   }, [wx, wz, y]);
 
-  useFrame(({ clock }, delta) => {
+  useFrame(({ camera, clock }, delta) => {
     const g = groupRef.current;
     if (!g) return;
     if (g.position.distanceTo(target.current) > 0.002) {
@@ -202,7 +204,14 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
     const vis = (1 - fadeState.value) * (chrome.spent ? 0.78 : 1);
     g.visible = vis > 0.02;
     if (baseMatRef.current) baseMatRef.current.opacity = vis;
-    if (stdMatRef.current) stdMatRef.current.opacity = vis;
+    // The NATO standard is a plate. At boot height it sits on the hull
+    // and the mid-zoom read collapses to "plates only". Drop it while
+    // the machines are the LOD.
+    const stdVis = vis * standardOpacityAtHeight(camera.position.y);
+    if (stdMatRef.current) {
+      stdMatRef.current.opacity = stdVis;
+      stdMatRef.current.visible = stdVis > 0.04;
+    }
     // Isolated: slow red pulse on the base ring.
     if (pulseRef.current) {
       const m = pulseRef.current.material as THREE.MeshBasicMaterial;

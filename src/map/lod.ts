@@ -15,12 +15,22 @@ export const COUNTER_BASE_D = 0.50;
 
 export const STANDARD_W = 1.06;
 export const STANDARD_H = 0.31;
+/** Standard billboard hides the hull at boot. Fade it in only near campaign zoom. */
+export const STANDARD_HIDE_Y = 15.5;
+export const STANDARD_SHOW_Y = 22;
 
 export const MINI_BASE_W = 0.86;
 export const MINI_BASE_D = 0.60;
 export const MINI_SCALE = 1.18;
 /** Vehicle group only — plates stay at MINI_BASE_*. Must still fit the hex. */
-export const MACHINE_SCALE = 1.34;
+export const MACHINE_SCALE = 1.72;
+
+export function standardOpacityAtHeight(cameraY: number): number {
+  if (cameraY <= STANDARD_HIDE_Y) return 0;
+  if (cameraY >= STANDARD_SHOW_Y) return 1;
+  const t = (cameraY - STANDARD_HIDE_Y) / (STANDARD_SHOW_Y - STANDARD_HIDE_Y);
+  return t * t * (3 - 2 * t);
+}
 
 /** Select is a ground annulus, never a camera-facing parchment card. */
 export const SELECT_RING_IN = 0.48;
