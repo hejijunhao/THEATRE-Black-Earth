@@ -220,20 +220,6 @@ export const useStore = create<StoreState>((set, get) => {
         set({ selectedTileId: null, selectedUnitId: null, interactionMode: 'idle', pendingAttackId: null });
         return;
       }
-      // A highlighted legal march hex is an order, not a deselect. Must run
-      // before the empty-hex fallthrough or clicking a reach wash does nothing
-      // (or drops the selection).
-      const selectedId = get().selectedUnitId;
-      if (selectedId && game.phase === 'player') {
-        const selected = game.units[selectedId];
-        if (selected && selected.faction === game.playerFaction && selected.movement > 0) {
-          const occupant = unitOnTile(game, tile);
-          if (!occupant && reachableTiles(game, selected).has(tile)) {
-            get().orderMove(tile);
-            return;
-          }
-        }
-      }
       const unit = unitOnTile(game, tile);
       if (unit && unit.faction === game.playerFaction && game.phase === 'player') {
         set({ selectedUnitId: unit.id, selectedTileId: tile, interactionMode: 'idle', pendingAttackId: null });
@@ -246,6 +232,15 @@ export const useStore = create<StoreState>((set, get) => {
         const attacker = game.units[selectedUnitId];
         if (attacker && attackableTargets(game, attacker).some((t) => t.id === unit.id)) {
           set({ pendingAttackId: unit.id, selectedTileId: tile });
+          return;
+        }
+      }
+      // Highlighted legal march hex → order. Must run before the empty-hex
+      // fallthrough or the reach wash is a no-op (or drops the selection).
+      if (!unit && selectedUnitId && game.phase === 'player') {
+        const mover = game.units[selectedUnitId];
+        if (mover && mover.faction === game.playerFaction && reachableTiles(game, mover).has(tile)) {
+          get().orderMove(tile);
           return;
         }
       }

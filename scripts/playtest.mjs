@@ -103,26 +103,47 @@ if (!outliner || !/contact/i.test(outliner)) {
 }
 
 if (hasHook) {
-  // Hex-click path: the pick plane calls selectTile, not orderMove.
-  const marched = await page.evaluate(() => {
+  // Hex-click path: pick plane → selectTile, not the debug move() hook.
+  await page.evaluate(() => {
     const hook = window.__TBE_DEBUG__;
     hook.selectUnit('u1');
-    const dests = hook.reachable();
-    if (!dests.length) return { ok: false, reason: 'no reachable hex' };
-    const before = hook.units().find((u) => u.id === 'u1');
-    hook.selectTile(dests[0]);
-    const after = hook.units().find((u) => u.id === 'u1');
-    return {
-      ok: Boolean(after && before && after.tile === dests[0] && after.tile !== before.tile),
-      from: before?.tile,
-      to: after?.tile,
-      dest: dests[0],
-    };
+    const unit = hook.units().find((u) => u.id === 'u1');
+    if (unit) hook.focusCamera(unit.tile);
   });
-  console.log('hex-click march:', JSON.stringify(marched));
-  if (!marched?.ok) {
-    console.error('FAIL: selectTile on a highlighted hex did not move the unit');
+  await sleep(500);
+  const clickPt = await page.evaluate(() => {
+    const hook = window.__TBE_DEBUG__;
+    const cam = window.__TBE_CAMERA__;
+    const dests = hook.reachable();
+    if (!dests.length || !cam) return null;
+    const mid = { x: 800, y: 500 };
+    let best = null;
+    for (const dest of dests) {
+      const pt = cam.projectTile(dest);
+      if (!pt || !pt.visible) continue;
+      if (pt.y < 80 || pt.y > 820 || pt.x < 240 || pt.x > 1280) continue;
+      const dist = Math.hypot(pt.x - mid.x, pt.y - mid.y);
+      if (!best || dist < best.dist) best = { x: pt.x, y: pt.y, dest, dist };
+    }
+    return best;
+  });
+  console.log('hex-click target:', JSON.stringify(clickPt));
+  if (!clickPt) {
+    console.error('FAIL: no on-screen reachable hex to click');
     process.exitCode = 1;
+  } else {
+    const beforeTile = await page.evaluate(() =>
+      window.__TBE_DEBUG__.units().find((u) => u.id === 'u1')?.tile);
+    await page.mouse.click(clickPt.x, clickPt.y);
+    await sleep(400);
+    const afterTile = await page.evaluate(() =>
+      window.__TBE_DEBUG__.units().find((u) => u.id === 'u1')?.tile);
+    const marched = { ok: afterTile === clickPt.dest && afterTile !== beforeTile, from: beforeTile, to: afterTile, dest: clickPt.dest };
+    console.log('hex-click march:', JSON.stringify(marched));
+    if (!marched.ok) {
+      console.error('FAIL: clicking a highlighted hex did not move the unit');
+      process.exitCode = 1;
+    }
   }
   await page.evaluate(() => window.__TBE_DEBUG__.selectUnit('u3'));
 

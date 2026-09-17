@@ -52,4 +52,24 @@ describe('selectTile issues a march', () => {
     expect(after.game!.units.u1.tile).toBe(unit.tile);
     expect(after.game!.units.u1.movement).toBe(unit.movement);
   });
+
+  it('opens the attack preview when clicking an adjacent enemy', () => {
+    const origin = useStore.getState().game!.units.u3.tile;
+    useStore.getState().selectUnit('u3');
+    useStore.getState().selectTile(useStore.getState().game!.units.r1.tile);
+
+    const after = useStore.getState();
+    expect(after.pendingAttackId).toBe('r1');
+    expect(after.game!.units.u3.tile).toBe(origin);
+  });
+
+  it('selects another friendly formation instead of moving onto it', () => {
+    useStore.getState().selectUnit('u1');
+    const other = useStore.getState().game!.units.u2;
+    useStore.getState().selectTile(other.tile);
+
+    const after = useStore.getState();
+    expect(after.selectedUnitId).toBe('u2');
+    expect(after.game!.units.u1.tile).not.toBe(other.tile);
+  });
 });
