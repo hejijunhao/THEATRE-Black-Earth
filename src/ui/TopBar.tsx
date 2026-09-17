@@ -1,15 +1,21 @@
-// One thin instrument: week / weather, a theatre pulse, one depot.
-// Staff verbs live here so the bench can leave the table at rest.
-// Not a SaaS ledger — no Manpower / Equipment / Command delta chips.
+// Vic3-thin play header: faction mark, one week/weather chip, icon+number
+// resources, staff icons, settings right. No product wordmark banner.
+// Staff verbs stay here so the bench can leave the table at rest.
 
 import { useState } from 'react';
-import { OPERATION_DEFS, UNIT_DEFS, WEATHER_DEFS } from '../game/data/defs';
+import { OPERATION_DEFS, UNIT_DEFS } from '../game/data/defs';
 import { canUseOperation } from '../game/rules/ops';
 import { useStore } from '../game/state/store';
-import { formatTurnDate } from '../game/rules/weather';
 import { OperationId } from '../game/types';
 import { paperUp } from './hudChrome';
 import { Ico } from './icons';
+import {
+  factionMark,
+  resourceChipNow,
+  resourceChips,
+  weekChipNow,
+  weekWeatherChip,
+} from './playHeader';
 import { theatreBalance } from './theatreBalance';
 import { LexiconTip, Tip } from './Tip';
 
@@ -57,44 +63,35 @@ export function TopBar() {
   if (!game) return null;
 
   const f = game.factions[game.playerFaction];
-  const weather = WEATHER_DEFS[game.weather];
+  const mark = factionMark(game.playerFaction);
+  const week = weekWeatherChip(game);
+  const stocks = resourceChips(game);
   const b = theatreBalance(game);
   const playerTurn = game.phase === 'player';
   const paper = paperUp({ pendingAttackId, lastCombat });
   const canInspect = Boolean(selectedUnitId || selectedTileId);
-  const phaseLabel = game.phase === 'player' ? 'Your week' : game.phase === 'ai' ? 'Enemy week' : 'Ended';
 
   const shutStaff = () => closeStaff(setShowOps, setShowReserves, setShowDepot);
+  const toggleDepot = () => {
+    setShowDepot(!showDepot);
+    setShowOps(false);
+    setShowReserves(false);
+  };
 
   return (
-    <div className="top-bar instrument">
-      <div className="brand">THEATRE</div>
-
-      <LexiconTip
-        id="weather"
-        now={`Week ${game.turn} of ${game.scenario.maxTurns} · ${weather.label} · ${formatTurnDate(game)}.`}
-      >
-        <div className="week-read">
-          <span className={`phase-mark ${game.phase}`}>{phaseLabel}</span>
-          <span className="week-num">Week {game.turn}</span>
-          <span className="week-of">/{game.scenario.maxTurns}</span>
-          <span className="week-rule" aria-hidden />
-          <span className="week-wx">{weather.label}</span>
-          <span className="week-date">{formatTurnDate(game)}</span>
-        </div>
-      </LexiconTip>
-
+    <div className="top-bar vic3-thin">
       <button
         type="button"
-        className={`theatre-pulse ${b.headline.toLowerCase()}${showTheatreClock ? ' open' : ''}`}
+        className={`hdr-chip hdr-faction ${mark.code}${showTheatreClock ? ' open' : ''}`}
         onClick={() => {
           shutStaff();
           toggleTheatreClock();
         }}
         aria-expanded={showTheatreClock}
-        aria-label={`Theatre: ${b.headline}`}
+        aria-label={`${mark.name}. Theatre: ${b.headline}`}
       >
-        <span className="pulse-word">{b.headline}</span>
+        <span className={`faction-mark ${mark.code}`} aria-hidden />
+        <span className="faction-code">{mark.code}</span>
         <span className="pulse-beads" aria-hidden>
           {b.decisiveCities.map((c) => (
             <i key={c.id} className={c.held ? 'held' : 'lost'} title={c.name} />
@@ -102,77 +99,110 @@ export function TopBar() {
         </span>
       </button>
 
-      <button
-        type="button"
-        className={`depot-chip${showDepot ? ' open' : ''}`}
-        onClick={() => {
-          setShowDepot(!showDepot);
-          setShowOps(false);
-          setShowReserves(false);
-        }}
-        aria-expanded={showDepot}
-        title="Depot — manpower, equipment, command"
-      >
-        <Ico name="depot" size={13} />
-        <span>Depot</span>
-      </button>
+      <LexiconTip id="weather" now={weekChipNow(week)}>
+        <div className="hdr-chip week-chip">
+          <Ico name={week.weatherId} size={12} />
+          <span className="week-num">W{week.week}</span>
+          <span className="week-wx">{week.weatherLabel}</span>
+        </div>
+      </LexiconTip>
+
+      <div className="hdr-resources">
+        {stocks.map((chip) => (
+          <LexiconTip key={chip.id} id={chip.id} now={resourceChipNow(chip)}>
+            <button
+              type="button"
+              className={`hdr-chip res-chip${showDepot ? ' open' : ''}`}
+              onClick={toggleDepot}
+              aria-expanded={showDepot}
+              aria-label={`${chip.id} ${chip.id === 'command' && chip.cap != null ? `${chip.value}/${chip.cap}` : chip.value}`}
+            >
+              <Ico name={chip.icon} size={12} />
+              <span className="res-val">
+                {chip.id === 'command' && chip.cap != null ? `${chip.value}/${chip.cap}` : chip.value}
+              </span>
+            </button>
+          </LexiconTip>
+        ))}
+      </div>
 
       <div className="spacer" />
 
       <button
         type="button"
-        className={`menu-btn${showJournal ? ' on' : ''}`}
+        className={`hdr-ico${showJournal ? ' on' : ''}`}
         onClick={toggleJournal}
         title="Journal · J"
+        aria-label="Journal"
       >
-        Journal
+        <Ico name="journal" size={13} />
       </button>
       <button
         type="button"
-        className={`menu-btn${showDossier ? ' on' : ''}`}
+        className={`hdr-ico${showDossier ? ' on' : ''}`}
         onClick={toggleDossier}
         disabled={!canInspect}
         title="Dossier · I"
+        aria-label="Dossier"
       >
-        Dossier
+        <Ico name="dossier" size={13} />
       </button>
 
       {playerTurn && !paper && (
         <>
           <button
             type="button"
-            className={`menu-btn${showOps || Boolean(pendingOp) ? ' on' : ''}`}
+            className={`hdr-ico${showOps || Boolean(pendingOp) ? ' on' : ''}`}
             onClick={() => {
               setShowOps(!showOps);
               setShowReserves(false);
               setShowDepot(false);
             }}
             title="Strategic operations"
+            aria-label="Operations"
           >
-            Ops
+            <Ico name="operations" size={13} />
           </button>
           <button
             type="button"
-            className={`menu-btn${showReserves ? ' on' : ''}`}
+            className={`hdr-ico${showReserves ? ' on' : ''}`}
             onClick={() => {
               setShowReserves(!showReserves);
               setShowOps(false);
               setShowDepot(false);
             }}
             title="Reserve formations"
+            aria-label="Reserves"
           >
-            Reserves
+            <Ico name="reserves" size={13} />
           </button>
           <LexiconTip id="endWeek" now="Commit the week and hand the initiative to the enemy.">
-            <button className="end-turn-btn strip" onClick={requestEndTurn}>
-              End Week
+            <button type="button" className="hdr-chip end-chip" onClick={requestEndTurn}>
+              <Ico name="turn" size={12} />
+              <span>End</span>
             </button>
           </LexiconTip>
         </>
       )}
 
-      <button className="menu-btn" onClick={() => setShowSettings(true)}>Settings</button>
-      <button className="menu-btn" onClick={toMenu}>Menu</button>
+      <button
+        type="button"
+        className="hdr-ico hdr-settings"
+        onClick={() => setShowSettings(true)}
+        title="Settings"
+        aria-label="Settings"
+      >
+        <Ico name="settings" size={13} />
+      </button>
+      <button
+        type="button"
+        className="hdr-ico hdr-menu"
+        onClick={toMenu}
+        title="Menu"
+        aria-label="Menu"
+      >
+        <Ico name="menu" size={13} />
+      </button>
 
       {showDepot && (
         <div className="staff-flyout depot">
@@ -181,30 +211,18 @@ export function TopBar() {
             <span className="sub">next week</span>
           </div>
           <div className="depot-rows">
-            <LexiconTip id="manpower" now={`${Math.floor(f.manpower)} in the depot; +${f.manpowerIncome} next week.`}>
-              <div className="depot-row">
-                <Ico name="manpower" size={14} />
-                <span className="k">Manpower</span>
-                <span className="v">{Math.floor(f.manpower)}</span>
-                <span className="inc">+{f.manpowerIncome}</span>
-              </div>
-            </LexiconTip>
-            <LexiconTip id="equipment" now={`${Math.floor(f.equipment)} in the depot; +${f.equipmentIncome} next week.`}>
-              <div className="depot-row">
-                <Ico name="equipment" size={14} />
-                <span className="k">Equipment</span>
-                <span className="v">{Math.floor(f.equipment)}</span>
-                <span className="inc">+{f.equipmentIncome}</span>
-              </div>
-            </LexiconTip>
-            <LexiconTip id="command" now={`${f.command} of ${f.commandMax}; regenerates ${f.commandRegen}.`}>
-              <div className="depot-row">
-                <Ico name="command" size={14} />
-                <span className="k">Command</span>
-                <span className="v">{f.command}/{f.commandMax}</span>
-                <span className="inc">+{f.commandRegen}</span>
-              </div>
-            </LexiconTip>
+            {stocks.map((chip) => (
+              <LexiconTip key={chip.id} id={chip.id} now={resourceChipNow(chip)}>
+                <div className="depot-row">
+                  <Ico name={chip.icon} size={14} />
+                  <span className="k">{chip.id === 'manpower' ? 'Manpower' : chip.id === 'equipment' ? 'Equipment' : 'Command'}</span>
+                  <span className="v">
+                    {chip.id === 'command' && chip.cap != null ? `${chip.value}/${chip.cap}` : chip.value}
+                  </span>
+                  <span className="inc">+{chip.income}</span>
+                </div>
+              </LexiconTip>
+            ))}
           </div>
         </div>
       )}
