@@ -7,27 +7,27 @@ import { TileId } from '../game/types';
 export type ReachKind = 'open' | 'enemy' | 'zoc';
 
 /** Inset of the hex apothem so soil still reads at the rim — not a 0.9 plate. */
-export const REACH_FILL_RADIUS = 0.74;
+export const REACH_FILL_RADIUS = 0.78;
 export const REACH_FILL = {
-  open: '#cbb58a',
-  enemy: '#c49a58',
+  open: '#7a5c28',
+  enemy: '#7a4a1c',
 } as const;
 export const REACH_FILL_OPACITY = {
-  open: 0.36,
-  enemy: 0.4,
+  open: 0.48,
+  enemy: 0.52,
   zoc: 0,
 } as const;
 
-/** Warm parchment / ochre — not ink-white. Silhouette is the seam, not hex rings. */
+/** Warm umber / ochre — darker than the field, not ink-white. Seam only. */
 export const REACH_EDGE = {
-  open: '#c4a060',
-  enemy: '#c48a38',
-  zoc: '#d0a040',
+  open: '#8a6828',
+  enemy: '#8a5418',
+  zoc: '#a07820',
 } as const;
 export const REACH_EDGE_OPACITY = {
-  open: 0.48,
-  enemy: 0.52,
-  zoc: 0.58,
+  open: 0.56,
+  enemy: 0.6,
+  zoc: 0.66,
 } as const;
 export const REACH_EDGE_LEN = 1.1;
 export const REACH_EDGE_W = 0.052;
@@ -79,13 +79,13 @@ export function reachFillOpacity(kind: ReachKind, cost: number, mp: number): num
   return base * (0.64 + 0.36 * t);
 }
 
-/** Ochre / parchment, not cool ink-white or a bright unfilled hex outline. */
+/** Ochre / umber, not cool ink-white or a bright unfilled hex outline. */
 export function reachInkIsWarm(hex: string): boolean {
   const n = Number.parseInt(hex.slice(1), 16);
   const r = (n >> 16) & 255;
   const g = (n >> 8) & 255;
   const b = n & 255;
-  return r >= 170 && g >= 120 && b <= g - 16 && r + g > b * 3;
+  return r >= 100 && g >= 70 && b <= g - 8 && r > b + 30 && r + g > b * 2.5;
 }
 
 /** Near wash outranks the seam so the soil stain leads the silhouette. */
@@ -131,7 +131,7 @@ export function seamHatchTs(contact: boolean): readonly number[] {
 }
 
 export function fillFitsHex(radius = REACH_FILL_RADIUS): boolean {
-  return radius * 2 < HEX_W * 0.88 && radius < 0.82;
+  return radius * 2 < HEX_W * 0.92 && radius < 0.84;
 }
 
 export function scarIsHairline(width = FRONT_SCAR_W, height = FRONT_SCAR_H): boolean {

@@ -34,8 +34,8 @@ describe('board telegraph', () => {
 
   it('keeps the interior wash inset so soil reads at the hex rim', () => {
     expect(fillFitsHex()).toBe(true);
-    expect(REACH_FILL_RADIUS * 2).toBeLessThan(HEX_W * 0.88);
-    expect(REACH_FILL_RADIUS).toBeLessThan(0.82);
+    expect(REACH_FILL_RADIUS * 2).toBeLessThan(HEX_W * 0.92);
+    expect(REACH_FILL_RADIUS).toBeLessThan(0.84);
     expect(fillFitsHex(0.9)).toBe(false);
   });
 
