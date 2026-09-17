@@ -10,7 +10,8 @@ import {
 } from './heroParts';
 import { treadWheel } from './heroAssemblies';
 
-const ELEV = 0.3; // rad — barrel elevation about the trunnion
+const ELEV = 0.4; // rad — barrel elevation about the trunnion. Mid-zoom
+                  // needs the tube off the carriage, not buried in it.
 
 export function makeArtilleryHeroGeometry(faction: FactionId): THREE.BufferGeometry {
   const M = heroMats(faction);
@@ -18,28 +19,30 @@ export function makeArtilleryHeroGeometry(faction: FactionId): THREE.BufferGeome
   const parts: THREE.BufferGeometry[] = [];
 
   // ---- Elevating mass: breech, barrel, recoil system ----------------------
+  // Barrel thickness is a silhouette lie. A true 155 tube vanishes at boot
+  // height; this one has to read as a gun, not a pale carriage plate.
   const elev: THREE.BufferGeometry[] = [];
-  elev.push(hbox(0.45, 0.5, 0.42, DARKSTEEL, { x: -0.55 }));           // breech block
-  elev.push(hcyl(0.12, 0.12, 0.06, 12, STEEL, 'x', { x: -0.8 }));      // breech screw
-  elev.push(hbox(0.04, 0.3, 0.05, STEEL, { rx: 0.4, x: -0.7, y: -0.1, z: 0.24 })); // lever
-  elev.push(hcyl(0.16, 0.17, 0.5, 14, BODY, 'x', { x: -0.05 }));       // breech ring
-  elev.push(hcyl(0.115, 0.125, 1.4, 14, BODY, 'x', { x: 0.9 }));
-  elev.push(hcyl(0.1, 0.11, 1.5, 14, BODY, 'x', { x: 2.35 }));
-  elev.push(hcyl(0.088, 0.096, 1.5, 14, BODY, 'x', { x: 3.85 }));
-  elev.push(hcyl(0.1, 0.1, 0.2, 12, DARKSTEEL, 'x', { x: 4.7 }));      // brake collar
-  // Double-baffle muzzle brake: body, two baffle discs, dark side slots.
-  elev.push(hcyl(0.12, 0.12, 0.45, 12, DARKSTEEL, 'x', { x: 5.02 }));
-  elev.push(hcyl(0.16, 0.16, 0.08, 12, DARKSTEEL, 'x', { x: 4.88 }));
-  elev.push(hcyl(0.16, 0.16, 0.08, 12, DARKSTEEL, 'x', { x: 5.14 }));
+  elev.push(hbox(0.55, 0.58, 0.50, DARKSTEEL, { x: -0.58 }));           // breech block
+  elev.push(hcyl(0.14, 0.14, 0.08, 12, STEEL, 'x', { x: -0.88 }));      // breech screw
+  elev.push(hbox(0.05, 0.32, 0.06, STEEL, { rx: 0.4, x: -0.74, y: -0.1, z: 0.26 })); // lever
+  elev.push(hcyl(0.22, 0.24, 0.55, 14, DARKSTEEL, 'x', { x: -0.05 }));  // breech ring
+  elev.push(hcyl(0.18, 0.20, 1.5, 14, DARKSTEEL, 'x', { x: 0.95 }));
+  elev.push(hcyl(0.16, 0.17, 1.7, 14, DARKSTEEL, 'x', { x: 2.50 }));
+  elev.push(hcyl(0.14, 0.15, 1.7, 14, DARKSTEEL, 'x', { x: 4.15 }));
+  elev.push(hcyl(0.17, 0.17, 0.24, 12, SHADE, 'x', { x: 5.10 }));       // brake collar
+  // Double-baffle muzzle brake: the blob at the end of the tube.
+  elev.push(hcyl(0.20, 0.20, 0.55, 12, SHADE, 'x', { x: 5.48 }));
+  elev.push(hcyl(0.26, 0.26, 0.12, 12, SHADE, 'x', { x: 5.28 }));
+  elev.push(hcyl(0.26, 0.26, 0.12, 12, SHADE, 'x', { x: 5.64 }));
   for (const sz of [1, -1] as const) {
-    elev.push(hbox(0.18, 0.14, 0.05, { c: '#2b2b26', r: 0.6, m: 0.6 }, { x: 5.01, y: 0, z: sz * 0.12 }));
+    elev.push(hbox(0.24, 0.18, 0.07, { c: '#1c1c18', r: 0.6, m: 0.6 }, { x: 5.48, y: 0, z: sz * 0.18 }));
   }
-  elev.push(hcyl(0.095, 0.1, 0.1, 12, DARKSTEEL, 'x', { x: 5.3 }));    // tip
+  elev.push(hcyl(0.14, 0.15, 0.14, 12, SHADE, 'x', { x: 5.84 }));       // tip
   // Recuperator cylinders above, recoil sleigh below.
   for (const sz of [1, -1] as const) {
-    elev.push(hcyl(0.065, 0.065, 1.5, 10, DARKSTEEL, 'x', { x: 0.25, y: 0.17, z: sz * 0.09 }));
+    elev.push(hcyl(0.09, 0.09, 1.7, 10, SHADE, 'x', { x: 0.30, y: 0.22, z: sz * 0.12 }));
   }
-  elev.push(hbox(1.1, 0.16, 0.28, SHADE, { x: 0.1, y: -0.16 }));
+  elev.push(hbox(1.3, 0.20, 0.34, SHADE, { x: 0.12, y: -0.18 }));
   const elevM = new THREE.Matrix4()
     .makeTranslation(0.3, 1.05, 0)
     .multiply(new THREE.Matrix4().makeRotationZ(ELEV));
@@ -79,7 +82,7 @@ export function makeArtilleryHeroGeometry(faction: FactionId): THREE.BufferGeome
   // Axle, main wheels, firing-base jack under the centre.
   parts.push(hcyl(0.06, 0.06, 2.7, 8, DARKSTEEL, 'z', { x: -0.15, y: 0.55 }));
   for (const sz of [1, -1] as const) {
-    parts.push(...treadWheel(-0.15, 0.55, sz * 1.3, M, 0.55, 0.3, 14));
+    parts.push(...treadWheel(-0.15, 0.55, sz * 1.3, M, 0.64, 0.36, 14));
   }
   parts.push(hcyl(0.16, 0.18, 0.32, 10, DARKSTEEL, 'y', { x: -0.15, y: 0.25 }));
   parts.push(hcyl(0.32, 0.34, 0.07, 12, STEEL, 'y', { x: -0.15, y: 0.055 }));
@@ -96,17 +99,18 @@ export function makeArtilleryHeroGeometry(faction: FactionId): THREE.BufferGeome
   }
 
   // ---- Split trails, spread for firing ------------------------------------
+  // The V from above is the carriage read. Hairline trails vanish.
   for (const sz of [1, -1] as const) {
     const ry = sz * 0.47;
-    parts.push(hbox(3.3, 0.26, 0.18, BODY, { ry, x: -2.02, y: 0.42, z: sz * 1.02 }));
-    parts.push(hbox(0.5, 0.2, 0.16, BODY, { ry, x: -0.62, y: 0.42, z: sz * 0.33 })); // root gusset
+    parts.push(hbox(3.4, 0.36, 0.28, SHADE, { ry, x: -2.08, y: 0.40, z: sz * 1.04 }));
+    parts.push(hbox(0.55, 0.26, 0.22, BODY, { ry, x: -0.64, y: 0.42, z: sz * 0.34 })); // root gusset
     // Spade, gusset and end lug.
-    parts.push(hbox(0.09, 0.55, 0.45, DARKSTEEL, { ry, x: -3.5, y: 0.28, z: sz * 1.78 }));
-    parts.push(htrap(0.3, 0.14, 0.05, 0.12, 0.3, BODY, { ry, x: -3.32, y: 0.42, z: sz * 1.68 }));
-    parts.push(htorus(0.06, 0.018, STEEL, { ry, x: -3.42, y: 0.62, z: sz * 1.74 }));
+    parts.push(hbox(0.12, 0.62, 0.52, DARKSTEEL, { ry, x: -3.58, y: 0.28, z: sz * 1.82 }));
+    parts.push(htrap(0.34, 0.18, 0.06, 0.14, 0.32, BODY, { ry, x: -3.36, y: 0.42, z: sz * 1.70 }));
+    parts.push(htorus(0.07, 0.022, STEEL, { ry, x: -3.48, y: 0.64, z: sz * 1.76 }));
     // Clamp blocks and a step plate along each leg.
-    parts.push(hbox(0.2, 0.06, 0.22, SHADE, { ry, x: -1.6, y: 0.58, z: sz * 0.82 }));
-    parts.push(hbox(0.2, 0.06, 0.22, SHADE, { ry, x: -2.5, y: 0.58, z: sz * 1.25 }));
+    parts.push(hbox(0.22, 0.08, 0.26, SHADE, { ry, x: -1.6, y: 0.60, z: sz * 0.84 }));
+    parts.push(hbox(0.22, 0.08, 0.26, SHADE, { ry, x: -2.5, y: 0.60, z: sz * 1.26 }));
   }
   // Aiming stakes clamped along the right trail.
   parts.push(hcyl(0.02, 0.02, 1.3, 5, CANVAS2, 'x', { ry: 0.47, x: -1.9, y: 0.62, z: 0.93 }));
@@ -117,7 +121,9 @@ export function makeArtilleryHeroGeometry(faction: FactionId): THREE.BufferGeome
   parts.push(hbox(0.015, 0.08, 0.08, OPTIC, { x: 0.13, y: 1.48, z: 0.35 }));
 
   const merged = mergeHero(parts);
-  merged.scale(HERO_SCALE, HERO_SCALE, HERO_SCALE);
+  // Guns sit lower than an IFV hull. Extra scale is a silhouette lie so
+  // the tube / trails read at boot height without touching armor.
+  merged.scale(HERO_SCALE * 1.42, HERO_SCALE * 1.42, HERO_SCALE * 1.42);
   return merged;
 }
 
