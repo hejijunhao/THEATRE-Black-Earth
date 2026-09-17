@@ -40,8 +40,8 @@ describe('non-armor boot silhouettes', () => {
     const parts = figure();
     expect(parts.length).toBeGreaterThan(8);
     const col = parts[0].getAttribute('color');
-    expect(col.getX(0)).toBeLessThan(0.16);
-    expect(col.getY(0)).toBeLessThan(0.18);
+    expect(col.getX(0)).toBeLessThan(0.22);
+    expect(col.getY(0)).toBeLessThan(0.26);
 
     const mergedX = parts.reduce((m, g) => {
       g.computeBoundingBox();

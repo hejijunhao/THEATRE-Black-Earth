@@ -54,11 +54,11 @@ export function miniatureKey(s: MiniatureSpec): string {
 // Infantry ranks on the plate. Authored figures (person + rifle) plus a
 // command truck are the boot-height silhouette — a pale plate must not win.
 const INF_RANKS: Array<[number, number]> = [
-  [-0.10, -0.16], [0.00, -0.17], [0.10, -0.16],
-  [-0.12, -0.05], [-0.02, -0.06], [0.08, -0.05],
+  [-0.14, -0.18], [0.00, -0.19], [0.14, -0.18],
+  [-0.14, -0.04], [0.00, -0.05], [0.14, -0.04],
 ];
-const INF_FIGURE_SCALE = 2.05;
-const INF_TRUCK_SCALE = 1.12;
+const INF_FIGURE_SCALE = 2.7;
+const INF_TRUCK_SCALE = 1.18;
 
 // Hero formations are echelons. Vehicles are authored +x forward, and a hero
 // hull with its gun reaches ~0.32 across a 0.74 base plate, so a file abreast

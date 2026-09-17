@@ -121,7 +121,9 @@ export function makeArtilleryHeroGeometry(faction: FactionId): THREE.BufferGeome
   parts.push(hbox(0.015, 0.08, 0.08, OPTIC, { x: 0.13, y: 1.48, z: 0.35 }));
 
   const merged = mergeHero(parts);
-  merged.scale(HERO_SCALE, HERO_SCALE, HERO_SCALE);
+  // Guns sit lower than an IFV hull. Extra scale is a silhouette lie so
+  // the tube / trails read at boot height without touching armor.
+  merged.scale(HERO_SCALE * 1.42, HERO_SCALE * 1.42, HERO_SCALE * 1.42);
   return merged;
 }
 
