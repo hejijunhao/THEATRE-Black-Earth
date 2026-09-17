@@ -6,26 +6,36 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import type { MapControls as MapControlsImpl } from 'three-stdlib';
-import { tileWorldById } from '../game/hex';
+import { tileWorld, tileWorldById } from '../game/hex';
 import { useStore } from '../game/state/store';
 import { setHexProjector } from './hexScreen';
 import { tileGroundY } from './terrain/heightfield';
 import { WORLD_W as MAP_W, WORLD_H as MAP_H } from './worldDims';
 
+// Kupiansk–Sloviansk contact: the opening front, not the Dnipro bend.
+const BOOT = tileWorld(38, 13);
+
 export function CameraRig() {
   const controlsRef = useRef<MapControlsImpl>(null);
   const focus = useStore((s) => s.cameraFocus);
+  const screen = useStore((s) => s.screen);
   const targetGoal = useRef<THREE.Vector3 | null>(null);
   const { camera, gl } = useThree();
   const scratch = useRef(new THREE.Vector3());
 
-  // Initial framing: center on the Dnipro bend, looking north.
+  const frameFront = () => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+    controls.target.set(BOOT.wx, 0, BOOT.wz);
+    camera.position.set(BOOT.wx - 1.2, 16.8, BOOT.wz + 12.4);
+    controls.update();
+  };
+
+  // Initial framing: the contact belt is the hero, mid-zoom so machines read.
   useEffect(() => {
     const controls = controlsRef.current;
     if (!controls) return;
-    controls.target.set(MAP_W * 0.58, 0, MAP_H * 0.45);
-    camera.position.set(MAP_W * 0.58, 34, MAP_H * 0.45 + 22);
-    controls.update();
+    frameFront();
     const projectTile = (tile: string) => {
       const { wx, wz } = tileWorldById(tile);
       camera.updateMatrixWorld();
@@ -50,6 +60,11 @@ export function CameraRig() {
     };
     return () => setHexProjector(null);
   }, [camera, gl]);
+
+  useEffect(() => {
+    if (screen !== 'game') return;
+    frameFront();
+  }, [screen, camera]);
 
   useEffect(() => {
     if (!focus) return;

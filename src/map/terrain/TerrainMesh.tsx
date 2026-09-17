@@ -175,7 +175,7 @@ export function TerrainMesh() {
               float seam = smoothstep(${(Math.sqrt(3) / 2 - 0.085).toFixed(4)}, ${(Math.sqrt(3) / 2 - 0.012).toFixed(4)}, d);
               ground = mix(ground, ground * 0.62, seam * uHexOpacity * (1.0 - uPaper * 0.85));
             } else {
-              vec3 haze = mix(vec3(0.60, 0.62, 0.58), vec3(0.82, 0.79, 0.70), uPaper);
+              vec3 haze = mix(vec3(0.72, 0.70, 0.58), vec3(0.84, 0.80, 0.68), uPaper);
               ground = mix(ground, haze, mix(0.8, 0.97, uPaper));
             }
             // Printed graticule on paper (1° lon/lat over the linear mapping).

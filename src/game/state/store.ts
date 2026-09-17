@@ -150,7 +150,7 @@ export const useStore = create<StoreState>((set, get) => {
   return {
     game: null,
     screen: 'menu',
-    mapMode: 'political',
+    mapMode: 'terrain',
     selectedUnitId: null,
     selectedTileId: null,
     hoveredTileId: null,
@@ -184,6 +184,7 @@ export const useStore = create<StoreState>((set, get) => {
       set({
         game: state,
         screen: 'game',
+        mapMode: 'terrain',
         selectedUnitId: null,
         selectedTileId: null,
         interactionMode: 'idle',

@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.14](#0214--2026-09-17--theatre-presence-lod) | 2026-09-17 | Theatre presence + campaign LOD | terrain rest, front-framed camera, mid-zoom machines, sector rail, milled strip |
 | [0.2.13](#0213--2026-09-17--instrument-hud-craft) | 2026-09-17 | Instrument HUD craft | strip as war instrument, depot popover, week-runner rail, NATO counter plates, ground lighting, thin clock/journal overlays |
 | [0.2.12](#0212--2026-09-17--subtractive-hud) | 2026-09-17 | Subtractive HUD | rest-state map hero, one strip, one rail, on-demand journal/clock/dossier, collapsed map modes, campaign-zoom counters |
 | [0.2.11](#0211--2026-09-16--ui-cut-6-world-anchor) | 2026-09-16 | UI cut #6 | world-anchored combat paper, bench stays through AAR, encyclopedia index, journal→map |
@@ -30,6 +31,17 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.14] — 2026-09-17 · Theatre presence + campaign LOD
+
+Presentation only. Hierarchy from 0.2.12 / craft from 0.2.13 stay locked: one strip, one rail, bench on select, Next-unspent primary. No new panels. No sim deepening. Rules, click-to-move and combat paper are unchanged.
+
+- **Theatre is a place at rest.** Default layer is Terrain, not Political parchment. Albedo, sun, fog and grade push soil and air instead of a fog-grey wash. Boot camera frames the Kupiansk–Sloviansk front at mid-zoom.
+- **Campaign LOD.** Machines stay up through mid-zoom; far LOD counters get thicker ink, rail and brass stamp. The 1440p squint is the test, not a bigger token.
+- **Rail has hierarchy.** Formations group by front (Kharkiv / Donets / Zaporizhzhia / Kherson / Rear). Next-unspent still walks contact then march across the theatre.
+- **Strip is milled.** Same week / weather + pulse + Depot layout. Engraved wells and heavier display type so it stops reading as a web toolbar.
+
+The campaign, map, AI, supply and combat math are unchanged.
 
 ## [0.2.13] — 2026-09-17 · Instrument HUD craft
 
