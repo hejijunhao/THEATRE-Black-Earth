@@ -44,7 +44,7 @@ Presentation only. Hierarchy from 0.2.12–0.2.16 stays locked: LOD hex caps, se
 - **Rain AO / vignette crush.** N8AO drops intensity and goes khaki under rain; its extra gamma correction is off. Vignette is almost gone. Grade runs last and breaks dark-grey pixels toward mid khaki.
 - **North forest stems.** Far-north instances thin, lighten, and stop casting shadow so AO has less charcoal to pile on.
 - **Lit-path luma floor.** Valleys and far north cannot collapse after lighting — the albedo floor was dying under the light accumulation.
-- **Machines at boot.** Standard billboard is dropped while miniatures are up. Hulls are dark, tops are light, and the vehicle group scales inside the hex cap.
+- **Machines at boot.** Standard billboard is dropped while miniatures are up. The faction base plate ghosts so it cannot become a second NATO card. Hulls are dark olive, tops are lighter but still under field luma, and the vehicle group scales inside the hex cap.
 
 The campaign, map, AI, supply and combat math are unchanged.
 
