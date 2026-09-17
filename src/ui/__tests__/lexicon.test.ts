@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildInitialState } from '../../game/scenarios/build';
 import { agencyKind, boardChrome } from '../boardChrome';
-import { armyNow, citiesNow, LEXICON, movementNow, strengthNow, warSupportNow } from '../lexicon';
+import { armyNow, citiesNow, LEXICON, lexiconIds, LEXICON_SECTIONS, movementNow, strengthNow, warSupportNow } from '../lexicon';
 import { theatreBalance } from '../theatreBalance';
 
 describe('encyclopedia now-lines', () => {
@@ -35,6 +35,13 @@ describe('encyclopedia now-lines', () => {
     for (const id of ['strength', 'movement', 'odds', 'terrain', 'supply'] as const) {
       expect(LEXICON[id].doctrine.split(' ').length).toBeGreaterThan(20);
     }
+  });
+
+  it('indexes every lexicon entry once', () => {
+    const ids = lexiconIds();
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids).toHaveLength(Object.keys(LEXICON).length);
+    expect(LEXICON_SECTIONS.length).toBeGreaterThan(1);
   });
 
   it('calls a hollow army when the body ratio collapses', () => {

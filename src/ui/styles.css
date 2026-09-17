@@ -640,9 +640,19 @@ button {
    Milled instrument: nameplate + engraved order plates. No icon chips. */
 
 .command-bench.dimmed {
-  opacity: 0.55;
+  opacity: 0.5;
   pointer-events: none;
 }
+.command-bench.thin {
+  min-height: 72px;
+}
+.command-bench.thin .bench-formation,
+.command-bench.thin .bench-theatre {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+.command-bench.thin .plate-line { display: none; }
+.command-bench.thin .bench-nameplate { padding-top: 2px; padding-bottom: 3px; }
 
 .command-bench {
   position: absolute;
@@ -1066,7 +1076,9 @@ button {
   justify-content: center;
   padding-top: 108px;
   pointer-events: none;
-  background: radial-gradient(ellipse at 42% 48%, rgba(18, 16, 12, 0.04), transparent 42%);
+  --hex-x: 42%;
+  --hex-y: 48%;
+  background: radial-gradient(ellipse at var(--hex-x) var(--hex-y), rgba(18, 16, 12, 0.04), transparent 42%);
 }
 .hud > .brief-over.dock-east {
   justify-content: flex-end;
@@ -1082,7 +1094,16 @@ button {
   align-items: flex-start;
   padding-top: 96px;
 }
+.hud > .brief-over.anchored {
+  display: block;
+  padding: 0;
+}
+.hud > .brief-over.anchored .brief-sheet {
+  position: absolute;
+  max-width: calc(100vw - 220px);
+}
 .hud > .brief-over > * { pointer-events: auto; }
+.hud > .brief-over .paper-callout { pointer-events: none; }
 .paper-callout {
   position: absolute;
   inset: 0;
@@ -1090,12 +1111,23 @@ button {
   height: 100%;
   pointer-events: none;
   z-index: 0;
+  overflow: visible;
 }
-.paper-callout path {
+.paper-callout line {
   fill: none;
-  stroke: rgba(201, 163, 82, 0.42);
-  stroke-width: 0.35;
+  stroke: rgba(201, 163, 82, 0.88);
+  stroke-width: 2;
   stroke-linecap: round;
+}
+.paper-callout .paper-pin-halo {
+  fill: none;
+  stroke: rgba(201, 163, 82, 0.45);
+  stroke-width: 1.5;
+}
+.paper-callout .paper-pin {
+  fill: rgba(232, 214, 150, 0.98);
+  stroke: rgba(60, 44, 20, 0.7);
+  stroke-width: 1.25;
 }
 .brief-sheet {
   --ink: #3a3226;
@@ -1748,6 +1780,64 @@ button {
   padding-bottom: 10px;
   border-bottom: 1px solid var(--line);
 }
+.lex-index {
+  margin: 0 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.lex-search {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  background: rgba(8, 8, 10, 0.35);
+  border: 1px solid rgba(201, 163, 82, 0.28);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.lex-search::placeholder { color: var(--ink-dim); }
+.lex-search:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+.lex-sec { margin-bottom: 6px; }
+.lex-sec-kicker {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin-bottom: 3px;
+}
+.lex-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+.lex-entry {
+  background: transparent;
+  border: 1px solid rgba(190, 180, 150, 0.22);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+.lex-entry:hover {
+  border-color: var(--gold);
+  color: var(--ink-bright);
+}
+.lex-entry.current {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(201, 163, 82, 0.1);
+}
 .lex-kicker {
   font-family: var(--font-mono);
   font-size: 8.5px;
@@ -2219,6 +2309,19 @@ button {
   border-bottom: 1px solid rgba(190, 180, 150, 0.1);
   font-size: 11px;
   line-height: 1.35;
+}
+button.bj-fight {
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(190, 180, 150, 0.1);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+button.bj-fight.locatable:hover {
+  background: rgba(201, 163, 82, 0.08);
+  color: var(--ink-bright);
 }
 .bj-fight.capture .bj-kind { color: var(--green); }
 .bj-fight.warning .bj-kind,

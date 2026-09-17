@@ -3,7 +3,7 @@
 
 import { useEffect, useRef } from 'react';
 import { audio } from './audio/audio';
-import { attackableTargets as attackableTargetsForDebug } from './game/rules/movement';
+import { attackableTargets as attackableTargetsForDebug, reachableTiles as reachableTilesForDebug } from './game/rules/movement';
 import { tileWorldById } from './game/hex';
 import { useStore } from './game/state/store';
 import { cycleUnspent } from './ui/boardChrome';
@@ -183,6 +183,14 @@ function useDebugHook() {
       setMapMode: (mode: 'political' | 'supply' | 'terrain' | 'objectives' | 'intel') =>
         useStore.getState().setMapMode(mode),
       selectUnit: (id: string) => useStore.getState().selectUnit(id),
+      selectTile: (tile: string | null) => useStore.getState().selectTile(tile),
+      reachable: () => {
+        const s = useStore.getState();
+        if (!s.game || !s.selectedUnitId) return [];
+        const unit = s.game.units[s.selectedUnitId];
+        if (!unit) return [];
+        return [...reachableTilesForDebug(s.game, unit).keys()];
+      },
       attackTargets: () => {
         const s = useStore.getState();
         if (!s.game || !s.selectedUnitId) return [];
