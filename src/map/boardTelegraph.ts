@@ -1,13 +1,15 @@
 // View-side board telegraph: reach silhouette, fill fade, frontline hatch.
 // No rules live here. Variation is hashed from tile ids, never Math.random.
 
-import { neighborIds, sharedEdge, HEX_W } from '../game/hex';
+import { hexCorners, neighborIds, sharedEdge, tileWorldById } from '../game/hex';
 import { TileId } from '../game/types';
 
 export type ReachKind = 'open' | 'enemy' | 'zoc';
 
-/** Overlaps the hex width so adjacent stains merge into one blob, not a plate necklace. */
-export const REACH_FILL_RADIUS = 0.94;
+/** Drape lift for the merged reach polygon — above parcel dirt, under unit hulls. */
+export const REACH_FILL_LIFT = 0.06;
+/** Near-cost heart of the blob (secondary interior), not a per-hex disc. */
+export const REACH_NEAR_COST_FRAC = 0.5;
 export const REACH_FILL = {
   open: '#7a5c28',
   enemy: '#7a4a1c',
@@ -130,11 +132,145 @@ export function seamHatchTs(contact: boolean): readonly number[] {
   return contact ? FRONT_CONTACT_HATCH : FRONT_QUIET_HATCH;
 }
 
-/** Adjacent discs must overlap (blob) without becoming a 1.1 vertex cap. */
-export function fillFitsHex(radius = REACH_FILL_RADIUS): boolean {
-  return radius * 2 > HEX_W && radius < 1.05;
-}
-
 export function scarIsHairline(width = FRONT_SCAR_W, height = FRONT_SCAR_H): boolean {
   return width < 0.09 && height < 0.055;
+}
+
+export interface TerritoryPoint {
+  x: number;
+  z: number;
+}
+
+function vertKey(p: TerritoryPoint): string {
+  return `${Math.round(p.x * 10000)}:${Math.round(p.z * 10000)}`;
+}
+
+/** Neighbor on the far side of hex edge `i` (corner i → i+1). */
+export function neighborAcrossHexEdge(id: TileId, edge: number): TileId | null {
+  const corners = hexCorners(id);
+  const a = corners[edge]!;
+  const b = corners[(edge + 1) % 6]!;
+  const mx = (a.x + b.x) / 2;
+  const mz = (a.z + b.z) / 2;
+  const { wx, wz } = tileWorldById(id);
+  const ox = mx - wx;
+  const oz = mz - wz;
+  let best: TileId | null = null;
+  let bestDot = -Infinity;
+  for (const n of neighborIds(id)) {
+    const nw = tileWorldById(n);
+    const dot = (nw.wx - wx) * ox + (nw.wz - wz) * oz;
+    if (dot > bestDot) {
+      bestDot = dot;
+      best = n;
+    }
+  }
+  return best;
+}
+
+export function loopSignedArea(loop: readonly TerritoryPoint[]): number {
+  let acc = 0;
+  for (let i = 0; i < loop.length; i++) {
+    const p = loop[i]!;
+    const q = loop[(i + 1) % loop.length]!;
+    acc += p.x * q.z - q.x * p.z;
+  }
+  return acc / 2;
+}
+
+/**
+ * Closed outline rings of a tile union — Vic/Civ province silhouette.
+ * Outer rings are CCW (positive area); holes are CW.
+ */
+export function tileUnionLoops(interior: Iterable<TileId>): TerritoryPoint[][] {
+  const set = interior instanceof Set ? interior : new Set(interior);
+  if (set.size === 0) return [];
+
+  const outgoing = new Map<string, TerritoryPoint[]>();
+  const canon = new Map<string, TerritoryPoint>();
+  const intern = (p: TerritoryPoint): TerritoryPoint => {
+    const k = vertKey(p);
+    const existing = canon.get(k);
+    if (existing) return existing;
+    canon.set(k, p);
+    return p;
+  };
+
+  for (const id of set) {
+    const corners = hexCorners(id).map(intern);
+    for (let i = 0; i < 6; i++) {
+      const n = neighborAcrossHexEdge(id, i);
+      if (n && set.has(n)) continue;
+      const a = corners[i]!;
+      const b = corners[(i + 1) % 6]!;
+      const k = vertKey(a);
+      const list = outgoing.get(k);
+      if (list) list.push(b);
+      else outgoing.set(k, [b]);
+    }
+  }
+
+  const used = new Set<string>();
+  const loops: TerritoryPoint[][] = [];
+  for (const startKey of outgoing.keys()) {
+    const startOpts = outgoing.get(startKey);
+    if (!startOpts) continue;
+    for (const _startTo of startOpts) {
+      const firstMark = `${startKey}>${vertKey(_startTo)}`;
+      if (used.has(firstMark)) continue;
+      const loop: TerritoryPoint[] = [];
+      let curKey = startKey;
+      let guard = 0;
+      while (guard++ < 4096) {
+        const opts = outgoing.get(curKey);
+        if (!opts) break;
+        let picked: TerritoryPoint | null = null;
+        for (const cand of opts) {
+          if (!used.has(`${curKey}>${vertKey(cand)}`)) {
+            picked = cand;
+            break;
+          }
+        }
+        if (!picked) break;
+        used.add(`${curKey}>${vertKey(picked)}`);
+        loop.push(picked);
+        curKey = vertKey(picked);
+        if (curKey === startKey) break;
+      }
+      if (loop.length >= 3) loops.push(loop);
+    }
+  }
+  return loops;
+}
+
+export function partitionTerritoryLoops(loops: TerritoryPoint[][]): {
+  outers: TerritoryPoint[][];
+  holes: TerritoryPoint[][];
+} {
+  const outers: TerritoryPoint[][] = [];
+  const holes: TerritoryPoint[][] = [];
+  for (const loop of loops) {
+    if (loopSignedArea(loop) >= 0) outers.push(loop);
+    else holes.push(loop);
+  }
+  return { outers, holes };
+}
+
+/** Near-cost subset used as a secondary interior wash. Origin is cost 0. */
+export function nearReachTiles(
+  tiles: Iterable<{ id: TileId; cost: number }>,
+  mp: number,
+): TileId[] {
+  const cut = mp <= 0 ? 0 : mp * REACH_NEAR_COST_FRAC;
+  const out: TileId[] = [];
+  for (const t of tiles) {
+    if (t.cost <= cut) out.push(t.id);
+  }
+  return out;
+}
+
+/** One silhouette (holes allowed), not a disc per cell. */
+export function territoryIsSingleSilhouette(interior: Iterable<TileId>): boolean {
+  const { outers } = partitionTerritoryLoops(tileUnionLoops(interior));
+  return outers.length === 1;
 }
