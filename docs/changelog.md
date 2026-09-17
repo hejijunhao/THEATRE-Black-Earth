@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.28](#0228--2026-09-17--slice-1-ground-retip) | 2026-09-17 | Slice 1 — ground retip | chernozem midground, district chroma, north umber keep |
 | [0.2.27](#0227--2026-09-17--slice-1-ground-albedo) | 2026-09-17 | Slice 1 — ground albedo | cadastral soil, chernozem/loess, no khaki slab |
 | [0.2.26](#0226--2026-09-17--slice-6-hud-outliner) | 2026-09-17 | Slice 6 — HUD outliner | rest-frame Next chip, list on select/open |
 | [0.2.25](#0225--2026-09-17--slice-6-hud-header) | 2026-09-17 | Slice 6 — HUD header | Vic3-thin strip, no wordmark, icon chips |
@@ -44,6 +45,32 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.28] — 2026-09-17 · Slice 1 — ground retip
+
+Presentation only. Soil paint + far-north keep. Atmosphere / fog / grade,
+units, reach, HUD and combat paper stay locked. No new rules. No workflows.
+
+Vek AAA FAIL on 0.2.27: highlighter straw gone in code, but live rest +
+midzoom under rain still read as a mustard khaki / ochre plate. Parcel
+edges subdued. North still a cool grey lobe.
+
+This cut:
+
+- **Darkens midground toward chernozem / loam.** Stubble, leftover grass
+  and the surveyed-soil wash drop off the ochre plate so campaign zoom
+  is dirt, not mustard.
+- **Punches district + parcel chroma.** 14-unit families split red-brown
+  vs olive; district soil leads at rest; furrow / shelter edges stay for
+  close reads.
+- **Warms far-north keep / loft.** Continuity target is umber loess, not
+  mustard khaki. Luma floors mix toward warm soil instead of scaling cool
+  forest grey. Fog and grade stay locked.
+
+Notes under `docs/refs/paradox/ground/`. Still a painted canvas — not Vic
+plough, not a province terrain renderer.
+
+The campaign, map, AI, supply and combat math are unchanged.
 
 ## [0.2.27] — 2026-09-17 · Slice 1 — ground albedo
 

@@ -17,7 +17,7 @@ const TEX_W = 2048;
 
 export type { RGB };
 
-const GRASS = rgb('#7a7c50');
+const GRASS = rgb('#5c5a3c');
 // Forests stay lighter than water, and light enough that rain + AO cannot
 // drop a woodland hex into a grey hole. Not retuned — north charcoal
 // was the previous failure, and this slice is soil authenticity.
@@ -28,11 +28,11 @@ const URBAN = rgb('#9a9488');
 const URBAN_DARK = rgb('#7a756c');
 const SEA_FLOOR = rgb('#2a3a4a');
 const BEACH = rgb('#b09864');
-/** Surveyed loess the north must match under rain — soil, not painted khaki. */
-export const KHAKI_FIELD = rgb('#b4945c');
+/** Warm umber loft the north must match under rain — soil, not mustard khaki. */
+export const KHAKI_FIELD = rgb('#c49050');
 export const SOIL_FIELD = KHAKI_FIELD;
-export const CHERNOZEM = rgb('#4a3824');
-export const LOESS = rgb('#8a7854');
+export const CHERNOZEM = rgb('#3e2a16');
+export const LOESS = rgb('#746448');
 
 /**
  * North / high-ground lift toward midground soil. wz=0 is north (camera
@@ -45,19 +45,26 @@ export function northSoilLift(wz: number, heightMetres: number): number {
   const lat = 1 - Math.min(1, Math.max(0, wz / WORLD_H));
   // Midground (the scar) must keep parcel edges. Lift is a weak latitude
   // grade plus a far-north term — continuity, not a khaki slab.
-  const north = 0.015 * lat + 0.38 * smooth(0.58, 0.96, lat);
+  const north = 0.012 * lat + 0.46 * smooth(0.64, 0.97, lat);
   const height = 0.08 * smooth(140, 300, heightMetres);
-  return Math.min(0.46, north + height);
+  return Math.min(0.52, north + height);
 }
 
 export function applySoilContinuity(c: RGB, wz: number, heightMetres: number): RGB {
   const lift = northSoilLift(wz, heightMetres);
   let out = mix(c, KHAKI_FIELD, lift);
   const luma = 0.2126 * out.r + 0.7152 * out.g + 0.0722 * out.b;
-  const floor = 88 + 28 * (1 - Math.min(1, Math.max(0, wz / WORLD_H)));
+  const lat = 1 - Math.min(1, Math.max(0, wz / WORLD_H));
+  const floor = 90 + 34 * lat;
   if (luma < floor) {
-    const k = floor / Math.max(1, luma);
-    out = { r: out.r * k, g: out.g * k, b: out.b * k };
+    // Lift toward warm soil, not a grey scale-up of cool forest.
+    const k = (floor - luma) / Math.max(1, floor);
+    out = mix(out, KHAKI_FIELD, Math.min(0.55, k * 0.85));
+    const luma2 = 0.2126 * out.r + 0.7152 * out.g + 0.0722 * out.b;
+    if (luma2 < floor) {
+      const s = floor / Math.max(1, luma2);
+      out = { r: out.r * s, g: out.g * s, b: out.b * s };
+    }
   }
   return out;
 }
@@ -91,9 +98,10 @@ export function paintAlbedo(): { canvas: HTMLCanvasElement; texW: number; texH: 
         // Crop carries the strip; grass only fills the leftover steppe.
         c = mix(GRASS, fields, Math.min(1, 0.55 + crop * 0.7));
         // Surveyed soil under the crop. Valleys hold chernozem; higher
-        // ground goes loess. Weak enough that strip parcels still lead.
+        // ground goes loess. Strong enough to kill the mustard plate;
+        // strip parcels still lead via fieldColor.
         const soil = mix(CHERNOZEM, LOESS, smooth(70, 210, m));
-        c = mix(c, soil, 0.08 + (1 - Math.min(1, crop * 1.15)) * 0.08);
+        c = mix(c, soil, 0.18 + (1 - Math.min(1, crop * 1.15)) * 0.16);
         // Forest fields (soft shapes from the hex fractions + noise breakup).
         // Threshold sits above the forest-steppe shelter-belt range: partial
         // tree cover must NOT read as a dark smear over half the map — the

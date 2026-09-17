@@ -82,8 +82,12 @@ function assertNorthSoil(path) {
     process.exitCode = 1;
   }
   // Cooler-grey north: blue channel catching the mid, or sat collapsing.
-  if (north.b > north.r * 0.92 && north.luma < mid.luma * 0.92) {
+  if (north.b > north.r * 0.88) {
     console.error('FAIL: north cooler-grey mismatch vs mid soil');
+    process.exitCode = 1;
+  }
+  if (north.r < north.g * 0.92 && north.luma < mid.luma * 0.96) {
+    console.error('FAIL: north still a cool olive lobe vs mid soil');
     process.exitCode = 1;
   }
 }
@@ -125,6 +129,12 @@ function assertNotPaintedKhaki(path, label) {
   }
   if (mid.luma > 168 && mid.r > mid.b + 55 && mid.g > mid.b + 40) {
     console.error(`FAIL: ${label} still reads as painted beige steppe`);
+    process.exitCode = 1;
+  }
+  // Mustard / ochre plate: yellow-dominant midground at campaign zoom.
+  // Highlighter straw is already gone; this is the leftover khaki field.
+  if (mid.luma > 118 && mid.g > mid.r * 0.88 && mid.r - mid.b > 42) {
+    console.error(`FAIL: ${label} still reads as mustard ochre plate`);
     process.exitCode = 1;
   }
   // Soil, not cool concrete: mid must stay earth-warm.

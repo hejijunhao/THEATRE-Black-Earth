@@ -394,7 +394,7 @@ Ukrainian decisive victory at turn 21. Swingy, but plausible by design.
 | Decision events | [`data/events.ts`](../src/game/data/events.ts) |
 | New player order / interaction mode | [`state/store.ts`](../src/game/state/store.ts) + the relevant `ui/` component |
 | Colours, map modes, atmosphere | [`map/palette.ts`](../src/map/palette.ts) |
-| Strip-field dirt / parcel relief | [`map/terrain/strips.ts`](../src/map/terrain/strips.ts) + albedo + heightfield — keep north khaki lift far-north |
+| Strip-field dirt / parcel relief | [`map/terrain/strips.ts`](../src/map/terrain/strips.ts) + albedo + heightfield — keep north umber lift far-north |
 | HUD layout / styling | [`ui/styles.css`](../src/ui/styles.css) + component |
 | Board selection chrome (MP / spent / contact) | [`map/Units.tsx`](../src/map/Units.tsx) + [`map/textures.ts`](../src/map/textures.ts) + [`ui/boardChrome.ts`](../src/ui/boardChrome.ts) |
 | Board reach / frontline telegraph | [`map/Overlays.tsx`](../src/map/Overlays.tsx) + [`map/Frontline.tsx`](../src/map/Frontline.tsx) + [`map/boardTelegraph.ts`](../src/map/boardTelegraph.ts) — decorative meshes stay `raycast={() => null}` |

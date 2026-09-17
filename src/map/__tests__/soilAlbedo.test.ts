@@ -27,6 +27,7 @@ describe('slice 1 ground albedo — cadastral soil', () => {
     expect(KHAKI_FIELD.r).toBeLessThan(200);
     expect(luma(KHAKI_FIELD)).toBeLessThan(170);
     warm(KHAKI_FIELD);
+    expect(KHAKI_FIELD.g).toBeLessThan(KHAKI_FIELD.r * 0.80);
     const lifted = applySoilContinuity(CHERNOZEM, BOOT.wz, 80);
     expect(luma(lifted)).toBeLessThan(luma(KHAKI_FIELD) + 8);
   });
@@ -41,6 +42,9 @@ describe('slice 1 ground albedo — cadastral soil', () => {
     const lumas = soils.map(luma);
     expect(Math.max(...lumas) - Math.min(...lumas)).toBeGreaterThan(20);
     soils.forEach(warm);
+    // Chroma families, not one ochre hue: red-brown vs olive must both appear.
+    const rg = soils.map((c) => c.r - c.g);
+    expect(Math.max(...rg) - Math.min(...rg)).toBeGreaterThan(22);
   });
 
   it('does not flatten scar parcels when sampling neighbour dirt', () => {
@@ -53,5 +57,23 @@ describe('slice 1 ground albedo — cadastral soil', () => {
     const c = fieldColor(BOOT.wx, BOOT.wz);
     expect(c.r).toBeLessThan(220);
     warm(c);
+  });
+
+  it('darkens midground field paint off the mustard plate', () => {
+    const colors = [];
+    for (let i = 0; i < 48; i++) {
+      colors.push(fieldColor(BOOT.wx + i * 0.37, BOOT.wz + (i % 6) * 0.41));
+    }
+    const avg = colors.reduce(
+      (a, c) => ({ r: a.r + c.r, g: a.g + c.g, b: a.b + c.b }),
+      { r: 0, g: 0, b: 0 },
+    );
+    avg.r /= colors.length;
+    avg.g /= colors.length;
+    avg.b /= colors.length;
+    expect(luma(avg)).toBeLessThan(110);
+    expect(avg.g).toBeLessThan(avg.r * 0.96);
+    expect(avg.r - avg.b).toBeGreaterThan(18);
+    expect(luma(CHERNOZEM)).toBeLessThan(58);
   });
 });
