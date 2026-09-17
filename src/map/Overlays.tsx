@@ -44,7 +44,7 @@ function ContestedPulse({
     }
   });
   return (
-    <mesh geometry={geometry} position={[wx, y, wz]}>
+    <mesh geometry={geometry} position={[wx, y, wz]} raycast={() => null}>
       <meshBasicMaterial ref={mat} color="#d8c48a" transparent opacity={0.4} depthWrite={false} />
     </mesh>
   );
@@ -110,6 +110,8 @@ export function Overlays() {
     : lastCombat?.tile;
 
   return (
+    // Decorative only — same as the visible terrain mesh. Raycasts must
+    // fall through to TerrainMesh's pick plane or highlighted hexes eat clicks.
     <group>
       {/* Movement range */}
       {reach &&
@@ -117,7 +119,7 @@ export function Overlays() {
           const { wx, wz } = tileWorldById(r.id);
           const enemyGround = tiles[r.id].controller !== game.playerFaction;
           return (
-            <mesh key={`reach-${r.id}`} geometry={disc} position={[wx, tileY(tiles, r.id), wz]}>
+            <mesh key={`reach-${r.id}`} geometry={disc} position={[wx, tileY(tiles, r.id), wz]} raycast={() => null}>
               <meshBasicMaterial
                 color={r.entersZOC ? '#c9a352' : enemyGround ? '#b08b5a' : '#c6c0ab'}
                 transparent
@@ -133,7 +135,7 @@ export function Overlays() {
         const { wx, wz } = tileWorldById(t.tile);
         const isPending = pendingAttackId === t.id;
         return (
-          <mesh key={`target-${t.id}`} geometry={ring} position={[wx, tileY(tiles, t.tile) + 0.01, wz]}>
+          <mesh key={`target-${t.id}`} geometry={ring} position={[wx, tileY(tiles, t.tile) + 0.01, wz]} raycast={() => null}>
             <meshBasicMaterial
               color={isPending ? '#e06c4f' : '#a8543f'}
               transparent
@@ -148,7 +150,7 @@ export function Overlays() {
       {opTargets.map((id) => {
         const { wx, wz } = tileWorldById(id);
         return (
-          <mesh key={`op-${id}`} geometry={ring} position={[wx, tileY(tiles, id) + 0.01, wz]}>
+          <mesh key={`op-${id}`} geometry={ring} position={[wx, tileY(tiles, id) + 0.01, wz]} raycast={() => null}>
             <meshBasicMaterial color="#9db8d8" transparent opacity={0.8} depthWrite={false} />
           </mesh>
         );
@@ -158,7 +160,7 @@ export function Overlays() {
       {deployTiles.map((id) => {
         const { wx, wz } = tileWorldById(id);
         return (
-          <mesh key={`dep-${id}`} geometry={disc} position={[wx, tileY(tiles, id) + 0.01, wz]}>
+          <mesh key={`dep-${id}`} geometry={disc} position={[wx, tileY(tiles, id) + 0.01, wz]} raycast={() => null}>
             <meshBasicMaterial color="#8fae72" transparent opacity={0.4} depthWrite={false} />
           </mesh>
         );
@@ -173,7 +175,7 @@ export function Overlays() {
         <mesh geometry={ring} position={(() => {
           const { wx, wz } = tileWorldById(selectedTileId);
           return [wx, tileY(tiles, selectedTileId) + 0.02, wz];
-        })()}>
+        })()} raycast={() => null}>
           <meshBasicMaterial color="#d6cfba" transparent opacity={0.9} depthWrite={false} />
         </mesh>
       )}
@@ -183,7 +185,7 @@ export function Overlays() {
         <mesh geometry={ring} position={(() => {
           const { wx, wz } = tileWorldById(hoveredTileId);
           return [wx, tileY(tiles, hoveredTileId) + 0.015, wz];
-        })()}>
+        })()} raycast={() => null}>
           <meshBasicMaterial color="#bdb7a6" transparent opacity={0.35} depthWrite={false} />
         </mesh>
       )}
@@ -200,6 +202,7 @@ export function Overlays() {
             position={[wx, y + 0.75, wz]}
             rotation={[Math.PI / 4, 0, Math.PI / 4]}
             scale={[scale, scale, scale]}
+            raycast={() => null}
           >
             <boxGeometry args={[1, 1, 1]} />
             <meshStandardMaterial
