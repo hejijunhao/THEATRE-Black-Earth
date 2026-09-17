@@ -6,14 +6,12 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import type { MapControls as MapControlsImpl } from 'three-stdlib';
-import { tileWorld, tileWorldById } from '../game/hex';
+import { tileWorldById } from '../game/hex';
 import { useStore } from '../game/state/store';
 import { setHexProjector } from './hexScreen';
+import { bootCamera } from './lod';
 import { tileGroundY } from './terrain/heightfield';
 import { WORLD_W as MAP_W, WORLD_H as MAP_H } from './worldDims';
-
-// Kupiansk–Sloviansk contact: the opening front, not the Dnipro bend.
-const BOOT = tileWorld(38, 13);
 
 export function CameraRig() {
   const controlsRef = useRef<MapControlsImpl>(null);
@@ -26,12 +24,13 @@ export function CameraRig() {
   const frameFront = () => {
     const controls = controlsRef.current;
     if (!controls) return;
-    controls.target.set(BOOT.wx, 0, BOOT.wz);
-    camera.position.set(BOOT.wx - 1.2, 16.8, BOOT.wz + 12.4);
+    const boot = bootCamera();
+    controls.target.set(boot.tx, 0, boot.tz);
+    camera.position.set(boot.px, boot.py, boot.pz);
     controls.update();
   };
 
-  // Initial framing: the contact belt is the hero, mid-zoom so machines read.
+  // Initial framing: Kupiansk–Sloviansk tight at mid-zoom. The scar is the hero.
   useEffect(() => {
     const controls = controlsRef.current;
     if (!controls) return;

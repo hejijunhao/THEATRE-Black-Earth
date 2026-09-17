@@ -62,12 +62,13 @@ function Atmosphere() {
     <>
       <primitive attach="fog" object={fog} />
       <primitive attach="background" object={bg} />
-      <hemisphereLight args={['#e4d6b4', '#2c2418', env.ambient]} />
+      <ambientLight intensity={0.32} color="#c2b48a" />
+      <hemisphereLight args={['#e6d8b6', '#6a5c40', env.ambient]} />
       <primitive object={sunTarget} />
       <directionalLight
         position={sunPos}
         target={sunTarget}
-        intensity={env.sun * 1.12}
+        intensity={env.sun * 1.08}
         color={sunColor}
         castShadow
         shadow-mapSize-width={4096}
@@ -79,10 +80,16 @@ function Atmosphere() {
         shadow-camera-far={200}
         shadow-bias={-0.0004}
       />
+      {/* North fill: the far soil is the same place, not a grey hole. */}
       <directionalLight
-        position={[WORLD_W / 2 - 40, 28, WORLD_H / 2 + 18]}
+        position={[WORLD_W / 2 + 8, 24, WORLD_H / 2 - 36]}
+        intensity={0.34}
+        color="#c8bc94"
+      />
+      <directionalLight
+        position={[WORLD_W / 2 - 36, 26, WORLD_H / 2 + 16]}
         intensity={0.1}
-        color="#c4b48a"
+        color="#c8b888"
       />
     </>
   );
@@ -103,7 +110,7 @@ export function MapScene() {
       onCreated={({ gl }) => {
         // ACES crushes the mids; the sober palette needs the headroom back
         // (the post chain's AO + grade + vignette take another slice).
-        gl.toneMappingExposure = 1.32;
+        gl.toneMappingExposure = 1.4;
       }}
       style={{ position: 'absolute', inset: 0 }}
     >
