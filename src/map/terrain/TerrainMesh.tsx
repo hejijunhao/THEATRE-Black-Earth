@@ -205,9 +205,9 @@ export function TerrainMesh() {
             // Far-north keep only. A wide keep washed the scar into one
             // loess swatch — the quiet khaki slab. Midground is left alone.
             float northLat = 1.0 - clamp(wp.y / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
-            vec3 soilKeep = vec3(0.71, 0.58, 0.36);
-            float keep = smoothstep(0.72, 0.96, northLat);
-            ground = mix(ground, mix(max(ground, soilKeep), soilKeep, 0.4), keep * 0.24);
+            vec3 soilKeep = vec3(0.74, 0.58, 0.34);
+            float keep = smoothstep(0.70, 0.92, northLat);
+            ground = mix(ground, mix(max(ground, soilKeep), soilKeep, 0.5), keep * 0.32);
             float luma = dot(ground, vec3(0.2126, 0.7152, 0.0722));
             float floorL = 0.20 + 0.10 * keep;
             if (luma < floorL) ground *= floorL / max(luma, 0.001);
