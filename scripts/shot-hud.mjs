@@ -88,7 +88,7 @@ await page.screenshot({ path: join(OUT, '01-rest-map.png') });
 
 await page.evaluate(() => {
   const cam = window.__TBE_CAMERA__;
-  if (cam) cam.set(66.8, 19.5, 33.7, 66.8, 19.5);
+  if (cam) cam.set(66.8, 16.8, 31.9, 66.8, 19.5);
 });
 await sleep(600);
 await page.screenshot({ path: join(OUT, '01b-campaign-lod.png') });
