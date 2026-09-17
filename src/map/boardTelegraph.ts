@@ -6,34 +6,33 @@ import { TileId } from '../game/types';
 
 export type ReachKind = 'open' | 'enemy' | 'zoc';
 
-/** Inset well below the hex apothem so soil reads at the rim — not a plate. */
-export const REACH_FILL_RADIUS = 0.56;
+/** Overlaps the hex width so adjacent stains merge into one blob, not a plate necklace. */
+export const REACH_FILL_RADIUS = 0.94;
 export const REACH_FILL = {
-  open: '#d8d2bc',
-  enemy: '#c8a878',
+  open: '#7a5c28',
+  enemy: '#7a4a1c',
 } as const;
 export const REACH_FILL_OPACITY = {
-  open: 0.15,
-  enemy: 0.17,
+  open: 0.52,
+  enemy: 0.56,
   zoc: 0,
 } as const;
 
+/** Warm umber / ochre — darker than the field, not ink-white. Seam only. */
 export const REACH_EDGE = {
-  open: '#f2ead4',
-  enemy: '#d4a85e',
-  zoc: '#e0b84a',
+  open: '#8a6828',
+  enemy: '#8a5418',
+  zoc: '#a07820',
 } as const;
 export const REACH_EDGE_OPACITY = {
-  open: 0.82,
-  enemy: 0.84,
-  zoc: 0.92,
+  open: 0.56,
+  enemy: 0.6,
+  zoc: 0.66,
 } as const;
 export const REACH_EDGE_LEN = 1.1;
-export const REACH_EDGE_W = 0.058;
-export const REACH_EDGE_H = 0.02;
+export const REACH_EDGE_W = 0.052;
+export const REACH_EDGE_H = 0.018;
 export const REACH_EDGE_LIFT = 0.058;
-export const REACH_RIM_IN = 0.78;
-export const REACH_RIM_OUT = 0.9;
 
 export const FRONT_SCAR_LEN = 1.14;
 export const FRONT_SCAR_W = 0.072;
@@ -72,12 +71,27 @@ export function classifyReach(entersZOC: boolean, enemyGround: boolean): ReachKi
   return 'open';
 }
 
-/** Near hexes hold the wash; far hexes whisper. ZOC never plates. */
+/** Near hexes hold the stain; far hexes fade but stay visible. ZOC never plates. */
 export function reachFillOpacity(kind: ReachKind, cost: number, mp: number): number {
   const base = REACH_FILL_OPACITY[kind];
   if (base <= 0) return 0;
   const t = mp <= 0 ? 1 : 1 - Math.min(1, cost / mp);
-  return base * (0.52 + 0.48 * t);
+  return base * (0.64 + 0.36 * t);
+}
+
+/** Ochre / umber, not cool ink-white or a bright unfilled hex outline. */
+export function reachInkIsWarm(hex: string): boolean {
+  const n = Number.parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  return r >= 100 && g >= 70 && b <= g - 8 && r > b + 30 && r + g > b * 2.5;
+}
+
+/** Near wash outranks the seam so the soil stain leads the silhouette. */
+export function reachFillLeadsRim(kind: ReachKind = 'open', cost = 1, mp = 4): boolean {
+  if (kind === 'zoc') return false;
+  return reachFillOpacity(kind, cost, mp) > REACH_EDGE_OPACITY[kind] * 0.55;
 }
 
 export interface TelegraphEdge {
@@ -116,8 +130,9 @@ export function seamHatchTs(contact: boolean): readonly number[] {
   return contact ? FRONT_CONTACT_HATCH : FRONT_QUIET_HATCH;
 }
 
+/** Adjacent discs must overlap (blob) without becoming a 1.1 vertex cap. */
 export function fillFitsHex(radius = REACH_FILL_RADIUS): boolean {
-  return radius * 2 < HEX_W * 0.72;
+  return radius * 2 > HEX_W && radius < 1.05;
 }
 
 export function scarIsHairline(width = FRONT_SCAR_W, height = FRONT_SCAR_H): boolean {
