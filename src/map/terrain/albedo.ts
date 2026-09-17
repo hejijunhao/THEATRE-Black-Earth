@@ -29,7 +29,7 @@ const URBAN_DARK = rgb('#7a756c');
 const SEA_FLOOR = rgb('#2a3a4a');
 const BEACH = rgb('#b09864');
 /** Surveyed loess the north must match under rain — soil, not painted khaki. */
-export const KHAKI_FIELD = rgb('#ae9866');
+export const KHAKI_FIELD = rgb('#b4945c');
 export const SOIL_FIELD = KHAKI_FIELD;
 export const CHERNOZEM = rgb('#4a3824');
 export const LOESS = rgb('#8a7854');
@@ -93,7 +93,7 @@ export function paintAlbedo(): { canvas: HTMLCanvasElement; texW: number; texH: 
         // Surveyed soil under the crop. Valleys hold chernozem; higher
         // ground goes loess. Weak enough that strip parcels still lead.
         const soil = mix(CHERNOZEM, LOESS, smooth(70, 210, m));
-        c = mix(c, soil, 0.14 + (1 - Math.min(1, crop * 1.15)) * 0.12);
+        c = mix(c, soil, 0.08 + (1 - Math.min(1, crop * 1.15)) * 0.08);
         // Forest fields (soft shapes from the hex fractions + noise breakup).
         // Threshold sits above the forest-steppe shelter-belt range: partial
         // tree cover must NOT read as a dark smear over half the map — the

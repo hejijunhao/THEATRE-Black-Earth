@@ -46,13 +46,20 @@ export function noise2(x: number, y: number, salt: number): number {
 // the diorama field and steppe caps lifted for campaign zoom, not
 // highlighter straw. Lightest parcel must stay under a beige-flood gate.
 const FIELD_COLORS = [
-  '#c4ae78', // dry stubble
-  '#8a6e44', // cereal brown
-  '#5c4430', // chernozem
-  '#a09060', // loess fallow
-  '#4e3a26', // wet plough
-  '#6e7048', // pasture olive
+  '#b8a068', // dry stubble
+  '#7a6038', // cereal brown
+  '#4a3420', // chernozem
+  '#948454', // loess fallow
+  '#3e2c18', // wet plough
+  '#5e6040', // pasture olive
 ].map(rgb);
+/** 14-unit cadastral districts — rest zoom must see soil families, not one swatch. */
+const REGION_SOILS = [
+  rgb('#453018'), // chernozem
+  rgb('#6e5838'), // brown loam
+  rgb('#8a744c'), // loess
+  rgb('#5a5c38'), // pasture
+];
 const SHELTER = rgb('#3a2e18');
 const DIRT = rgb('#5a3e20');
 const FURROW = rgb('#3e2a16');
@@ -89,6 +96,13 @@ export function stripFrame(wx: number, wz: number): StripFrame {
   return { u, v, stripW, parcelL, strip, parcel, theta, edgeU, edgeV };
 }
 
+/** Regional soil family. Same 14-unit cells as strip orientation. */
+export function regionSoil(wx: number, wz: number): RGB {
+  const rx = Math.floor(wx / 14);
+  const rz = Math.floor(wz / 14);
+  return REGION_SOILS[Math.floor(ihash(rx, rz, 97) * REGION_SOILS.length)];
+}
+
 /**
  * Midground strip-field colour. Parcel edges, shelter belts and furrow
  * dirt are the contact-scale read — surveyed soil, not a second khaki wash.
@@ -98,7 +112,8 @@ export function fieldColor(wx: number, wz: number): RGB {
   const rx = Math.floor(wx / 14);
   const rz = Math.floor(wz / 14);
   const pick = Math.floor(ihash(rx * 517 + f.strip, rz * 763 + f.parcel, 109) * FIELD_COLORS.length);
-  let c = FIELD_COLORS[pick];
+  // District soil leads at rest; parcel chroma is the contact-scale read.
+  let c = mix(regionSoil(wx, wz), FIELD_COLORS[pick], 0.58);
 
   // Furrow / drill rows: high-frequency dirt inside the parcel.
   const furrow = 0.5 + 0.5 * Math.sin((f.u / f.stripW) * Math.PI * 2 * (3 + ihash(rx, rz, 111) * 3));

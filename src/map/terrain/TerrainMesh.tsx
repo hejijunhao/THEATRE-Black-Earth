@@ -202,13 +202,12 @@ export function TerrainMesh() {
               float shade = smoothstep(0.52, 0.78, cl) * uCloud * (1.0 - uPaper);
               ground *= 1.0 - shade * 0.10;
             }
-            // North keep: far soil stays loess/soil, not a grey hole and
-            // not a painted khaki slab. Midground is left alone so strip
-            // fields still read as a place.
+            // Far-north keep only. A wide keep washed the scar into one
+            // loess swatch — the quiet khaki slab. Midground is left alone.
             float northLat = 1.0 - clamp(wp.y / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
-            vec3 soilKeep = vec3(0.68, 0.60, 0.40);
-            float keep = smoothstep(0.48, 0.92, northLat);
-            ground = mix(ground, max(ground, soilKeep), keep * 0.22);
+            vec3 soilKeep = vec3(0.71, 0.58, 0.36);
+            float keep = smoothstep(0.72, 0.96, northLat);
+            ground = mix(ground, mix(max(ground, soilKeep), soilKeep, 0.4), keep * 0.24);
             float luma = dot(ground, vec3(0.2126, 0.7152, 0.0722));
             float floorL = 0.20 + 0.10 * keep;
             if (luma < floorL) ground *= floorL / max(luma, 0.001);
@@ -220,7 +219,7 @@ export function TerrainMesh() {
           '#include <emissivemap_fragment>',
           `#include <emissivemap_fragment>
           float northEmit = 1.0 - clamp(vWorldPos3.z / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
-          totalEmissiveRadiance += uSoilGround * (0.03 + 0.22 * smoothstep(0.48, 0.92, northEmit));`,
+          totalEmissiveRadiance += uSoilGround * (0.02 + 0.18 * smoothstep(0.72, 0.96, northEmit));`,
         )
         .replace(
           '#include <opaque_fragment>',
@@ -230,12 +229,12 @@ export function TerrainMesh() {
             // after the light accumulation.
             float northLit = 1.0 - clamp(vWorldPos3.z / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
             float valley = 1.0 - smoothstep(0.16, 0.58, vWorldPos3.y);
-            float keepLit = max(smoothstep(0.36, 0.90, northLit), valley * 0.8);
+            float keepLit = max(smoothstep(0.68, 0.94, northLit), valley * 0.8);
             float litL = dot(outgoingLight, vec3(0.2126, 0.7152, 0.0722));
             float floorLit = 0.15 + 0.16 * keepLit;
             if (litL < floorLit) outgoingLight *= floorLit / max(litL, 0.001);
-            vec3 soilLit = vec3(0.42, 0.36, 0.24);
-            outgoingLight = mix(outgoingLight, max(outgoingLight, soilLit), keepLit * 0.12);
+            vec3 soilLit = vec3(0.44, 0.36, 0.22);
+            outgoingLight = mix(outgoingLight, max(outgoingLight, soilLit), keepLit * 0.10);
           }
           #include <opaque_fragment>`,
         );

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { BOOT } from '../lod';
 import { CHERNOZEM, KHAKI_FIELD, LOESS, applySoilContinuity } from '../terrain/albedo';
-import { fieldColor, fieldLumaDelta } from '../terrain/strips';
+import { fieldColor, fieldLumaDelta, regionSoil } from '../terrain/strips';
 
 function luma(c: { r: number; g: number; b: number }): number {
   return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
@@ -29,6 +29,18 @@ describe('slice 1 ground albedo — cadastral soil', () => {
     warm(KHAKI_FIELD);
     const lifted = applySoilContinuity(CHERNOZEM, BOOT.wz, 80);
     expect(luma(lifted)).toBeLessThan(luma(KHAKI_FIELD) + 8);
+  });
+
+  it('keeps 14-unit cadastral districts distinct', () => {
+    const soils = [];
+    for (let i = 0; i < 6; i++) {
+      for (let j = 0; j < 6; j++) {
+        soils.push(regionSoil(BOOT.wx + i * 14, BOOT.wz + j * 14));
+      }
+    }
+    const lumas = soils.map(luma);
+    expect(Math.max(...lumas) - Math.min(...lumas)).toBeGreaterThan(20);
+    soils.forEach(warm);
   });
 
   it('does not flatten scar parcels when sampling neighbour dirt', () => {
