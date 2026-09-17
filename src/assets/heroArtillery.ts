@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { FactionId } from '../game/types';
 import {
-  HERO_SCALE, getStampHeroMaterial, hbox, hcyl, heroMats, htorus, htrap, mergeHero,
+  HERO_SCALE, getStampHeroMaterial, hbox, hcyl, stampMats, htorus, htrap, mergeHero,
 } from './heroParts';
 import { treadWheel } from './heroAssemblies';
 
@@ -14,7 +14,7 @@ const ELEV = 0.4; // rad — barrel elevation about the trunnion. Mid-zoom
                   // needs the tube off the carriage, not buried in it.
 
 export function makeArtilleryHeroGeometry(faction: FactionId): THREE.BufferGeometry {
-  const M = heroMats(faction);
+  const M = stampMats(faction);
   const { BODY, TOP, SHADE, RUBBER, STEEL, DARKSTEEL, CANVAS2, OPTIC } = M;
   const parts: THREE.BufferGeometry[] = [];
 
@@ -25,15 +25,16 @@ export function makeArtilleryHeroGeometry(faction: FactionId): THREE.BufferGeome
   elev.push(hbox(0.55, 0.58, 0.50, DARKSTEEL, { x: -0.58 }));           // breech block
   elev.push(hcyl(0.14, 0.14, 0.08, 12, STEEL, 'x', { x: -0.88 }));      // breech screw
   elev.push(hbox(0.05, 0.32, 0.06, STEEL, { rx: 0.4, x: -0.74, y: -0.1, z: 0.26 })); // lever
-  elev.push(hcyl(0.22, 0.24, 0.55, 14, DARKSTEEL, 'x', { x: -0.05 }));  // breech ring
-  elev.push(hcyl(0.18, 0.20, 1.5, 14, DARKSTEEL, 'x', { x: 0.95 }));
-  elev.push(hcyl(0.16, 0.17, 1.7, 14, DARKSTEEL, 'x', { x: 2.50 }));
-  elev.push(hcyl(0.14, 0.15, 1.7, 14, DARKSTEEL, 'x', { x: 4.15 }));
-  elev.push(hcyl(0.17, 0.17, 0.24, 12, SHADE, 'x', { x: 5.10 }));       // brake collar
+  // Tube is the light stamp; trails stay SHADE. Scale alone washed out.
+  elev.push(hcyl(0.22, 0.24, 0.55, 14, TOP, 'x', { x: -0.05 }));
+  elev.push(hcyl(0.18, 0.20, 1.5, 14, TOP, 'x', { x: 0.95 }));
+  elev.push(hcyl(0.16, 0.17, 1.7, 14, TOP, 'x', { x: 2.50 }));
+  elev.push(hcyl(0.14, 0.15, 1.7, 14, TOP, 'x', { x: 4.15 }));
+  elev.push(hcyl(0.17, 0.17, 0.24, 12, DARKSTEEL, 'x', { x: 5.10 }));   // brake collar
   // Double-baffle muzzle brake: the blob at the end of the tube.
-  elev.push(hcyl(0.20, 0.20, 0.55, 12, SHADE, 'x', { x: 5.48 }));
-  elev.push(hcyl(0.26, 0.26, 0.12, 12, SHADE, 'x', { x: 5.28 }));
-  elev.push(hcyl(0.26, 0.26, 0.12, 12, SHADE, 'x', { x: 5.64 }));
+  elev.push(hcyl(0.20, 0.20, 0.55, 12, DARKSTEEL, 'x', { x: 5.48 }));
+  elev.push(hcyl(0.26, 0.26, 0.12, 12, DARKSTEEL, 'x', { x: 5.28 }));
+  elev.push(hcyl(0.26, 0.26, 0.12, 12, DARKSTEEL, 'x', { x: 5.64 }));
   for (const sz of [1, -1] as const) {
     elev.push(hbox(0.24, 0.18, 0.07, { c: '#1c1c18', r: 0.6, m: 0.6 }, { x: 5.48, y: 0, z: sz * 0.18 }));
   }

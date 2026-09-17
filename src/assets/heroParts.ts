@@ -308,15 +308,30 @@ export function makeHeroMaterial(): THREE.MeshStandardMaterial {
   return mat;
 }
 
-// Linear field-green for the MECH/ARTY unlit stamp. Same sat-escape as the
-// infantry Basic stamp: green must outrun red/blue so the rain veil-break
-// (dark AND grey → khaki) cannot lift the hull back to a pale plate.
-export const STAMP_HULL = { r: 0.004, g: 0.11, b: 0.008 };
-export const STAMP_TOP = { r: 0.02, g: 0.28, b: 0.04 };
-export const STAMP_STEEL = { r: 0.012, g: 0.12, b: 0.028 };
+// sRGB field-green for MECH/ARTY vertex paint. Grade's veil-break sees the
+// framebuffer (sRGB), not linear storage — same contract as infantry
+// `#0a5816`. Dark hull / light top / dark steel must all keep green sat
+// above the grey gate, or rain lifts them back to khaki.
+export const STAMP_PAINT: Record<'UA' | 'RU', { base: string; dark: string; light: string; steel: string }> = {
+  UA: { base: '#0a5816', dark: '#032808', light: '#1a8024', steel: '#053010' },
+  RU: { base: '#0c5014', dark: '#032006', light: '#1c7820', steel: '#05280c' },
+};
 
-function stampVec(c: { r: number; g: number; b: number }): string {
-  return `${c.r.toFixed(3)}, ${c.g.toFixed(3)}, ${c.b.toFixed(3)}`;
+export function stampMats(faction: 'UA' | 'RU'): HeroMatSet {
+  const f = STAMP_PAINT[faction];
+  return {
+    BODY: { c: f.base, r: 0.72, m: 0.12 },
+    TOP: { c: f.light, r: 0.74, m: 0.1 },
+    SHADE: { c: f.dark, r: 0.8, m: 0.1 },
+    TRACKM: { c: f.steel, r: 0.58, m: 0.72, w: 0.7 },
+    RUBBER: { c: f.dark, r: 0.92, m: 0.02 },
+    STEEL: { c: f.steel, r: 0.45, m: 0.85, w: 0.5 },
+    DARKSTEEL: { c: f.steel, r: 0.55, m: 0.7 },
+    MUZZLE: { c: f.dark, r: 0.5, m: 0.75, w: 0.6 },
+    CANVAS: { c: f.base, r: 0.95, m: 0.0 },
+    CANVAS2: { c: f.dark, r: 0.95, m: 0.0 },
+    OPTIC: { c: f.steel, r: 0.22, m: 0.35 },
+  };
 }
 
 let sharedStampMaterial: THREE.MeshBasicMaterial | null = null;
@@ -326,75 +341,12 @@ export function getStampHeroMaterial(): THREE.MeshBasicMaterial {
   return sharedStampMaterial;
 }
 
-// Unlit punch for IFV / gun silhouettes. MeshStandard + khaki dust + the
-// grey-olive hull mix is the wash Vek failed on #16. MeshBasic skips the
-// lit path; the fragment remaps to field-green with dark hull / light top.
+// Unlit punch — the INF escape, not a second weathered wash. Authored
+// vertex colours carry dark hull / light top / dark gun. A fragment remap
+// from screen-space "up" flattened every roof into one lime slab at boot.
 export function makeStampHeroMaterial(): THREE.MeshBasicMaterial {
-  const mat = new THREE.MeshBasicMaterial({
+  return new THREE.MeshBasicMaterial({
     vertexColors: true,
     transparent: true,
   });
-  mat.onBeforeCompile = (shader) => {
-    shader.vertexShader = shader.vertexShader
-      .replace(
-        '#include <common>',
-        `#include <common>
-        attribute vec3 aMat;
-        varying vec3 vMat;
-        varying vec3 vObjM;`,
-      )
-      .replace(
-        '#include <begin_vertex>',
-        `#include <begin_vertex>
-        vMat = aMat;
-        #ifdef USE_INSTANCING
-          vObjM = (position + vec3(instanceMatrix[3][0], 0.0, instanceMatrix[3][2])) / ${HERO_SCALE};
-        #else
-          vObjM = position / ${HERO_SCALE};
-        #endif`,
-      );
-    shader.fragmentShader = shader.fragmentShader
-      .replace(
-        '#include <common>',
-        `#include <common>
-        varying vec3 vMat;
-        varying vec3 vObjM;
-        float stampHash(vec3 p) {
-          return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453);
-        }
-        float stampNoise(vec3 p) {
-          vec3 i = floor(p);
-          vec3 f = fract(p);
-          f = f * f * (3.0 - 2.0 * f);
-          return mix(
-            mix(mix(stampHash(i), stampHash(i + vec3(1,0,0)), f.x),
-                mix(stampHash(i + vec3(0,1,0)), stampHash(i + vec3(1,1,0)), f.x), f.y),
-            mix(mix(stampHash(i + vec3(0,0,1)), stampHash(i + vec3(1,0,1)), f.x),
-                mix(stampHash(i + vec3(0,1,1)), stampHash(i + vec3(1,1,1)), f.x), f.y),
-            f.z);
-        }`,
-      )
-      .replace(
-        '#include <color_fragment>',
-        `#include <color_fragment>
-        vec3 pM = vObjM;
-        vec3 nObj = normalize(cross(dFdx(pM), dFdy(pM)));
-        float upFace = clamp(nObj.y, 0.0, 1.0);
-        float authoredL = dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722));
-        float tone = max(clamp(authoredL / 0.22, 0.0, 1.0), pow(upFace, 1.35) * 0.7);
-        float isMetal = smoothstep(0.28, 0.62, vMat.y);
-        vec3 hull = vec3(${stampVec(STAMP_HULL)});
-        vec3 top = vec3(${stampVec(STAMP_TOP)});
-        vec3 steel = vec3(${stampVec(STAMP_STEEL)});
-        vec3 paint = mix(hull, top, tone);
-        // Guns / tubes stay steel-green against the hull. Do not dim below
-        // STAMP_STEEL — that sat is the veil-break floor.
-        vec3 metal = mix(steel, mix(steel, top, 0.28), upFace);
-        vec3 stamped = mix(paint, metal, isMetal);
-        float grain = stampNoise(pM * 18.0);
-        stamped *= 1.0 + (grain - 0.5) * 0.10;
-        diffuseColor.rgb = stamped;`,
-      );
-  };
-  return mat;
 }

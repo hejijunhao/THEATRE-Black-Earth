@@ -10,9 +10,8 @@ import { makePanzerHero } from '../panzerHero';
 import {
   getHeroMaterial,
   getStampHeroMaterial,
-  STAMP_HULL,
-  STAMP_STEEL,
-  STAMP_TOP,
+  stampMats,
+  STAMP_PAINT,
 } from '../heroParts';
 import { usesStampHero } from '../heroFleet';
 
@@ -114,10 +113,12 @@ function luma(c: { r: number; g: number; b: number }): number {
 
 function sat(c: { r: number; g: number; b: number }): number {
   const l = luma(c);
-  const dr = c.r - l;
-  const dg = c.g - l;
-  const db = c.b - l;
-  return Math.hypot(dr, dg, db);
+  return Math.hypot(c.r - l, c.g - l, c.b - l);
+}
+
+function srgb(hex: string): { r: number; g: number; b: number } {
+  const n = parseInt(hex.slice(1), 16);
+  return { r: ((n >> 16) & 255) / 255, g: ((n >> 8) & 255) / 255, b: (n & 255) / 255 };
 }
 
 describe('MECH/ARTY veil-proof stamp', () => {
@@ -141,13 +142,21 @@ describe('MECH/ARTY veil-proof stamp', () => {
   });
 
   it('punches field-green sat above the rain veil gate', () => {
-    // Grade veil = dark AND grey. sat smoothstep(0.016, 0.085, sat).
-    for (const c of [STAMP_HULL, STAMP_TOP, STAMP_STEEL]) {
-      expect(c.g).toBeGreaterThan(c.r * 2);
-      expect(c.g).toBeGreaterThan(c.b);
-      expect(sat(c)).toBeGreaterThan(0.085);
+    // Grade sees the sRGB framebuffer, not linear storage.
+    for (const side of ['UA', 'RU'] as const) {
+      const p = STAMP_PAINT[side];
+      for (const hex of [p.base, p.dark, p.light, p.steel]) {
+        const c = srgb(hex);
+        expect(c.g).toBeGreaterThan(c.r * 2);
+        expect(c.g).toBeGreaterThan(c.b);
+        expect(sat(c)).toBeGreaterThan(0.085);
+      }
+      expect(luma(srgb(p.dark))).toBeLessThan(luma(srgb(p.light)) * 0.7);
+      expect(luma(srgb(p.light)) - luma(srgb(p.dark))).toBeGreaterThan(0.12);
     }
-    expect(luma(STAMP_HULL)).toBeLessThan(luma(STAMP_TOP) * 0.55);
-    expect(luma(STAMP_TOP) - luma(STAMP_HULL)).toBeGreaterThan(0.08);
+    const mats = stampMats('UA');
+    expect(mats.BODY.c).toBe(STAMP_PAINT.UA.base);
+    expect(mats.TOP.c).toBe(STAMP_PAINT.UA.light);
+    expect(mats.DARKSTEEL.c).toBe(STAMP_PAINT.UA.steel);
   });
 });
