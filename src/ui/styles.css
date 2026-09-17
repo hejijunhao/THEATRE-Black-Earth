@@ -161,18 +161,18 @@ button {
   height: var(--play-header-h);
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 0 6px;
+  gap: 5px;
+  padding: 0 8px;
   background:
-    linear-gradient(180deg, rgba(36, 34, 28, 0.4), transparent 55%),
-    linear-gradient(180deg, rgba(14, 13, 12, 0.94), rgba(8, 8, 9, 0.9)),
+    linear-gradient(180deg, rgba(48, 44, 36, 0.45), transparent 58%),
+    linear-gradient(180deg, rgba(22, 21, 18, 0.96), rgba(12, 11, 10, 0.94)),
     var(--tex-field);
   background-size: auto, auto, 192px 192px;
   background-blend-mode: normal, normal, soft-light;
-  border-bottom: 1px solid rgba(201, 163, 82, 0.22);
+  border-bottom: 1px solid rgba(201, 163, 82, 0.28);
   box-shadow:
     0 1px 0 rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(232, 220, 180, 0.1);
+    inset 0 1px 0 rgba(232, 220, 180, 0.14);
   font-size: 11px;
 }
 
@@ -190,25 +190,28 @@ button {
   height: 22px;
   padding: 0 8px;
   white-space: nowrap;
-  background: rgba(0, 0, 0, 0.32);
-  border: 1px solid rgba(201, 163, 82, 0.14);
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.45);
+  background: rgba(6, 6, 7, 0.62);
+  border: 1px solid rgba(201, 163, 82, 0.26);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.55),
+    inset 0 -1px 0 rgba(232, 220, 180, 0.08);
   color: var(--ink);
   font: inherit;
 }
+.hdr-chip svg { color: var(--gold); }
 .hdr-chip.open,
 .hdr-chip:hover {
-  background: rgba(201, 163, 82, 0.08);
+  background: rgba(201, 163, 82, 0.1);
   color: var(--ink-bright);
 }
 
 .hdr-faction { padding: 0 8px 0 6px; }
 .faction-mark {
-  width: 10px;
-  height: 14px;
+  width: 11px;
+  height: 16px;
   flex-shrink: 0;
-  border: 1px solid rgba(0, 0, 0, 0.55);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(201, 163, 82, 0.45);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 .faction-mark.UA {
   background: linear-gradient(180deg, #3d5a80 50%, #c9a352 50%);
@@ -242,7 +245,7 @@ button {
 .hdr-resources {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   margin-left: 2px;
 }
 .res-chip {
@@ -267,7 +270,7 @@ button {
   padding: 0;
   background: transparent;
   border: 1px solid transparent;
-  color: var(--ink-dim);
+  color: var(--ink);
 }
 .hdr-ico.on {
   color: var(--gold);
@@ -302,8 +305,8 @@ button {
 }
 .pulse-beads i {
   display: block;
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   border: 1px solid rgba(201, 163, 82, 0.5);
   background: transparent;
