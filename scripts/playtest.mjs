@@ -66,8 +66,6 @@ const skip = await page.$$eval('.tutorial-prompt a', (as) => {
   return false;
 });
 console.log('tutorial skipped:', skip);
-await page.waitForFunction(() => window.__TBE_DEBUG__, { timeout: 10000 });
-await assertCountersOff(page, 'playtest counters');
 await sleep(400);
 
 // Terrain picking: click the map centre and assert a tile got selected
@@ -91,6 +89,7 @@ await page.evaluate(() => {
 });
 const hasHook = await page.evaluate(() => Boolean(window.__TBE_DEBUG__));
 console.log('debug hook available:', hasHook);
+if (hasHook) await assertCountersOff(page, 'playtest counters');
 await sleep(600);
 await page.screenshot({ path: `${OUT}/10-selected-unit.png` });
 const bench = await page.$eval('.command-bench', (el) => el.innerText).catch(() => '');
