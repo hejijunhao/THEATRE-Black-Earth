@@ -101,11 +101,12 @@ export function TerrainMesh() {
 
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardMaterial({
-      roughness: 0.88,
-      metalness: 0.03,
-      // Warm keep-alive, not a floodlight — midground must still show strips.
-      emissive: new THREE.Color('#6e6040'),
-      emissiveIntensity: 0.11,
+      roughness: 0.90,
+      metalness: 0.02,
+      // Quiet soil keep-alive — midground must still show strips, not a
+      // khaki flood. Atmosphere / lights stay locked on other tips.
+      emissive: new THREE.Color('#534836'),
+      emissiveIntensity: 0.08,
     });
     mat.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, uniforms);
@@ -201,12 +202,12 @@ export function TerrainMesh() {
               float shade = smoothstep(0.52, 0.78, cl) * uCloud * (1.0 - uPaper);
               ground *= 1.0 - shade * 0.10;
             }
-            // North keep: far soil stays khaki, not a grey hole. Midground
-            // is left alone so strip-fields still read as a place.
+            // Far-north keep only. A wide keep washed the scar into one
+            // loess swatch — the quiet khaki slab. Midground is left alone.
             float northLat = 1.0 - clamp(wp.y / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
-            vec3 khakiKeep = vec3(0.72, 0.62, 0.40);
-            float keep = smoothstep(0.48, 0.92, northLat);
-            ground = mix(ground, max(ground, khakiKeep), keep * 0.28);
+            vec3 soilKeep = vec3(0.74, 0.58, 0.34);
+            float keep = smoothstep(0.70, 0.92, northLat);
+            ground = mix(ground, mix(max(ground, soilKeep), soilKeep, 0.5), keep * 0.32);
             float luma = dot(ground, vec3(0.2126, 0.7152, 0.0722));
             float floorL = 0.20 + 0.10 * keep;
             if (luma < floorL) ground *= floorL / max(luma, 0.001);
@@ -218,7 +219,7 @@ export function TerrainMesh() {
           '#include <emissivemap_fragment>',
           `#include <emissivemap_fragment>
           float northEmit = 1.0 - clamp(vWorldPos3.z / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
-          totalEmissiveRadiance += uSoilGround * (0.03 + 0.22 * smoothstep(0.48, 0.92, northEmit));`,
+          totalEmissiveRadiance += uSoilGround * (0.02 + 0.18 * smoothstep(0.72, 0.96, northEmit));`,
         )
         .replace(
           '#include <opaque_fragment>',
@@ -228,12 +229,12 @@ export function TerrainMesh() {
             // after the light accumulation.
             float northLit = 1.0 - clamp(vWorldPos3.z / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
             float valley = 1.0 - smoothstep(0.16, 0.58, vWorldPos3.y);
-            float keepLit = max(smoothstep(0.36, 0.90, northLit), valley * 0.8);
+            float keepLit = max(smoothstep(0.68, 0.94, northLit), valley * 0.8);
             float litL = dot(outgoingLight, vec3(0.2126, 0.7152, 0.0722));
             float floorLit = 0.15 + 0.16 * keepLit;
             if (litL < floorLit) outgoingLight *= floorLit / max(litL, 0.001);
-            vec3 khakiLit = vec3(0.48, 0.42, 0.26);
-            outgoingLight = mix(outgoingLight, max(outgoingLight, khakiLit), keepLit * 0.14);
+            vec3 soilLit = vec3(0.44, 0.36, 0.22);
+            outgoingLight = mix(outgoingLight, max(outgoingLight, soilLit), keepLit * 0.10);
           }
           #include <opaque_fragment>`,
         );

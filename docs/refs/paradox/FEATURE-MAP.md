@@ -9,6 +9,7 @@
 | Select → move → attack | HOI4 province/unit selection + order | `selection-orders/` | TODO |
 | Reach wash (territorial blob) | Vic 3 selected-territory fill; Civ 6 movement range | `reach-telegraph/` | seeded (notes; shots TODO) |
 | Frontline / ZOC telegraph | HOI4 frontline / planned movement overlays | `board-chrome/` | TODO |
+| Ground albedo / cadastral soil | Vic 3 / HOI4 terrain (not political) | `ground/` | tipped (notes; live Vic/HOI shots TODO) |
 | Resources (manpower, equipment, command) | HOI4 / Vic 3 top-bar resource chips | `header/` | tipped (icon+number on strip; labels in depot flyout) |
 | Week / weather / date | Vic 3 date; HOI4 date+speed | `header/` | tipped (one week/weather chip) |
 | Strategic operations | HOI4 decisions / command abilities | — | TODO |
