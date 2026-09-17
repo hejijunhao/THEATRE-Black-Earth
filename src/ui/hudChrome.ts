@@ -1,6 +1,6 @@
 // Rest-state HUD gate. Chrome is hierarchical: map first, then the strip,
-// then one rail. Everything else waits for a selection or an explicit ask.
-// No rules live here — only what the shell is allowed to mount.
+// then a Next chip. The formations list waits for a selection or an explicit
+// open. No rules live here — only what the shell is allowed to mount.
 
 export interface HudInspect {
   selectedUnitId: string | null;

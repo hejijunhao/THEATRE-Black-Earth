@@ -32,6 +32,10 @@ docs/refs/paradox/
 
 Target: thin strip, flag left, icon+number resource chips, week/weather chip, settings right — **no THEATRE wordmark banner** on the play HUD. 0.2.25 ships that language. Live Vic 3 shots still TODO; notes record the honest delta.
 
+## Outliner (tipped)
+
+Target: Vic 3 / HOI4 peacetime collapse — **map-primary at rest**. Next-unspent is a chip; the sector week-runner mounts on select or explicit open. Combat paper keeps the thin rail. Live Paradox screenshots still TODO; notes record the honest delta.
+
 ## Combat paper (seeded, notes)
 
 Target: HOI4 land-battle / Vic 3 battle language — **odds, strength before→after, one-line verdict**. No die-face glyphs. Confirm / dismiss only. EU pip-dice theater is the reject. Live Paradox screenshots still TODO; do not invent a fortune row to replace the faces.

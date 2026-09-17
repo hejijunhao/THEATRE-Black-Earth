@@ -2059,14 +2059,12 @@ button {
 .tutorial-prompt a:hover { color: var(--ink-bright); }
 
 /* ------------------------------------------------------------- outliner
-   Week-runner: Next plate is the act. Rows are glyph + strength + agency. */
+   Week-runner: Next plate is the act. At rest a chip. Rows on select/open. */
 
 .outliner {
   position: absolute;
   top: calc(var(--play-header-h) + 10px);
   left: 10px;
-  bottom: 56px;
-  width: 176px;
   display: flex;
   flex-direction: column;
   z-index: 14;
@@ -2077,6 +2075,17 @@ button {
   background-size: auto, 192px 192px;
   border: 1px solid rgba(190, 180, 150, 0.14);
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+}
+.outliner.chip {
+  bottom: auto;
+  width: auto;
+  max-width: 168px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+.outliner.open,
+.outliner.rail {
+  bottom: 56px;
+  width: 176px;
 }
 .outliner.selected { bottom: 128px; }
 .outliner.rail {
@@ -2100,6 +2109,46 @@ button {
   justify-self: end;
 }
 .outliner.rail .or-sector { display: none; }
+.or-head {
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+}
+.or-head .or-run { flex: 1; min-width: 0; }
+.or-toggle {
+  width: 26px;
+  padding: 0;
+  border: none;
+  border-left: 1px solid rgba(201, 163, 82, 0.28);
+  background: rgba(201, 163, 82, 0.08);
+  color: var(--gold);
+  cursor: pointer;
+  position: relative;
+}
+.or-toggle:hover { background: rgba(201, 163, 82, 0.16); }
+.or-toggle::before {
+  content: '';
+  display: block;
+  width: 0;
+  height: 0;
+  margin: 0 auto;
+  border-style: solid;
+}
+.outliner.chip .or-toggle::before {
+  border-width: 5px 4px 0;
+  border-color: var(--gold) transparent transparent;
+}
+.outliner.open .or-toggle::before {
+  border-width: 0 4px 5px;
+  border-color: transparent transparent var(--gold);
+}
+.outliner.chip .or-run {
+  grid-template-columns: auto 14px auto;
+  padding: 6px 8px;
+  border-bottom: none;
+  width: auto;
+}
+.outliner.chip .or-run-name { display: none; }
 .or-run {
   display: grid;
   grid-template-columns: auto 14px 1fr auto;
