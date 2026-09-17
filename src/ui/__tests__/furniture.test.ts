@@ -13,6 +13,13 @@ import { rankReasons, reasonCopy, reasonWeight } from '../briefingCopy';
 import { paperDock, paperLayoutFromScreen, SHEET_GAP } from '../paperLayout';
 import { chronologyTile } from '../journalChronology';
 import { bindChronology, parseDice } from '../journalChronology';
+import {
+  factionMark,
+  headerHasProductWordmark,
+  PLAY_HEADER_WORDMARK,
+  resourceChips,
+  weekWeatherChip,
+} from '../playHeader';
 import { theatreBalance } from '../theatreBalance';
 import {
   aarOddsCaption,
@@ -152,6 +159,29 @@ describe('subtractive HUD gate', () => {
   it('whispers only when targeting an op or reserve drop', () => {
     expect(showOrdersHint({ ...rest, interactionMode: 'op-target' })).toBe(true);
     expect(showOrdersHint({ ...rest, interactionMode: 'deploy' })).toBe(true);
+  });
+});
+
+describe('Vic3-thin play header', () => {
+  it('uses a faction mark, one week/weather chip, and icon+number resources — no wordmark', () => {
+    const state = buildInitialState('UA', 42);
+    expect(PLAY_HEADER_WORDMARK).toBeNull();
+    expect(headerHasProductWordmark()).toBe(false);
+
+    const mark = factionMark(state.playerFaction);
+    expect(mark.code).toBe('UA');
+    expect(mark.name).toBe('Ukraine');
+    expect(mark.name).not.toMatch(/THEATRE/i);
+
+    const week = weekWeatherChip(state);
+    expect(week.week).toBe(1);
+    expect(week.weatherLabel.length).toBeGreaterThan(0);
+    expect(week.date.length).toBeGreaterThan(0);
+
+    const chips = resourceChips(state);
+    expect(chips).toHaveLength(3);
+    expect(chips.map((c) => c.id)).toEqual(['manpower', 'equipment', 'command']);
+    expect(chips.every((c) => c.icon === c.id && typeof c.value === 'number')).toBe(true);
   });
 });
 

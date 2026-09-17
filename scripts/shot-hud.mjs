@@ -46,9 +46,12 @@ const chrome = await page.evaluate(() => {
     selected: s.selected,
     hud: document.querySelector('.hud')?.className,
     topBar: Boolean(document.querySelector('.top-bar')),
-    pulse: Boolean(document.querySelector('.theatre-pulse')),
+    height: Math.round(document.querySelector('.top-bar')?.getBoundingClientRect().height ?? 0),
+    wordmark: /THEATRE/.test(strip) || Boolean(document.querySelector('.top-bar .brand')),
+    weekChip: Boolean(document.querySelector('.week-chip')),
+    resChips: document.querySelectorAll('.res-chip').length,
+    settings: Boolean(document.querySelector('.hdr-settings')),
     beads: document.querySelectorAll('.pulse-beads i').length,
-    depot: Boolean(document.querySelector('.depot-chip')),
     delta: Boolean(document.querySelector('.delta-chip')),
     ledger: /Manpower|Equipment|Command/.test(strip),
     clock: Boolean(document.querySelector('.victory-clock')),
@@ -71,8 +74,17 @@ if (!chrome.topBar || !chrome.outliner) {
   console.error('FAIL: rest state missing strip or rail');
   process.exitCode = 1;
 }
-if (!chrome.pulse || chrome.beads < 1 || !chrome.depot || chrome.delta || chrome.ledger) {
-  console.error('FAIL: strip is still a ledger, not an instrument', chrome);
+if (
+  chrome.wordmark
+  || !chrome.weekChip
+  || chrome.resChips !== 3
+  || !chrome.settings
+  || chrome.beads < 1
+  || chrome.delta
+  || chrome.ledger
+  || chrome.height > 36
+) {
+  console.error('FAIL: strip is not a Vic3-thin header', chrome);
   process.exitCode = 1;
 }
 if (!chrome.next) {

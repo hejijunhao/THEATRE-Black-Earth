@@ -148,6 +148,25 @@ const ICONS: Record<string, ReactNode> = {
       {P('M8 11h4M8 14h4')}
     </>
   ),
+  journal: (
+    <>
+      {P('M6 3h9l4 4v14H6zM14 3v5h5')}
+      {P('M9 12h6M9 16h6')}
+    </>
+  ),
+  dossier: (
+    <>
+      {P('M4 7h16v12H4zM8 7V5h8v2')}
+      {P('M8 12h8M8 15h5')}
+    </>
+  ),
+  settings: (
+    <>
+      {C(12, 12, 3)}
+      {P('M12 3.6l1.1 2.1 2.3-.5 1.3 2-1.7 1.6.6 2.3-2.2.8L12 14.2l-1.4-2.3-2.2-.8.6-2.3-1.7-1.6 1.3-2 2.3.5z')}
+    </>
+  ),
+  menu: P('M5 7h14M5 12h14M5 17h14'),
 };
 
 export function Ico({ name, size = 14, className }: { name: string; size?: number; className?: string }) {
