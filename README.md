@@ -99,8 +99,8 @@ Almost every value has an explanatory tooltip.
 - **Combat**: effective power = base stat × strength × readiness × morale ×
   supply × terrain/support modifiers. Confirming an attack rolls **2d6** for
   each side: the attack roll decides damage given, the defence roll decides
-  damage taken (a 7 is average). The after-action report shows the dice,
-  odds, and strength before → after. Defenders usually degrade and retreat
+  damage taken (a 7 is average). The after-action report shows the odds,
+  strength before → after, and a one-line verdict. Defenders usually degrade and retreat
   rather than die; units that cannot retreat risk destruction — encirclement
   works.
 - **Artillery** supports attacks from adjacent hexes and can bombard directly

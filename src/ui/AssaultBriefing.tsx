@@ -6,7 +6,7 @@ import { computePreview } from '../game/rules/combat';
 import { useStore } from '../game/state/store';
 import { rankReasons, reasonCopy, reasonWeight } from './briefingCopy';
 import { CombatPaper } from './CombatPaper';
-import { StrengthStrip, VERDICT_LABEL } from './combatChrome';
+import { estimateDetail, StrengthStrip, strengthNowLine, VERDICT_LABEL } from './combatChrome';
 import { LexiconTip } from './Tip';
 
 export function AssaultBriefing() {
@@ -42,11 +42,7 @@ export function AssaultBriefing() {
       stamp={isArtillery ? 'Fires' : 'Assault'}
       kicker={`Staff estimate · week ${game.turn}`}
       headline={isArtillery ? 'Fires mission' : VERDICT_LABEL[preview.verdict]}
-      detail={
-        isArtillery
-          ? 'The battery will roll 2d6 for effect. Bombardment degrades the position; it does not take the hex.'
-          : 'Odds from relative combat power, before dice. Confirm to roll 2d6 each. A 7 is average.'
-      }
+      detail={estimateDetail(isArtillery)}
       titleId="brief-title"
     >
       <div className="aar-matchup">
@@ -57,7 +53,7 @@ export function AssaultBriefing() {
           {!isArtillery && (
             <LexiconTip
               id="strength"
-              now={`${Math.round(attacker.strength)} → ${Math.round(atkAfter)} — estimate before dice.`}
+              now={strengthNowLine(attacker.strength, atkAfter, 'estimate')}
               block
             >
               <StrengthStrip before={attacker.strength} after={atkAfter} />
@@ -80,7 +76,7 @@ export function AssaultBriefing() {
           <div className="pd-pow">def {defPower}</div>
           <LexiconTip
             id="strength"
-            now={`${Math.round(defender.strength)} → ${Math.round(defAfter)} — estimate before dice.`}
+            now={strengthNowLine(defender.strength, defAfter, 'estimate')}
             block
           >
             <StrengthStrip
@@ -144,8 +140,8 @@ export function AssaultBriefing() {
           onClick={() => orderAttack(defenderId)}
         >
           <span className="plate-engrave">{isArtillery ? 'Fires' : 'Commit'}</span>
-          <span className="plate-value">2d6</span>
-          <span className="plate-line">{isArtillery ? 'the mission' : 'the roll'}</span>
+          <span className="plate-value">{preview.oddsLabel}</span>
+          <span className="plate-line">{isArtillery ? 'the mission' : 'the assault'}</span>
         </button>
         <button
           type="button"

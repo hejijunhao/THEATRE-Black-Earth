@@ -1,5 +1,5 @@
-// Shared combat chrome: pip dice, strength strips, verdict copy.
-// Used by the preview panel and the after-action dispatch.
+// Shared combat chrome: strength strips, verdict copy, estimate/AAR language.
+// Slice 6: no die faces. Odds, strength delta, and one-line verdict only.
 
 import { CombatVerdict } from '../game/types';
 
@@ -11,24 +11,33 @@ export const VERDICT_LABEL: Record<CombatVerdict, string> = {
   severe: 'Severe disadvantage',
 };
 
-const PIP: Record<number, number[]> = {
-  1: [4],
-  2: [0, 8],
-  3: [0, 4, 8],
-  4: [0, 2, 6, 8],
-  5: [0, 2, 4, 6, 8],
-  6: [0, 2, 3, 5, 6, 8],
-};
+const DICE_TALK = /2d6|dice|die face|d6/i;
 
-export function DieFace({ value }: { value: number }) {
-  const on = new Set(PIP[value] ?? []);
-  return (
-    <span className="die-face" aria-label={`d6 showing ${value}`}>
-      {Array.from({ length: 9 }, (_, i) => (
-        <span key={i} className={on.has(i) ? 'pip on' : 'pip'} />
-      ))}
-    </span>
-  );
+export function estimateDetail(isArtillery: boolean): string {
+  return isArtillery
+    ? 'The battery will degrade the position; it does not take the hex.'
+    : 'Odds from relative combat power. Confirm to commit the assault.';
+}
+
+export function strengthNowLine(before: number, after: number, kind: 'estimate' | 'result'): string {
+  const arrow = `${Math.round(before)} → ${Math.round(after)}`;
+  return kind === 'estimate' ? `${arrow} — staff estimate.` : `${arrow} — strength after the exchange.`;
+}
+
+export function aarOddsCaption(): string {
+  return 'staff odds';
+}
+
+export function aarVerdictShift(
+  preview: CombatVerdict,
+  resolved: CombatVerdict,
+): string | null {
+  if (preview === resolved) return null;
+  return `Staff estimate was ${VERDICT_LABEL[preview].toLowerCase()}; the exchange was ${VERDICT_LABEL[resolved].toLowerCase()}.`;
+}
+
+export function paperCopyIsNumeric(text: string): boolean {
+  return !DICE_TALK.test(text);
 }
 
 export function StrengthStrip({
@@ -56,4 +65,3 @@ export function StrengthStrip({
     </div>
   );
 }
-

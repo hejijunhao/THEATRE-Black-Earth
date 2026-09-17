@@ -240,7 +240,7 @@ labelled `CombatFactor`s. The preview and the resolution call the *same*
 functions, so the preview is honest by construction. Fortune is an explicit
 **2d6 per side**: the attack roll scales damage given, the defence roll
 scales damage taken (`fortuneFrom2d6` — 7 → ×1.00, 2 → ×0.70, 12 → ×1.30).
-The after-action report shows the dice, odds, and before/after strength.
+The after-action report shows the odds, before/after strength, and a one-line verdict.
 
 Factors modelled: condition (readiness × morale), supply state, unit-vs-terrain
 tables, weather, river assault (×0.7) or contested bridge (×0.88), adjacent
