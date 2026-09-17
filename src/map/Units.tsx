@@ -245,7 +245,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
       </mesh>
       {/* The machines: hero vehicles as instances, everything else — foot
           elements, logistics, muzzle smoke — merged into one props mesh. */}
-      <group rotation={[0, facing, 0]} position={[0, 0.036, 0]} scale={MINI_SCALE}>>
+      <group rotation={[0, facing, 0]} position={[0, 0.036, 0]} scale={MINI_SCALE}>
         {build.props && <mesh geometry={build.props} material={MINI_MATERIAL} castShadow />}
         {build.heroType && (
           <HeroFormation type={build.heroType} faction={unit.faction} slots={build.heroSlots} />
