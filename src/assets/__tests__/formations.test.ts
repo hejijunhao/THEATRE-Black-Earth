@@ -1,11 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { Vector3 } from 'three';
+import { MeshBasicMaterial, MeshStandardMaterial, Vector3 } from 'three';
 import { MACHINE_SCALE } from '../../map/lod';
 import { HEX_H, HEX_W } from '../../game/hex';
 import { makeMiniatureBuild } from '../units';
 import { commandTruck, figure } from '../vehicles';
-import { makeArtilleryHeroGeometry } from '../heroArtillery';
-import { makeMechHeroGeometry } from '../heroMech';
+import { makeArtilleryHero, makeArtilleryHeroGeometry } from '../heroArtillery';
+import { makeMechHero, makeMechHeroGeometry } from '../heroMech';
+import { makePanzerHero } from '../panzerHero';
+import {
+  getHeroMaterial,
+  getStampHeroMaterial,
+  stampMats,
+  STAMP_PAINT,
+} from '../heroParts';
+import { usesStampHero } from '../heroFleet';
 
 function spec(type: 'infantry' | 'mechanized' | 'artillery', tier: 1 | 2 | 3 | 4 = 3) {
   return {
@@ -96,5 +104,59 @@ describe('non-armor boot silhouettes', () => {
     expect(size.x).toBeGreaterThan(size.z * 1.2);
     expect(size.y).toBeGreaterThan(0.05);
     expect(size.x).toBeGreaterThan(0.20);
+  });
+});
+
+function luma(c: { r: number; g: number; b: number }): number {
+  return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+}
+
+function sat(c: { r: number; g: number; b: number }): number {
+  const l = luma(c);
+  return Math.hypot(c.r - l, c.g - l, c.b - l);
+}
+
+function srgb(hex: string): { r: number; g: number; b: number } {
+  const n = parseInt(hex.slice(1), 16);
+  return { r: ((n >> 16) & 255) / 255, g: ((n >> 8) & 255) / 255, b: (n & 255) / 255 };
+}
+
+describe('MECH/ARTY veil-proof stamp', () => {
+  it('routes only mechanized and artillery off the shared hero wash', () => {
+    expect(usesStampHero('mechanized')).toBe(true);
+    expect(usesStampHero('artillery')).toBe(true);
+    expect(usesStampHero('armored')).toBe(false);
+    expect(usesStampHero('recon')).toBe(false);
+  });
+
+  it('keeps the stamp unlit and the armor wash lit', () => {
+    const stamp = getStampHeroMaterial();
+    const hero = getHeroMaterial();
+    expect(stamp).toBeInstanceOf(MeshBasicMaterial);
+    expect(hero).toBeInstanceOf(MeshStandardMaterial);
+    expect(stamp).not.toBe(hero);
+    expect(makeMechHero('UA').material).toBe(stamp);
+    expect(makeArtilleryHero('UA').material).toBe(stamp);
+    expect(makePanzerHero('UA').material).toBe(hero);
+    expect(hero.emissive.getHexString()).toBe('1c1810');
+  });
+
+  it('punches field-green sat above the rain veil gate', () => {
+    // Grade sees the sRGB framebuffer, not linear storage.
+    for (const side of ['UA', 'RU'] as const) {
+      const p = STAMP_PAINT[side];
+      for (const hex of [p.base, p.dark, p.light, p.steel]) {
+        const c = srgb(hex);
+        expect(c.g).toBeGreaterThan(c.r * 2);
+        expect(c.g).toBeGreaterThan(c.b);
+        expect(sat(c)).toBeGreaterThan(0.085);
+      }
+      expect(luma(srgb(p.dark))).toBeLessThan(luma(srgb(p.light)) * 0.7);
+      expect(luma(srgb(p.light)) - luma(srgb(p.dark))).toBeGreaterThan(0.12);
+    }
+    const mats = stampMats('UA');
+    expect(mats.BODY.c).toBe(STAMP_PAINT.UA.base);
+    expect(mats.TOP.c).toBe(STAMP_PAINT.UA.light);
+    expect(mats.DARKSTEEL.c).toBe(STAMP_PAINT.UA.steel);
   });
 });

@@ -181,8 +181,8 @@ export function mergeHero(geos: THREE.BufferGeometry[]): THREE.BufferGeometry {
 // restrained — a field vehicle, not a wreck (asset-ledger §1.4).
 let sharedHeroMaterial: THREE.MeshStandardMaterial | null = null;
 
-// All hero factories share one material instance — one shader compile,
-// consistent weathering across the whole tier.
+// Armor / recon keep this shared weathered wash. MECH / ARTY leave it —
+// rain's veil-break lifts the grey-olive mix to pale plastic.
 export function getHeroMaterial(): THREE.MeshStandardMaterial {
   if (!sharedHeroMaterial) sharedHeroMaterial = makeHeroMaterial();
   return sharedHeroMaterial;
@@ -306,4 +306,49 @@ export function makeHeroMaterial(): THREE.MeshStandardMaterial {
       );
   };
   return mat;
+}
+
+// sRGB field-green for MECH/ARTY vertex paint. Grade's veil-break sees the
+// framebuffer (sRGB), not linear storage — same contract as infantry
+// `#0a5816`. Dark hull / light top / dark steel must all keep green sat
+// above the grey gate, or rain lifts them back to khaki.
+export const STAMP_PAINT: Record<'UA' | 'RU', { base: string; dark: string; light: string; steel: string }> = {
+  // Hull must sit well under the turret at boot — mid-green BODY and
+  // mid-green TOP averaged into one brick. Dark hull, light turret, dark gun.
+  UA: { base: '#043010', dark: '#032808', light: '#1c9028', steel: '#032808' },
+  RU: { base: '#04280c', dark: '#032006', light: '#1c8824', steel: '#032006' },
+};
+
+export function stampMats(faction: 'UA' | 'RU'): HeroMatSet {
+  const f = STAMP_PAINT[faction];
+  return {
+    BODY: { c: f.base, r: 0.72, m: 0.12 },
+    TOP: { c: f.light, r: 0.74, m: 0.1 },
+    SHADE: { c: f.dark, r: 0.8, m: 0.1 },
+    TRACKM: { c: f.steel, r: 0.58, m: 0.72, w: 0.7 },
+    RUBBER: { c: f.dark, r: 0.92, m: 0.02 },
+    STEEL: { c: f.steel, r: 0.45, m: 0.85, w: 0.5 },
+    DARKSTEEL: { c: f.steel, r: 0.55, m: 0.7 },
+    MUZZLE: { c: f.dark, r: 0.5, m: 0.75, w: 0.6 },
+    CANVAS: { c: f.base, r: 0.95, m: 0.0 },
+    CANVAS2: { c: f.dark, r: 0.95, m: 0.0 },
+    OPTIC: { c: f.steel, r: 0.22, m: 0.35 },
+  };
+}
+
+let sharedStampMaterial: THREE.MeshBasicMaterial | null = null;
+
+export function getStampHeroMaterial(): THREE.MeshBasicMaterial {
+  if (!sharedStampMaterial) sharedStampMaterial = makeStampHeroMaterial();
+  return sharedStampMaterial;
+}
+
+// Unlit punch — the INF escape, not a second weathered wash. Authored
+// vertex colours carry dark hull / light top / dark gun. A fragment remap
+// from screen-space "up" flattened every roof into one lime slab at boot.
+export function makeStampHeroMaterial(): THREE.MeshBasicMaterial {
+  return new THREE.MeshBasicMaterial({
+    vertexColors: true,
+    transparent: true,
+  });
 }

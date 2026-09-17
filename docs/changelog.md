@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.20](#0220--2026-09-17--slice-4-mech-arty-stamp) | 2026-09-17 | Slice 4 — MECH / ARTY silhouette punch | unlit field-green stamp, IFV turret/gun, arty tube |
 | [0.2.19](#0219--2026-09-17--slice-4-non-armor-silhouettes) | 2026-09-17 | Slice 4 — infantry / non-armor silhouettes | rifle ranks, command truck, IFV gun, arty tube |
 | [0.2.18](#0218--2026-09-17--strip-volume-formations) | 2026-09-17 | Strip volume + non-armor silhouettes | parcel dirt/relief, INF ranks, counters-off harness |
 | [0.2.17](#0217--2026-09-17--rain-veil-machines) | 2026-09-17 | Rain veil + boot machines | AO/vignette last, north stems, lit-path floor, hull silhouette |
@@ -36,6 +37,16 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.20] — 2026-09-17 · Slice 4 — MECH / ARTY silhouette punch
+
+Presentation only. Hierarchy from 0.2.12–0.2.19 stays locked. INF meshes, materials and LOD are untouched. No ground, atmosphere, armor-only, chrome, HUD or rules work.
+
+0.2.19 escaped infantry through an unlit field-green Basic stamp. MECH and ARTY stayed on the shared hero wash — MeshStandard keep-alive, khaki dust, and a grey-olive hull/top mix whose saturation sits inside the rain veil-break. Geometry scale (thicker gun, thicker tube) could not outrun that lift: IFVs read as pale-plastic blobs and the howitzer as a washed carriage.
+
+This cut gives mechanized and artillery the same unlit Basic path, with authored field-green vertex paint: dark hull, light turret / tube, dark steel gun and trails. Armor and recon keep the weathered hero material. A screen-space roof remap is not used — at boot mid-zoom that flattened every IFV into one lime slab.
+
+The campaign, map, AI, supply and combat math are unchanged. Still not Vic 3 / HoI4 / Civ — this is a type-read material split, not a new hero language.
 
 ## [0.2.19] — 2026-09-17 · Slice 4 — infantry / non-armor silhouettes
 

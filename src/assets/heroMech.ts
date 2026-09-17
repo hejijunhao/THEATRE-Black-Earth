@@ -6,12 +6,12 @@
 import * as THREE from 'three';
 import { FactionId } from '../game/types';
 import {
-  HERO_SCALE, getHeroMaterial, hbox, hcyl, heroMats, htorus, htrap, mergeHero,
+  HERO_SCALE, getStampHeroMaterial, hbox, hcyl, stampMats, htorus, htrap, mergeHero,
 } from './heroParts';
 import { linkRun, trackWheel } from './heroAssemblies';
 
 export function makeMechHeroGeometry(faction: FactionId): THREE.BufferGeometry {
-  const M = heroMats(faction);
+  const M = stampMats(faction);
   const { BODY, TOP, SHADE, RUBBER, STEEL, DARKSTEEL, CANVAS2, OPTIC } = M;
   const parts: THREE.BufferGeometry[] = [];
 
@@ -67,10 +67,10 @@ export function makeMechHeroGeometry(faction: FactionId): THREE.BufferGeometry {
   parts.push(htrap(0.9, 3.1, 0.1, 3.0, 0.4, TOP, { x: 1.6, y: 1.45 }, -0.38, 0));
   // Troop compartment: tall rear box, flat roof.
   parts.push(htrap(4.6, 3.14, 4.55, 2.96, 0.42, BODY, { x: -1.1, y: 1.45 }, -0.02, 0));
-  // Roof stays BODY, not a pale TOP slab — looking down at boot height
-  // that slab was the NATO plate. A thin highlight strip is enough.
-  parts.push(hbox(4.5, 0.045, 2.9, BODY, { x: -1.12, y: 1.890 }));
-  parts.push(hbox(2.4, 0.02, 1.1, TOP, { x: -1.0, y: 1.918 }));
+  // Roof stays SHADE so the light turret owns the top-down read.
+  // A thin BODY strip is the only hull highlight.
+  parts.push(hbox(4.5, 0.045, 2.9, SHADE, { x: -1.12, y: 1.890 }));
+  parts.push(hbox(2.4, 0.02, 1.1, BODY, { x: -1.0, y: 1.918 }));
   // Rear ramp with seams, handle, convoy kit.
   parts.push(hbox(0.08, 0.95, 2.5, BODY, { x: -3.42, y: 1.32 }));
   for (const rz of [-0.55, 0.55]) {
@@ -137,7 +137,9 @@ export function makeMechHeroGeometry(faction: FactionId): THREE.BufferGeometry {
   }
 
   // ---- Turret: compact, autocannon — oversized for mid-zoom read --------
-  parts.push(htrap(1.7, 1.5, 1.45, 1.22, 0.68, BODY, { x: 0.40, y: 1.9 }, -0.05, 0));
+  // Turret is the light top; hull stays BODY. From boot the read is
+  // dark hull / light turret / dark autocannon — not one green slab.
+  parts.push(htrap(1.7, 1.5, 1.45, 1.22, 0.68, TOP, { x: 0.40, y: 1.9 }, -0.05, 0));
   parts.push(hbox(1.38, 0.03, 1.16, SHADE, { x: 0.36, y: 2.58 }));
   parts.push(hbox(0.38, 0.48, 0.58, SHADE, { x: 1.18, y: 2.22 })); // mantlet
   // Autocannon: the IFV finger. Thickness is a silhouette lie — a 20 mm
@@ -179,12 +181,12 @@ const geoCache = new Map<FactionId, THREE.BufferGeometry>();
 
 export function makeMechHero(faction: FactionId): {
   geometry: THREE.BufferGeometry;
-  material: THREE.MeshStandardMaterial;
+  material: THREE.Material;
 } {
   let geometry = geoCache.get(faction);
   if (!geometry) {
     geometry = makeMechHeroGeometry(faction);
     geoCache.set(faction, geometry);
   }
-  return { geometry, material: getHeroMaterial() };
+  return { geometry, material: getStampHeroMaterial() };
 }
