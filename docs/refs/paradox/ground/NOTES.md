@@ -45,6 +45,9 @@ zoom — without destroying the strip/parcel language from 0.2.18.
 unit / HUD / reach retunes; inventing a second field grid.
 
 **Honest craft verdict:** this is still a painted albedo + strip
-displacement, not Vic cadastral GIS or a HOI4 terrain mesh. The pass is
-whether rest-under-rain reads as surveyed soil instead of a quiet khaki
-slab. See the PR for PASS/FAIL against the diorama field/steppe caps.
+displacement, not Vic cadastral GIS or a HOI4 terrain mesh. Rest-under-rain
+is umber/olive earth with two luma bands and highlighter khaki gone —
+**PASS** vs the painted beige slab. It is **not** the diorama field cap
+(ploughed chernozem `#1c1713`) and **not** Vic province terrain. North
+still runs cooler (fog + forest stems; atmosphere is locked on other
+tips). Residual tan at campaign zoom is the remaining dirt.
