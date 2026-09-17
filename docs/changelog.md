@@ -47,7 +47,7 @@ The reach wash was a per-hex plate (0.9-radius discs at 0.24–0.34). That is no
 
 This cut authors the telegraph:
 
-- **Reach.** Inset soil stain (radius 0.56, cost-faded, ZOC never fills) plus one outer silhouette. Open / enemy / contact edges are chinagraph, not a ring on every cell.
+- **Reach.** Inset soil stain (radius 0.56, cost-faded, ZOC never fills) plus a rim on the blob edge only. Open / enemy / contact are chinagraph, not a plate on every cell.
 - **Frontline.** A hairline scar with quiet vs contact hatch. MeshBasic so rain lighting cannot hide the seam. Clear at boot mid-zoom without a second plate language.
 - **Picks.** Every decorative overlay and frontline mesh keeps `raycast={() => null}`. Highlighted hexes still march through the TerrainMesh pick plane.
 
