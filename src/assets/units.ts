@@ -10,7 +10,7 @@ import { FactionId, UnitType } from '../game/types';
 import { place } from './parts';
 import { HeroUnitType, hasHeroModel } from './heroFleet';
 import {
-  figure, lightTruck, smokePuffs, supplyTruck,
+  commandTruck, figure, lightTruck, smokePuffs, supplyTruck,
 } from './vehicles';
 
 export interface MiniatureSpec {
@@ -51,13 +51,13 @@ export function miniatureKey(s: MiniatureSpec): string {
   return [s.type, s.faction, s.tier, s.supplyTruck, s.reinforcing, s.disorganized, s.smoke].join('|');
 }
 
-// Infantry ranks on the plate. Scaled figures + a command truck are the
-// boot-height silhouette — raw 2 cm pins vanish and the ghost plate wins.
+// Infantry ranks on the plate. Authored figures (person + rifle) plus a
+// command truck are the boot-height silhouette — a pale plate must not win.
 const INF_RANKS: Array<[number, number]> = [
   [-0.10, -0.16], [0.00, -0.17], [0.10, -0.16],
   [-0.12, -0.05], [-0.02, -0.06], [0.08, -0.05],
 ];
-const INF_FIGURE_SCALE = 1.85;
+const INF_FIGURE_SCALE = 2.05;
 const INF_TRUCK_SCALE = 1.12;
 
 // Hero formations are echelons. Vehicles are authored +x forward, and a hero
@@ -120,8 +120,8 @@ export function makeMiniatureBuild(spec: MiniatureSpec): MiniatureBuild {
   let heroSlots: HeroSlot[] = [];
 
   if (heroType === null) {
-    // Infantry — no hero factory for this class yet. Rank + command truck
-    // so the boot read is a formation, not a ghost plate.
+    // Infantry — no hero factory for this class yet. Rank of rifle figures
+    // plus a command truck so the boot read is people, not a ghost plate.
     const figures = Math.min(INF_RANKS.length, 2 + spec.tier); // 3..6
     for (let i = 0; i < figures; i++) {
       const [fx, fz] = INF_RANKS[i];
@@ -129,9 +129,9 @@ export function makeMiniatureBuild(spec: MiniatureSpec): MiniatureBuild {
       const sz = spec.disorganized ? fz * 1.35 + 0.04 : fz;
       parts.push(...place(figure(), sx, sz, (i * 37) % 7 * 0.12, 0, INF_FIGURE_SCALE));
     }
-    parts.push(...place(lightTruck(spec.faction), 0.10, 0.12, spec.disorganized ? 0.7 : 0.10, 0, INF_TRUCK_SCALE));
+    parts.push(...place(commandTruck(spec.faction), 0.10, 0.12, spec.disorganized ? 0.7 : 0.10, 0, INF_TRUCK_SCALE));
     if (spec.tier >= 3) {
-      parts.push(...place(lightTruck(spec.faction), -0.12, 0.13, spec.disorganized ? -0.4 : -0.08, 0, INF_TRUCK_SCALE));
+      parts.push(...place(commandTruck(spec.faction), -0.12, 0.13, spec.disorganized ? -0.4 : -0.08, 0, INF_TRUCK_SCALE));
     }
   } else {
     const count = spec.type === 'recon' ? Math.min(2, Math.ceil(spec.tier / 2)) : spec.tier;

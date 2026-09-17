@@ -19,8 +19,9 @@ export function makeMechHeroGeometry(faction: FactionId): THREE.BufferGeometry {
   const stations = [-2.3, -1.4, -0.5, 0.4, 1.3, 2.2];
   for (const s of [1, -1] as const) {
     // Dark track body behind the wheels — without it the base plate reads
-    // straight through the running gear.
-    parts.push(hbox(5.7, 0.55, 0.22, { c: '#2c2b26', r: 0.85, m: 0.3 }, { x: -0.05, y: 0.42, z: s * 1.2 }));
+    // straight through the running gear. Mid-zoom needs a thick band, not
+    // a hairline, or the IFV collapses to a pale roof plate.
+    parts.push(hbox(5.8, 0.72, 0.38, { c: '#1a1916', r: 0.88, m: 0.28 }, { x: -0.05, y: 0.40, z: s * 1.22 }));
     for (const x of stations) {
       parts.push(...trackWheel(x, 0.4, s * 1.35, M, 0.31, 0.24, 0.14, 6, 0.15));
       parts.push(hbox(0.5, 0.12, 0.1, DARKSTEEL, { rz: 0.6, x: x - 0.2, y: 0.55, z: s * 1.12 }));
@@ -46,12 +47,13 @@ export function makeMechHeroGeometry(faction: FactionId): THREE.BufferGeometry {
         { cx: -2.85, cy: 0.44, r: 0.38, degs: [-110, -135, -160, -185, -210] },
       ],
     }, M));
-    // Shallow skirts: sponson lip plus four hanging rubber panels.
-    parts.push(hbox(5.9, 0.16, 0.08, BODY, { x: -0.15, y: 0.98, z: s * 1.6 }));
+    // Skirts: sponson lip plus four hanging rubber panels. Thicker than a
+    // real Marder so hull / track language survives boot height.
+    parts.push(hbox(5.9, 0.22, 0.12, BODY, { x: -0.15, y: 1.02, z: s * 1.64 }));
     for (let i = 0; i < 4; i++) {
       const jig = Math.sin(i * 9.173 + (s + 1) * 2.3) * 0.5;
-      parts.push(hbox(1.32, 0.34, 0.05, RUBBER, {
-        ry: jig * 0.02, x: 2.05 - 1.42 * i, y: 0.78 + jig * 0.012, z: s * (1.575 + jig * 0.01),
+      parts.push(hbox(1.32, 0.42, 0.08, RUBBER, {
+        ry: jig * 0.02, x: 2.05 - 1.42 * i, y: 0.76 + jig * 0.012, z: s * (1.60 + jig * 0.01),
       }));
     }
   }
@@ -60,11 +62,15 @@ export function makeMechHeroGeometry(faction: FactionId): THREE.BufferGeometry {
   parts.push(hbox(6.4, 0.5, 2.2, SHADE, { x: 0, y: 0.65, z: 0 })); // belly tub
   parts.push(htrap(6.6, 3.2, 6.5, 3.14, 0.55, BODY, { x: -0.3, y: 0.9 }, 0.02, 0)); // sponson
   // Marder profile: one long lower glacis, short upper glacis to the roof.
-  parts.push(htrap(1.5, 3.0, 0.14, 3.14, 0.9, TOP, { x: 2.65, y: 0.55 }, -0.65, 0));
+  // Lower glacis stays BODY so the nose is a hull, not a pale plate.
+  parts.push(htrap(1.5, 3.0, 0.14, 3.14, 0.9, BODY, { x: 2.65, y: 0.55 }, -0.65, 0));
   parts.push(htrap(0.9, 3.1, 0.1, 3.0, 0.4, TOP, { x: 1.6, y: 1.45 }, -0.38, 0));
   // Troop compartment: tall rear box, flat roof.
   parts.push(htrap(4.6, 3.14, 4.55, 2.96, 0.42, BODY, { x: -1.1, y: 1.45 }, -0.02, 0));
-  parts.push(hbox(4.5, 0.035, 2.9, TOP, { x: -1.12, y: 1.885 })); // roof skin
+  // Roof stays BODY, not a pale TOP slab — looking down at boot height
+  // that slab was the NATO plate. A thin highlight strip is enough.
+  parts.push(hbox(4.5, 0.045, 2.9, BODY, { x: -1.12, y: 1.890 }));
+  parts.push(hbox(2.4, 0.02, 1.1, TOP, { x: -1.0, y: 1.918 }));
   // Rear ramp with seams, handle, convoy kit.
   parts.push(hbox(0.08, 0.95, 2.5, BODY, { x: -3.42, y: 1.32 }));
   for (const rz of [-0.55, 0.55]) {
@@ -130,34 +136,36 @@ export function makeMechHeroGeometry(faction: FactionId): THREE.BufferGeometry {
     }
   }
 
-  // ---- Turret: compact, autocannon ---------------------------------------
-  parts.push(htrap(1.5, 1.35, 1.3, 1.1, 0.55, BODY, { x: 0.35, y: 1.9 }, -0.05, 0));
-  parts.push(hbox(1.24, 0.025, 1.04, TOP, { x: 0.32, y: 2.45 }));
-  parts.push(hbox(0.3, 0.4, 0.5, SHADE, { x: 1.05, y: 2.12 })); // mantlet
-  // Autocannon: stepped barrel, perforated-sleeve hint, flash hider.
-  parts.push(hcyl(0.08, 0.09, 0.7, 10, DARKSTEEL, 'x', { x: 1.55, y: 2.18 }));
-  parts.push(hcyl(0.058, 0.065, 1.55, 10, DARKSTEEL, 'x', { x: 2.65, y: 2.18 }));
-  parts.push(hcyl(0.078, 0.078, 0.2, 10, DARKSTEEL, 'x', { x: 3.52, y: 2.18 }));
-  parts.push(hcyl(0.02, 0.02, 0.5, 6, DARKSTEEL, 'x', { x: 1.7, y: 2.05, z: 0.18 })); // coax
+  // ---- Turret: compact, autocannon — oversized for mid-zoom read --------
+  parts.push(htrap(1.7, 1.5, 1.45, 1.22, 0.68, BODY, { x: 0.40, y: 1.9 }, -0.05, 0));
+  parts.push(hbox(1.38, 0.03, 1.16, SHADE, { x: 0.36, y: 2.58 }));
+  parts.push(hbox(0.38, 0.48, 0.58, SHADE, { x: 1.18, y: 2.22 })); // mantlet
+  // Autocannon: the IFV finger. Thickness is a silhouette lie — a 20 mm
+  // tube vanishes at boot height; this one has to read as a gun.
+  parts.push(hcyl(0.16, 0.18, 0.85, 10, DARKSTEEL, 'x', { x: 1.75, y: 2.28 }));
+  parts.push(hcyl(0.12, 0.13, 2.15, 10, DARKSTEEL, 'x', { x: 3.20, y: 2.28 }));
+  parts.push(hcyl(0.16, 0.16, 0.32, 10, DARKSTEEL, 'x', { x: 4.38, y: 2.28 }));
+  parts.push(hcyl(0.09, 0.07, 0.22, 8, SHADE, 'x', { x: 4.64, y: 2.28 })); // flash hider
+  parts.push(hcyl(0.04, 0.04, 0.7, 6, DARKSTEEL, 'x', { x: 1.9, y: 2.12, z: 0.20 })); // coax
   // Gunner sight, commander hatch with periscope nubs, spotlight.
-  parts.push(hbox(0.32, 0.14, 0.3, SHADE, { x: 0.55, y: 2.5, z: -0.25 }));
-  parts.push(hbox(0.02, 0.06, 0.2, OPTIC, { x: 0.72, y: 2.51, z: -0.25 }));
-  parts.push(hcyl(0.27, 0.27, 0.045, 14, BODY, 'y', { x: 0.05, y: 2.47, z: 0.2 }));
-  parts.push(hcyl(0.23, 0.23, 0.035, 14, TOP, 'y', { x: 0.05, y: 2.51, z: 0.2 }));
+  parts.push(hbox(0.32, 0.14, 0.3, SHADE, { x: 0.55, y: 2.64, z: -0.25 }));
+  parts.push(hbox(0.02, 0.06, 0.2, OPTIC, { x: 0.72, y: 2.65, z: -0.25 }));
+  parts.push(hcyl(0.27, 0.27, 0.045, 14, BODY, 'y', { x: 0.05, y: 2.61, z: 0.2 }));
+  parts.push(hcyl(0.23, 0.23, 0.035, 14, TOP, 'y', { x: 0.05, y: 2.65, z: 0.2 }));
   for (let pn = 0; pn < 4; pn++) {
     const a = 0.3 + pn * 0.7;
     parts.push(hbox(0.08, 0.06, 0.06, SHADE, {
-      ry: -a, x: 0.05 + Math.cos(a) * 0.34, y: 2.47, z: 0.2 + Math.sin(a) * 0.34,
+      ry: -a, x: 0.05 + Math.cos(a) * 0.34, y: 2.61, z: 0.2 + Math.sin(a) * 0.34,
     }));
   }
-  parts.push(hcyl(0.09, 0.09, 0.14, 10, DARKSTEEL, 'x', { x: 0.7, y: 2.56, z: 0.3 }));
-  parts.push(hcyl(0.075, 0.075, 0.012, 10, OPTIC, 'x', { x: 0.78, y: 2.56, z: 0.3 }));
+  parts.push(hcyl(0.09, 0.09, 0.14, 10, DARKSTEEL, 'x', { x: 0.7, y: 2.70, z: 0.3 }));
+  parts.push(hcyl(0.075, 0.075, 0.012, 10, OPTIC, 'x', { x: 0.78, y: 2.70, z: 0.3 }));
   // Smoke dischargers: banks of three on each turret rear cheek.
   for (const s of [1, -1] as const) {
-    parts.push(hbox(0.26, 0.2, 0.04, BODY, { ry: s * 0.4, x: -0.15, y: 2.2, z: s * 0.66 }));
+    parts.push(hbox(0.26, 0.2, 0.04, BODY, { ry: s * 0.4, x: -0.15, y: 2.28, z: s * 0.72 }));
     for (let i = 0; i < 3; i++) {
       parts.push(hcyl(0.04, 0.04, 0.26, 8, SHADE, 'x', {
-        rz: 0.5, ry: s * -(0.7 + 0.14 * i), x: -0.1 - 0.09 * i, y: 2.24, z: s * (0.68 + 0.04 * i),
+        rz: 0.5, ry: s * -(0.7 + 0.14 * i), x: -0.1 - 0.09 * i, y: 2.32, z: s * (0.74 + 0.04 * i),
       }));
     }
   }

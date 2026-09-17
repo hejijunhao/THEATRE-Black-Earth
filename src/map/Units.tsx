@@ -130,6 +130,18 @@ const MINI_MATERIAL = new THREE.MeshStandardMaterial({
   emissiveIntensity: 0.18,
 });
 
+// Infantry props only. The shared mini wash lifts olive toward khaki and
+// turns a rifle rank into a pale plate. Keep-alive is dim so the authored
+// person + rifle + truck colours stamp.
+const INF_MATERIAL = new THREE.MeshStandardMaterial({
+  vertexColors: true,
+  roughness: 0.8,
+  metalness: 0.06,
+  transparent: true,
+  emissive: '#0c0b08',
+  emissiveIntensity: 0.05,
+});
+
 function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boolean; chrome: BoardChrome }) {
   const game = useStore((s) => s.game)!;
   const selectUnit = useStore((s) => s.selectUnit);
@@ -259,7 +271,13 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
       {/* The machines: hero vehicles as instances, everything else — foot
           elements, logistics, muzzle smoke — merged into one props mesh. */}
       <group rotation={[0, facing, 0]} position={[0, 0.055, 0]} scale={MACHINE_SCALE}>
-        {build.props && <mesh geometry={build.props} material={MINI_MATERIAL} castShadow />}
+        {build.props && (
+          <mesh
+            geometry={build.props}
+            material={unit.type === 'infantry' ? INF_MATERIAL : MINI_MATERIAL}
+            castShadow
+          />
+        )}
         {build.heroType && (
           <HeroFormation type={build.heroType} faction={unit.faction} slots={build.heroSlots} />
         )}

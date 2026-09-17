@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.19](#0219--2026-09-17--slice-4-non-armor-silhouettes) | 2026-09-17 | Slice 4 — infantry / non-armor silhouettes | rifle ranks, command truck, IFV gun, arty tube |
 | [0.2.18](#0218--2026-09-17--strip-volume-formations) | 2026-09-17 | Strip volume + non-armor silhouettes | parcel dirt/relief, INF ranks, counters-off harness |
 | [0.2.17](#0217--2026-09-17--rain-veil-machines) | 2026-09-17 | Rain veil + boot machines | AO/vignette last, north stems, lit-path floor, hull silhouette |
 | [0.2.16](#0216--2026-09-17--north-soil-machines) | 2026-09-17 | North soil + mid-zoom machines | khaki field edge-to-edge, rain air, vehicles at boot height |
@@ -35,6 +36,18 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.19] — 2026-09-17 · Slice 4 — infantry / non-armor silhouettes
+
+Presentation only. Hierarchy from 0.2.12–0.2.18 stays locked: LOD hex caps, select ground ring, Kupiansk–Sloviansk boot, instrument strip + sector rail, parcel dirt, north khaki. No new panels. No HUD rearrange. Select → move → attack → AAR is unchanged. Ground, atmosphere, armor-only polish and board chrome are untouched.
+
+0.2.18 put a rank and a truck on the plate and kept MECH/ARTY on hero hulls. The harness passed with `tbe-counters` off; the craft still failed: non-armor at mid-zoom read as pale abstract blobs. This cut authors the silhouettes:
+
+- **INF.** Figure is a person — stride legs, torso, helmet, pack, long rifle — not a three-box pin. Command truck is cab / glass / dark canvas / wheels / whip antenna. Infantry props drop the shared mini wash so olive does not lift back to khaki.
+- **MECH.** IFV roof stays BODY. Track band and skirts thicken. Autocannon is an oversized finger so hull / turret / gun read at boot height.
+- **ARTY.** Elevated tube, muzzle brake and split trails thicken so the gun, not a carriage plate, owns the read.
+
+The campaign, map, AI, supply and combat math are unchanged. Still not Vic 3 / HoI4 / Civ — these are punched mid-zoom silhouettes, not a hero infantry factory or a new material language.
 
 ## [0.2.18] — 2026-09-17 · Strip volume + non-armor boot formations
 
