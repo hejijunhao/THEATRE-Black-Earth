@@ -394,6 +394,7 @@ Ukrainian decisive victory at turn 21. Swingy, but plausible by design.
 | Decision events | [`data/events.ts`](../src/game/data/events.ts) |
 | New player order / interaction mode | [`state/store.ts`](../src/game/state/store.ts) + the relevant `ui/` component |
 | Colours, map modes, atmosphere | [`map/palette.ts`](../src/map/palette.ts) |
+| Strip-field dirt / parcel relief | [`map/terrain/strips.ts`](../src/map/terrain/strips.ts) + albedo + heightfield — keep north khaki lift far-north |
 | HUD layout / styling | [`ui/styles.css`](../src/ui/styles.css) + component |
 | Board selection chrome (MP / spent / contact) | [`map/Units.tsx`](../src/map/Units.tsx) + [`map/textures.ts`](../src/map/textures.ts) + [`ui/boardChrome.ts`](../src/ui/boardChrome.ts) |
 | Campaign LOD / boot camera / plate caps | [`map/lod.ts`](../src/map/lod.ts) — plates must fit a hex; select is a ring, not a card |

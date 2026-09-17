@@ -57,11 +57,11 @@ function GroundPresence({ radius }: { radius: number }) {
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]} raycast={() => null}>
         <circleGeometry args={[radius * 1.15, 32]} />
-        <meshBasicMaterial color="#0a0907" transparent opacity={0.22} depthWrite={false} />
+        <meshBasicMaterial color="#0a0907" transparent opacity={0.14} depthWrite={false} />
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.014, 0]} raycast={() => null}>
         <circleGeometry args={[radius, 28]} />
-        <meshBasicMaterial color="#0c0b08" transparent opacity={0.5} depthWrite={false} />
+        <meshBasicMaterial color="#0c0b08" transparent opacity={0.32} depthWrite={false} />
       </mesh>
     </group>
   );

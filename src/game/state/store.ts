@@ -125,6 +125,7 @@ interface StoreState {
   // Force counter plates at any zoom (Tab). Persisted — wargamers who want
   // the board game keep it.
   counterMode: boolean;
+  setCounterMode: (on: boolean) => void;
   toggleCounterMode: () => void;
   // Menu backdrop: put a throwaway campaign in state so the main menu sits
   // over the live map (v2-vision §7.2). Never autosaved.
@@ -536,10 +537,12 @@ export const useStore = create<StoreState>((set, get) => {
       localStorage.setItem('tbe-quality', q);
       set({ quality: q });
     },
+    setCounterMode: (on) => {
+      localStorage.setItem('tbe-counters', on ? '1' : '0');
+      set({ counterMode: on });
+    },
     toggleCounterMode: () => {
-      const next = !get().counterMode;
-      localStorage.setItem('tbe-counters', next ? '1' : '0');
-      set({ counterMode: next });
+      get().setCounterMode(!get().counterMode);
     },
     ensureMenuBackdrop: () => {
       if (get().game) return;

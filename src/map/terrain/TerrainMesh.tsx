@@ -105,7 +105,7 @@ export function TerrainMesh() {
       metalness: 0.03,
       // Warm keep-alive, not a floodlight — midground must still show strips.
       emissive: new THREE.Color('#6e6040'),
-      emissiveIntensity: 0.16,
+      emissiveIntensity: 0.11,
     });
     mat.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, uniforms);
@@ -218,7 +218,7 @@ export function TerrainMesh() {
           '#include <emissivemap_fragment>',
           `#include <emissivemap_fragment>
           float northEmit = 1.0 - clamp(vWorldPos3.z / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
-          totalEmissiveRadiance += uSoilGround * (0.06 + 0.20 * smoothstep(0.48, 0.92, northEmit));`,
+          totalEmissiveRadiance += uSoilGround * (0.03 + 0.22 * smoothstep(0.48, 0.92, northEmit));`,
         )
         .replace(
           '#include <opaque_fragment>',

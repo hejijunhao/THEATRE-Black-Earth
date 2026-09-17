@@ -3,6 +3,7 @@
 // screenshots and console errors along the way.
 import { existsSync } from 'node:fs';
 import puppeteer from 'puppeteer-core';
+import { assertCountersOff, clearCountersBeforeScripts } from './lib/counters-off.mjs';
 
 const OUT = process.env.OUT_DIR ?? 'scripts/out';
 const URL = 'http://localhost:5199';
@@ -38,6 +39,7 @@ const browser = await puppeteer.launch({
 });
 
 const page = await browser.newPage();
+await clearCountersBeforeScripts(page);
 const errors = [];
 page.on('pageerror', (err) => errors.push(String(err)));
 page.on('console', (msg) => {
@@ -87,6 +89,7 @@ await page.evaluate(() => {
 });
 const hasHook = await page.evaluate(() => Boolean(window.__TBE_DEBUG__));
 console.log('debug hook available:', hasHook);
+if (hasHook) await assertCountersOff(page, 'playtest counters');
 await sleep(600);
 await page.screenshot({ path: `${OUT}/10-selected-unit.png` });
 const bench = await page.$eval('.command-bench', (el) => el.innerText).catch(() => '');

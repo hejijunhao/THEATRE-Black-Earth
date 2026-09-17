@@ -13,6 +13,7 @@ import { useStore } from '../game/state/store';
 import { tileWorld } from '../game/hex';
 import { GeoBuilder, pushBlade } from '../assets/terrainHero';
 import { SEA_LEVEL_Y, groundY, hexFracs } from './terrain/heightfield';
+import { stripFrame } from './terrain/strips';
 
 // Deterministic 0..1 per (tile, salt).
 function rnd(id: string, salt: number): number {
@@ -88,20 +89,20 @@ export function buildVegetation(tiles: {
     const cropland = !marshy && f.crop > 0.45;
 
     if (cropland) {
-      // Stubble rows: clumps on three parallel lines through the hex, row
-      // direction seeded per tile — reads as worked fields from altitude.
-      const ang = rnd(tile.id, 1) * Math.PI;
-      const dx = Math.cos(ang);
-      const dz = Math.sin(ang);
+      // Stubble rows follow the painted strip frame so albedo, relief and
+      // vegetation read as one cultivated parcel, not three competing grids.
+      const frame = stripFrame(wx, wz);
+      const dx = Math.sin(frame.theta);
+      const dz = Math.cos(frame.theta);
       let salt = 20;
-      for (const off of [-0.42, 0, 0.42]) {
-        for (let k = -1.5; k <= 1.5; k++) {
-          const along = k * 0.4 + (rnd(tile.id, salt) - 0.5) * 0.14;
-          const cx = wx + dx * along - dz * off + (rnd(tile.id, salt + 1) - 0.5) * 0.08;
-          const cz = wz + dz * along + dx * off + (rnd(tile.id, salt + 2) - 0.5) * 0.08;
+      for (const off of [-0.52, -0.26, 0, 0.26, 0.52]) {
+        for (let k = -1.6; k <= 1.6; k++) {
+          const along = k * 0.34 + (rnd(tile.id, salt) - 0.5) * 0.10;
+          const cx = wx + dx * along - dz * off + (rnd(tile.id, salt + 1) - 0.5) * 0.05;
+          const cz = wz + dz * along + dx * off + (rnd(tile.id, salt + 2) - 0.5) * 0.05;
           // Keep the tile centre clear — units stand there.
           if (Math.hypot(cx - wx, cz - wz) < 0.26) { salt += 3; continue; }
-          pushClump(b, tile.id, salt, cx, cz, CROP, 0.065, 0.125, 0.022);
+          pushClump(b, tile.id, salt, cx, cz, CROP, 0.07, 0.14, 0.024);
           salt += 3;
         }
       }
