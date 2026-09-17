@@ -59,14 +59,17 @@ This cut:
 - **Retunes strip paint to cadastral soil.** Chernozem, wet plough, loess
   fallow, muted stubble, pasture olive. Highlighter straw is gone. Furrow
   / shelter dirt and a finer crumb stay so a parcel is dirt, not a swatch.
+- **14-unit soil districts.** Same cells as strip orientation, so rest
+  zoom sees surveyed families (chernozem / loam / loess / pasture), not
+  one printed swatch. Parcel chroma stays the contact-scale read.
 - **Surveyed soil under leftover steppe.** Valleys hold chernozem, higher
   ground goes loess. Weak enough that 0.2.18 parcel edges still lead.
 - **Continuity target is loess, not painted khaki.** North still lifts so
   the far grid cannot collapse to cool grey; the mix is the same dirt
   family as the midground, not `#c8b06a`.
-- **Mesh keep-alive quiets.** Emissive and the north/lit floors follow
-  soil, not a beige flood. Fog, grade, rain AO, lights, units and HUD
-  are untouched.
+- **Scar keep no longer washes the rest frame.** Far-north emissive / lit
+  floors stay; the midground keep that flattened the scar into one loess
+  swatch is gone. Fog, grade, rain AO, lights, units and HUD are untouched.
 
 Notes under `docs/refs/paradox/ground/` (Vic 3 / HOI4 terrain albedo, not
 political-map colour). Live Paradox shots are still TODO — did not invent
