@@ -59,17 +59,17 @@ function noise2(x: number, y: number, salt: number): number {
 // Field palette: the cultivated steppe. Ochre stubble, dull green winter
 // cereal, dark fallow, straw. Luminance kept tight — high variance makes
 // whole strip-regions read as dark bands from map altitude.
-const FIELD_COLORS = ['#96895c', '#878455', '#6e6549', '#a3966a', '#8d845a', '#7f7a50'].map(rgb);
-const GRASS = rgb('#8f895f');
+const FIELD_COLORS = ['#9a8354', '#8a7548', '#6d5538', '#a8905c', '#8f7a4a', '#7a6a40'].map(rgb);
+const GRASS = rgb('#8a8456');
 // Forests must stay clearly lighter than water — dark green + blue fog reads
 // as lake at map scale.
-const FOREST_FLOOR = rgb('#617347');
-const FOREST_DEEP = rgb('#52633c');
-const MARSH = rgb('#6d7a54');
-const URBAN = rgb('#7b7974');
-const URBAN_DARK = rgb('#66645f');
-const SEA_FLOOR = rgb('#31404f');
-const BEACH = rgb('#8d8465');
+const FOREST_FLOOR = rgb('#5d6e42');
+const FOREST_DEEP = rgb('#4a5a36');
+const MARSH = rgb('#6a734c');
+const URBAN = rgb('#7c7870');
+const URBAN_DARK = rgb('#615e58');
+const SEA_FLOOR = rgb('#2c3c4c');
+const BEACH = rgb('#927e58');
 
 // Strip-field pattern: long bands with a regional orientation, broken into
 // parcels along their length.
@@ -208,6 +208,6 @@ export function makeAlbedoTexture(): THREE.CanvasTexture {
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.wrapS = THREE.ClampToEdgeWrapping;
   tex.wrapT = THREE.ClampToEdgeWrapping;
-  tex.anisotropy = 4;
+  tex.anisotropy = 8;
   return tex;
 }

@@ -41,16 +41,23 @@ await sleep(2800);
 
 const chrome = await page.evaluate(() => {
   const s = window.__TBE_DEBUG__.summary();
+  const strip = document.querySelector('.top-bar')?.innerText ?? '';
   return {
     selected: s.selected,
     hud: document.querySelector('.hud')?.className,
     topBar: Boolean(document.querySelector('.top-bar')),
+    pulse: Boolean(document.querySelector('.theatre-pulse')),
+    beads: document.querySelectorAll('.pulse-beads i').length,
+    depot: Boolean(document.querySelector('.depot-chip')),
+    delta: Boolean(document.querySelector('.delta-chip')),
+    ledger: /Manpower|Equipment|Command/.test(strip),
     clock: Boolean(document.querySelector('.victory-clock')),
     journal: Boolean(document.querySelector('.bound-journal')),
     dossier: Boolean(document.querySelector('.side-panel')),
     bench: Boolean(document.querySelector('.command-bench')),
     orders: Boolean(document.querySelector('.orders-hint')),
     outliner: Boolean(document.querySelector('.outliner')),
+    next: Boolean(document.querySelector('.or-run')),
     mapModes: document.querySelector('.map-modes')?.className,
     mapModeButtons: document.querySelectorAll('.map-mode-btn').length,
   };
@@ -64,12 +71,26 @@ if (!chrome.topBar || !chrome.outliner) {
   console.error('FAIL: rest state missing strip or rail');
   process.exitCode = 1;
 }
+if (!chrome.pulse || chrome.beads < 1 || !chrome.depot || chrome.delta || chrome.ledger) {
+  console.error('FAIL: strip is still a ledger, not an instrument', chrome);
+  process.exitCode = 1;
+}
+if (!chrome.next) {
+  console.error('FAIL: rail missing Next-unspent plate');
+  process.exitCode = 1;
+}
 if (chrome.mapModeButtons !== 1) {
   console.error('FAIL: map modes not collapsed at rest', chrome.mapModeButtons);
   process.exitCode = 1;
 }
 
 await page.screenshot({ path: join(OUT, '01-rest-map.png') });
+
+await page.evaluate(() => window.__TBE_DEBUG__.setMapMode('terrain'));
+await sleep(800);
+await page.screenshot({ path: join(OUT, '01b-rest-terrain.png') });
+await page.evaluate(() => window.__TBE_DEBUG__.setMapMode('political'));
+await sleep(400);
 
 const u3 = await page.evaluate(() => {
   const hook = window.__TBE_DEBUG__;
@@ -109,11 +130,38 @@ if (selected.journal || selected.dossier || selected.clock || selected.orders) {
 
 await page.screenshot({ path: join(OUT, '02-selected-unit.png') });
 
+const rail = await page.evaluate(() => {
+  const el = document.querySelector('.outliner');
+  const rows = [...document.querySelectorAll('.outliner-row')].slice(0, 3).map((r) => ({
+    cls: r.className,
+    text: r.innerText.replace(/\s+/g, ' ').trim(),
+    hasGlyph: Boolean(r.querySelector('.or-type')),
+    hasStr: Boolean(r.querySelector('.or-str')),
+    hasMark: Boolean(r.querySelector('.or-mark')),
+  }));
+  return {
+    cls: el?.className,
+    next: document.querySelector('.or-run')?.innerText?.replace(/\s+/g, ' ').trim() ?? '',
+    rowCount: document.querySelectorAll('.outliner-row').length,
+    rows,
+  };
+});
+console.log('rail:', JSON.stringify(rail));
+if (!/or-run|Next/i.test(rail.next) || rail.rowCount < 4) {
+  console.error('FAIL: week-runner rail empty or Next missing', rail);
+  process.exitCode = 1;
+}
+if (rail.rows.some((r) => !r.hasGlyph || !r.hasStr || !r.hasMark || !/[A-Z]{2,}/.test(r.text))) {
+  console.error('FAIL: rail rows are not glyph + name + strength + agency', rail.rows);
+  process.exitCode = 1;
+}
+await page.screenshot({ path: join(OUT, '03-rail.png') });
+
 await page.keyboard.press('j');
 await sleep(400);
 const journalOpen = await page.evaluate(() => Boolean(document.querySelector('.bound-journal')));
 console.log('journal on J:', journalOpen);
-await page.screenshot({ path: join(OUT, '03-journal-on-demand.png') });
+await page.screenshot({ path: join(OUT, '04-journal-on-demand.png') });
 await page.keyboard.press('Escape');
 await sleep(200);
 
@@ -121,7 +169,7 @@ await page.keyboard.press('i');
 await sleep(400);
 const dossierOpen = await page.evaluate(() => Boolean(document.querySelector('.side-panel')));
 console.log('dossier on I:', dossierOpen);
-await page.screenshot({ path: join(OUT, '04-dossier-on-demand.png') });
+await page.screenshot({ path: join(OUT, '05-dossier-on-demand.png') });
 
 await browser.close();
 if (process.exitCode) process.exit(process.exitCode);

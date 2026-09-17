@@ -38,10 +38,16 @@ const COUNTER_ZOOM_FULL = 26;
 /** Sit the token on the earth — a contact shadow, not another ring. */
 function GroundPresence({ radius }: { radius: number }) {
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.012, 0]} raycast={() => null}>
-      <circleGeometry args={[radius, 28]} />
-      <meshBasicMaterial color="#0c0b08" transparent opacity={0.42} depthWrite={false} />
-    </mesh>
+    <group>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]} raycast={() => null}>
+        <circleGeometry args={[radius * 1.15, 32]} />
+        <meshBasicMaterial color="#0a0907" transparent opacity={0.22} depthWrite={false} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.014, 0]} raycast={() => null}>
+        <circleGeometry args={[radius, 28]} />
+        <meshBasicMaterial color="#0c0b08" transparent opacity={0.5} depthWrite={false} />
+      </mesh>
+    </group>
   );
 }
 
@@ -258,7 +264,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
       {/* The standard. */}
       <Billboard position={[0, 0.5, 0]} follow>
         <mesh>
-          <planeGeometry args={[0.82, 0.28]} />
+          <planeGeometry args={[0.96, 0.29]} />
           <meshBasicMaterial ref={stdMatRef} map={stdTexture} transparent depthWrite={false} />
         </mesh>
       </Billboard>
@@ -333,15 +339,14 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
       }}
       onPointerOver={(e) => e.stopPropagation()}
     >
-      <GroundPresence radius={0.72} />
-      <mesh position={[0, 0.09, 0]} castShadow>
-        <boxGeometry args={[0.78, 0.18, 0.54]} />
+      <GroundPresence radius={0.7} />
+      <mesh position={[0, 0.07, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.7, 0.12, 0.46]} />
         <meshStandardMaterial
           ref={baseMatRef}
-          color={chrome.spent
-            ? (unit.faction === 'UA' ? '#1c2838' : '#3a201c')
-            : (unit.faction === 'UA' ? '#33507a' : '#67352c')}
-          roughness={0.6}
+          color={chrome.spent ? '#1c1b17' : '#2e2c26'}
+          roughness={0.78}
+          metalness={0.04}
           transparent
           emissive={
             selected
@@ -350,7 +355,7 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
                 ? '#cfc6a8'
                 : '#000000'
           }
-          emissiveIntensity={selected ? 0.5 : chrome.threatened ? 0.26 : 0}
+          emissiveIntensity={selected ? 0.42 : chrome.threatened ? 0.22 : 0}
         />
       </mesh>
       <AgencyMarks chrome={chrome} selected={selected} width={2.42} height={1.52} y={0.78} />

@@ -13,6 +13,7 @@ import { rankReasons, reasonCopy, reasonWeight } from '../briefingCopy';
 import { paperDock, paperLayoutFromScreen, SHEET_GAP } from '../paperLayout';
 import { chronologyTile } from '../journalChronology';
 import { bindChronology, parseDice } from '../journalChronology';
+import { theatreBalance } from '../theatreBalance';
 import { CombatFactor, NotificationEntry } from '../../game/types';
 
 function factor(label: string, value: number): CombatFactor {
@@ -125,6 +126,16 @@ describe('subtractive HUD gate', () => {
   it('whispers only when targeting an op or reserve drop', () => {
     expect(showOrdersHint({ ...rest, interactionMode: 'op-target' })).toBe(true);
     expect(showOrdersHint({ ...rest, interactionMode: 'deploy' })).toBe(true);
+  });
+});
+
+describe('theatre pulse', () => {
+  it('exposes a headline and one bead per decisive city', () => {
+    const state = buildInitialState('UA', 42);
+    const b = theatreBalance(state);
+    expect(['Holding', 'Pressing', 'Slipping', 'Breaking']).toContain(b.headline);
+    expect(b.decisiveCities.length).toBe(state.scenario.decisive.UA.length);
+    expect(b.decisiveCities.every((c) => c.name.length > 0)).toBe(true);
   });
 });
 

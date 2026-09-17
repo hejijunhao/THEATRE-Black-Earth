@@ -100,7 +100,7 @@ export function TerrainMesh() {
   );
 
   const material = useMemo(() => {
-    const mat = new THREE.MeshStandardMaterial({ roughness: 0.93, metalness: 0.02 });
+    const mat = new THREE.MeshStandardMaterial({ roughness: 0.86, metalness: 0.035 });
     mat.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, uniforms);
       shader.vertexShader = shader.vertexShader
