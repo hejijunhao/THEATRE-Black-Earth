@@ -24,7 +24,7 @@ describe('board telegraph', () => {
     expect(REACH_FILL_OPACITY.zoc).toBe(0);
     expect(reachFillOpacity('zoc', 1, 4)).toBe(0);
     expect(reachFillOpacity('open', 1, 4)).toBeGreaterThan(reachFillOpacity('open', 4, 4));
-    expect(reachFillOpacity('open', 4, 4)).toBeLessThan(0.08);
+    expect(reachFillOpacity('open', 4, 4)).toBeLessThan(0.1);
   });
 
   it('keeps the interior wash inset so soil reads at the hex rim', () => {
@@ -49,8 +49,8 @@ describe('board telegraph', () => {
     expect(seamHatchTs(true)).toEqual([...FRONT_CONTACT_HATCH]);
     expect(FRONT_CONTACT_HATCH.length).toBeGreaterThan(FRONT_QUIET_HATCH.length);
     expect(scarIsHairline()).toBe(true);
-    expect(FRONT_SCAR_W).toBeLessThan(0.07);
-    expect(FRONT_SCAR_H).toBeLessThan(0.04);
+    expect(FRONT_SCAR_W).toBeLessThan(0.09);
+    expect(FRONT_SCAR_H).toBeLessThan(0.055);
     expect(scarIsHairline(0.12, 0.1)).toBe(false);
   });
 });

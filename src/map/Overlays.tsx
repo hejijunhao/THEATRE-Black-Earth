@@ -23,6 +23,8 @@ import {
   REACH_EDGE_W,
   REACH_FILL,
   REACH_FILL_RADIUS,
+  REACH_RIM_IN,
+  REACH_RIM_OUT,
   ReachKind,
   reachFillOpacity,
   TelegraphEdge,
@@ -38,13 +40,16 @@ function useHexShapes() {
     const disc = new THREE.CircleGeometry(0.9, 6);
     disc.rotateZ(Math.PI / 6);
     disc.rotateX(-Math.PI / 2);
+    const rim = new THREE.RingGeometry(REACH_RIM_IN, REACH_RIM_OUT, 6);
+    rim.rotateZ(Math.PI / 6);
+    rim.rotateX(-Math.PI / 2);
     const ring = new THREE.RingGeometry(0.8, 0.91, 6);
     ring.rotateZ(Math.PI / 6);
     ring.rotateX(-Math.PI / 2);
     const attack = new THREE.RingGeometry(0.76, 0.88, 6);
     attack.rotateZ(Math.PI / 6);
     attack.rotateX(-Math.PI / 2);
-    return { fill, disc, ring, attack };
+    return { fill, disc, rim, ring, attack };
   }, []);
 }
 
@@ -120,7 +125,7 @@ export function Overlays() {
   const pendingAttackId = useStore((s) => s.pendingAttackId);
   const lastCombat = useStore((s) => s.lastCombat);
   const mapMode = useStore((s) => s.mapMode);
-  const { fill, disc, ring, attack } = useHexShapes();
+  const { fill, disc, rim, ring, attack } = useHexShapes();
 
   const selectedUnit = game && selectedUnitId ? game.units[selectedUnitId] : null;
 
@@ -145,10 +150,17 @@ export function Overlays() {
       return classifyReach(r.entersZOC, game.tiles[id].controller !== game.playerFaction);
     };
     const seams: Record<ReachKind, TelegraphEdge[]> = { open: [], enemy: [], zoc: [] };
+    const rims: Array<{ id: TileId; kind: ReachKind }> = [];
+    const rimSeen = new Set<TileId>();
     for (const e of perimeterEdges(interior)) {
-      seams[kindOf(e.inside)].push(e);
+      const kind = kindOf(e.inside);
+      seams[kind].push(e);
+      if (e.inside !== selectedUnit.tile && !rimSeen.has(e.inside)) {
+        rimSeen.add(e.inside);
+        rims.push({ id: e.inside, kind });
+      }
     }
-    return { fills, seams };
+    return { fills, seams, rims };
   }, [game, selectedUnit]);
 
   const targets = useMemo(() => {
@@ -205,6 +217,20 @@ export function Overlays() {
                 color={r.kind === 'enemy' ? REACH_FILL.enemy : REACH_FILL.open}
                 transparent
                 opacity={r.opacity}
+                depthWrite={false}
+              />
+            </mesh>
+          );
+        })}
+      {wash &&
+        wash.rims.map((r) => {
+          const { wx, wz } = tileWorldById(r.id);
+          return (
+            <mesh key={`rim-${r.id}`} geometry={rim} position={[wx, tileY(tiles, r.id) + 0.012, wz]} raycast={() => null}>
+              <meshBasicMaterial
+                color={REACH_EDGE[r.kind]}
+                transparent
+                opacity={REACH_EDGE_OPACITY[r.kind] * 0.72}
                 depthWrite={false}
               />
             </mesh>

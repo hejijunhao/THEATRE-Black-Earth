@@ -27,6 +27,8 @@ export function buildEdgeRibbon(
   }
   const merged = mergeGeometries(boxes);
   for (const b of boxes) b.dispose();
+  merged?.computeBoundingSphere();
+  merged?.computeBoundingBox();
   return merged;
 }
 
@@ -52,5 +54,7 @@ export function buildSeamHatches(
   }
   const merged = mergeGeometries(boxes);
   for (const b of boxes) b.dispose();
+  merged?.computeBoundingSphere();
+  merged?.computeBoundingBox();
   return merged;
 }

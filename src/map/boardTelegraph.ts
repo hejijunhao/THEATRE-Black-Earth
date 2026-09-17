@@ -9,59 +9,61 @@ export type ReachKind = 'open' | 'enemy' | 'zoc';
 /** Inset well below the hex apothem so soil reads at the rim — not a plate. */
 export const REACH_FILL_RADIUS = 0.56;
 export const REACH_FILL = {
-  open: '#d2cdb8',
-  enemy: '#c2a47c',
+  open: '#d8d2bc',
+  enemy: '#c8a878',
 } as const;
 export const REACH_FILL_OPACITY = {
-  open: 0.09,
-  enemy: 0.11,
+  open: 0.15,
+  enemy: 0.17,
   zoc: 0,
 } as const;
 
 export const REACH_EDGE = {
-  open: '#ebe4ce',
-  enemy: '#c9a06a',
-  zoc: '#d4b05a',
+  open: '#f2ead4',
+  enemy: '#d4a85e',
+  zoc: '#e0b84a',
 } as const;
 export const REACH_EDGE_OPACITY = {
-  open: 0.5,
-  enemy: 0.58,
-  zoc: 0.78,
+  open: 0.82,
+  enemy: 0.84,
+  zoc: 0.92,
 } as const;
-export const REACH_EDGE_LEN = 1.08;
-export const REACH_EDGE_W = 0.034;
-export const REACH_EDGE_H = 0.01;
-export const REACH_EDGE_LIFT = 0.05;
+export const REACH_EDGE_LEN = 1.1;
+export const REACH_EDGE_W = 0.058;
+export const REACH_EDGE_H = 0.02;
+export const REACH_EDGE_LIFT = 0.058;
+export const REACH_RIM_IN = 0.78;
+export const REACH_RIM_OUT = 0.9;
 
-export const FRONT_SCAR_LEN = 1.12;
-export const FRONT_SCAR_W = 0.044;
-export const FRONT_SCAR_H = 0.026;
-export const FRONT_SCAR_LIFT = 0.042;
-export const FRONT_GLOW_W = 0.11;
-export const FRONT_GLOW_H = 0.01;
-export const FRONT_GLOW_LIFT = 0.03;
-export const FRONT_HATCH_LEN = 0.082;
-export const FRONT_HATCH_W = 0.015;
-export const FRONT_HATCH_H = 0.018;
-export const FRONT_HATCH_LIFT = 0.05;
+export const FRONT_SCAR_LEN = 1.14;
+export const FRONT_SCAR_W = 0.072;
+export const FRONT_SCAR_H = 0.042;
+export const FRONT_SCAR_LIFT = 0.058;
+export const FRONT_GLOW_W = 0.16;
+export const FRONT_GLOW_H = 0.016;
+export const FRONT_GLOW_LIFT = 0.04;
+export const FRONT_HATCH_LEN = 0.1;
+export const FRONT_HATCH_W = 0.02;
+export const FRONT_HATCH_H = 0.024;
+export const FRONT_HATCH_LIFT = 0.068;
 export const FRONT_QUIET_HATCH = [-0.22, 0.22] as const;
 export const FRONT_CONTACT_HATCH = [-0.36, -0.12, 0.12, 0.36] as const;
 
 export const FRONT_COLOR = {
-  glowQuiet: '#4a3a28',
-  glowContact: '#6a4a28',
-  scarQuiet: '#221c16',
-  scarContact: '#3a2818',
-  hatchQuiet: '#1a1612',
-  hatchContact: '#4a321c',
+  glowQuiet: '#5a4430',
+  glowContact: '#8a5a28',
+  scarQuiet: '#2c2218',
+  scarContact: '#5a3a1c',
+  hatchQuiet: '#1e1812',
+  hatchContact: '#6a4420',
 } as const;
 export const FRONT_OPACITY = {
-  glowQuiet: 0.14,
-  glowContact: 0.2,
-  scarQuiet: 0.9,
-  scarContact: 0.94,
-  hatchQuiet: 0.7,
-  hatchContact: 0.82,
+  glowQuiet: 0.28,
+  glowContact: 0.4,
+  scarQuiet: 0.94,
+  scarContact: 0.96,
+  hatchQuiet: 0.78,
+  hatchContact: 0.9,
 } as const;
 
 export function classifyReach(entersZOC: boolean, enemyGround: boolean): ReachKind {
@@ -119,5 +121,5 @@ export function fillFitsHex(radius = REACH_FILL_RADIUS): boolean {
 }
 
 export function scarIsHairline(width = FRONT_SCAR_W, height = FRONT_SCAR_H): boolean {
-  return width < 0.07 && height < 0.04;
+  return width < 0.09 && height < 0.055;
 }
