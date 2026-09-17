@@ -57,8 +57,8 @@ const INF_RANKS: Array<[number, number]> = [
   [-0.10, -0.16], [0.00, -0.17], [0.10, -0.16],
   [-0.12, -0.05], [-0.02, -0.06], [0.08, -0.05],
 ];
-const INF_FIGURE_SCALE = 2.45;
-const INF_TRUCK_SCALE = 2.35;
+const INF_FIGURE_SCALE = 1.85;
+const INF_TRUCK_SCALE = 1.12;
 
 // Hero formations are echelons. Vehicles are authored +x forward, and a hero
 // hull with its gun reaches ~0.32 across a 0.74 base plate, so a file abreast
