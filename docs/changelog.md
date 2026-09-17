@@ -44,7 +44,7 @@ Presentation only. Hierarchy from 0.2.12–0.2.19 stays locked. INF meshes, mate
 
 0.2.19 escaped infantry through an unlit field-green Basic stamp. MECH and ARTY stayed on the shared hero wash — MeshStandard keep-alive, khaki dust, and a grey-olive hull/top mix whose saturation sits inside the rain veil-break. Geometry scale (thicker gun, thicker tube) could not outrun that lift: IFVs read as pale-plastic blobs and the howitzer as a washed carriage.
 
-This cut gives mechanized and artillery their own unlit stamp. Armor and recon keep the weathered hero material. The stamp remaps to punchy field-green with dark hull / light top so turret, autocannon, tube, muzzle brake and trails can stamp at boot mid-zoom.
+This cut gives mechanized and artillery the same unlit Basic path, with authored field-green vertex paint: dark hull, light turret / tube, dark steel gun and trails. Armor and recon keep the weathered hero material. A screen-space roof remap is not used — at boot mid-zoom that flattened every IFV into one lime slab.
 
 The campaign, map, AI, supply and combat math are unchanged. Still not Vic 3 / HoI4 / Civ — this is a type-read material split, not a new hero language.
 
