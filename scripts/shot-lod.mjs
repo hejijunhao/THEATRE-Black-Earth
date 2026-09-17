@@ -1,8 +1,10 @@
 // LOD / boot / north-air gate shots: rest, selected, mid-zoom.
-// Fail the cut if hexes disappear under plates.
-import { existsSync, mkdirSync } from 'node:fs';
+// Fail the cut if hexes disappear under plates, if the north rain veil
+// returns, or if mid-zoom reads as plates-only.
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import puppeteer from 'puppeteer-core';
+import { PNG } from 'pngjs';
 
 const OUT = process.env.OUT_DIR ?? '/opt/cursor/artifacts/screenshots';
 const URL = process.env.URL ?? 'http://127.0.0.1:5199';
@@ -17,6 +19,52 @@ function chromePath() {
     '/usr/bin/chromium',
     '/usr/bin/chromium-browser',
   ].find((p) => existsSync(p));
+}
+
+function lumaOf(r, g, b) {
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function sampleRegion(png, x0, y0, x1, y1) {
+  let lSum = 0;
+  let veil = 0;
+  let n = 0;
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < x1; x++) {
+      const i = (png.width * y + x) << 2;
+      const r = png.data[i];
+      const g = png.data[i + 1];
+      const b = png.data[i + 2];
+      const l = lumaOf(r, g, b);
+      const sat = Math.max(r, g, b) - Math.min(r, g, b);
+      lSum += l;
+      if (l < 72 && sat < 18) veil += 1;
+      n += 1;
+    }
+  }
+  return { luma: lSum / n, veil: veil / n };
+}
+
+/** Rest rain: north (top of the scar frame) must stay khaki with the mid. */
+function assertNorthKhaki(path) {
+  const png = PNG.sync.read(readFileSync(path));
+  // Skip strip / rail / right chrome. North is the upper theatre, mid is the scar.
+  const north = sampleRegion(png, 280, 70, 1480, 240);
+  const mid = sampleRegion(png, 280, 400, 1480, 680);
+  console.log('north luma/veil', north.luma.toFixed(1), north.veil.toFixed(3));
+  console.log('mid luma/veil', mid.luma.toFixed(1), mid.veil.toFixed(3));
+  if (north.luma < 88) {
+    console.error('FAIL: north rain veil — luma below khaki floor');
+    process.exitCode = 1;
+  }
+  if (north.luma < mid.luma * 0.74) {
+    console.error('FAIL: north rain veil — north much darker than mid');
+    process.exitCode = 1;
+  }
+  if (north.veil > 0.14) {
+    console.error('FAIL: north rain veil — charcoal fraction too high');
+    process.exitCode = 1;
+  }
 }
 
 const executablePath = chromePath();
@@ -75,7 +123,9 @@ if (boot.bench) {
   process.exitCode = 1;
 }
 await sleep(700);
-await page.screenshot({ path: join(OUT, 'lod-01-rest.png') });
+const restPath = join(OUT, 'lod-01-rest.png');
+await page.screenshot({ path: restPath });
+assertNorthKhaki(restPath);
 
 const mid = await page.evaluate(() => {
   const cam = window.__TBE_CAMERA__;
@@ -107,6 +157,22 @@ if (!selectedChrome.bench || !selectedChrome.rail || !selectedChrome.strip) {
   process.exitCode = 1;
 }
 await page.screenshot({ path: join(OUT, 'lod-03-selected.png') });
+
+const machine = await page.evaluate(() => {
+  const hook = window.__TBE_DEBUG__;
+  const cam = window.__TBE_CAMERA__;
+  const armored = hook.units()
+    .filter((u) => u.faction === 'UA' && u.type === 'armored')
+    .sort((a, b) => b.strength - a.strength || a.id.localeCompare(b.id))[0];
+  if (armored) {
+    hook.selectUnit(armored.id);
+    if (cam) cam.set(armored.wx - 0.15, 10.4, armored.wz + 6.7, armored.wx, armored.wz);
+  }
+  return { id: armored?.id, type: armored?.type, tile: armored?.tile };
+});
+console.log('machine:', JSON.stringify(machine));
+await sleep(800);
+await page.screenshot({ path: join(OUT, 'lod-04-machine.png') });
 
 await browser.close();
 if (process.exitCode) process.exit(process.exitCode);
