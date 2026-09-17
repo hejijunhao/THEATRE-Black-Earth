@@ -1591,49 +1591,6 @@ button {
 .aar .aar-odds-n { font-family: var(--font-mono); font-size: 11px; text-align: center; color: var(--ink-bright); }
 .aar .aar-odds-n .k { color: var(--ink-dim); font-family: var(--font-ui); }
 
-.aar-fortune { border-top: 1px solid var(--line); }
-.aar-roll {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(190, 180, 150, 0.12);
-}
-.aar-roll-meta .k { display: block; font-size: 10px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.12em; }
-.aar-roll-meta .hint { font-size: 12px; color: var(--ink); }
-.aar-dice { display: flex; align-items: center; gap: 8px; }
-.aar-total {
-  font-family: var(--font-display);
-  font-size: 22px;
-  color: var(--ink-bright);
-  min-width: 1.4em;
-  text-align: right;
-}
-.aar-fortune-n { font-family: var(--font-mono); font-size: 12px; }
-.aar-fortune-n.pos { color: var(--green); }
-.aar-fortune-n.neg { color: var(--red); }
-
-.die-face {
-  width: 32px;
-  height: 32px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  padding: 5px;
-  border: 1px solid var(--brass);
-  background:
-    linear-gradient(160deg, rgba(48, 42, 32, 0.95), rgba(18, 16, 12, 0.98));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 230, 170, 0.12),
-    0 1px 3px rgba(0, 0, 0, 0.45);
-}
-.die-face .pip { border-radius: 50%; }
-.die-face .pip.on {
-  background: radial-gradient(circle at 35% 30%, #f3ead2, #c9b48a 70%);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
-}
-
 .str-strip { margin-top: 4px; }
 .str-strip.right .str-n { justify-content: flex-end; }
 .str-bar {

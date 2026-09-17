@@ -4,8 +4,9 @@
 import { SLOT_COUNT, slotHeaders } from '../game/state/save';
 import { useStore } from '../game/state/store';
 import { opposing } from '../game/types';
+import { formatOdds } from '../game/rules/combat';
 import { CombatPaper } from './CombatPaper';
-import { DieFace, StrengthStrip, VERDICT_LABEL } from './combatChrome';
+import { aarOddsCaption, aarVerdictShift, StrengthStrip, VERDICT_LABEL } from './combatChrome';
 
 export function EventModal() {
   const game = useStore((s) => s.game);
@@ -95,6 +96,9 @@ export function CombatResultPanel() {
       : isFire
         ? 'The battery struck. Bombardment does not take the hex.'
         : 'Repeated pressure may still break the position.';
+  const verdictShift = !isFire
+    ? aarVerdictShift(result.previewVerdict, result.resolvedVerdict)
+    : null;
 
   return (
     <CombatPaper
@@ -117,10 +121,8 @@ export function CombatResultPanel() {
             {VERDICT_LABEL[result.resolvedVerdict]}
           </div>
           <div className="aar-odds-n">
-            {result.baseRatio >= 1
-              ? `${result.baseRatio.toFixed(1)} : 1`
-              : `1 : ${(1 / Math.max(result.baseRatio, 0.01)).toFixed(1)}`}
-            <span className="k"> before dice</span>
+            {formatOdds(result.baseRatio)}
+            <span className="k"> {aarOddsCaption()}</span>
           </div>
         </div>
         <div className="aar-side right">
@@ -130,48 +132,15 @@ export function CombatResultPanel() {
         </div>
       </div>
 
-      <div className="aar-fortune">
-        <div className="aar-roll">
-          <div className="aar-roll-meta">
-            <span className="k">{isFire ? 'Fire roll' : 'Attack roll'}</span>
-            <span className="hint">{isFire ? 'Scales the mission' : 'Damage given'}</span>
-          </div>
-          <div className="aar-dice">
-            {result.attackerRoll.dice.map((d, i) => <DieFace key={i} value={d} />)}
-            <span className="aar-total">{result.attackerRoll.total}</span>
-            <span className={`aar-fortune-n ${result.attackerRoll.fortune >= 1 ? 'pos' : 'neg'}`}>
-              ×{result.attackerRoll.fortune.toFixed(2)}
-            </span>
-          </div>
-        </div>
-        {result.defenderRoll && (
-          <div className="aar-roll">
-            <div className="aar-roll-meta">
-              <span className="k">Defence roll</span>
-              <span className="hint">Damage taken</span>
-            </div>
-            <div className="aar-dice">
-              {result.defenderRoll.dice.map((d, i) => <DieFace key={i} value={d} />)}
-              <span className="aar-total">{result.defenderRoll.total}</span>
-              <span className={`aar-fortune-n ${result.defenderRoll.fortune >= 1 ? 'pos' : 'neg'}`}>
-                ×{result.defenderRoll.fortune.toFixed(2)}
-              </span>
-            </div>
-          </div>
-        )}
-        {isFire && (
-          <p className="hint">The battery is not exposed. No return fire.</p>
-        )}
-      </div>
+      {isFire && (
+        <p className="hint">The battery is not exposed. No return fire.</p>
+      )}
 
       {result.tileCaptured && (
         <p className="aar-flag gold">Ground taken. The attacker advanced onto the hex.</p>
       )}
-      {!isFire && result.previewVerdict !== result.resolvedVerdict && (
-        <p className="hint">
-          Staff estimate was {VERDICT_LABEL[result.previewVerdict].toLowerCase()};
-          the dice made it {VERDICT_LABEL[result.resolvedVerdict].toLowerCase()}.
-        </p>
+      {verdictShift && (
+        <p className="hint">{verdictShift}</p>
       )}
 
       <div className="btn-row aar-actions brief-plates">

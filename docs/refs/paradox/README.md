@@ -31,3 +31,7 @@ docs/refs/paradox/
 ## Header (seeded)
 
 Target: thin strip, flag left, icon+number resource chips, week/weather chip, settings right — **no THEATRE wordmark banner** on the play HUD.
+
+## Combat paper (seeded, notes)
+
+Target: HOI4 land-battle / Vic 3 battle language — **odds, strength before→after, one-line verdict**. No die-face glyphs. Confirm / dismiss only. EU pip-dice theater is the reject. Live Paradox screenshots still TODO; do not invent a fortune row to replace the faces.
