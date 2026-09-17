@@ -16,7 +16,7 @@ const PAINT: Record<FactionId, { hull: string; dark: string; accent: string }> =
 };
 const TRACK = '#2e2c26';
 const TIRE = '#26241f';
-const CANVAS_TOP = '#6a6250';
+const CANVAS_TOP = '#8a7a58';
 const FIGURE = '#2a2c22';
 const FIGURE_DARK = '#161810';
 const BARREL = '#3a3d36';

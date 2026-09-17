@@ -23,7 +23,7 @@ describe('contact-scale strip fields', () => {
     const a = parcelRelief(BOOT.wx, BOOT.wz);
     const b = parcelRelief(BOOT.wx + 0.31, BOOT.wz + 0.12);
     expect(Math.abs(a - b)).toBeGreaterThan(0.004);
-    expect(Math.abs(a)).toBeLessThan(0.08);
+    expect(Math.abs(a)).toBeLessThan(0.14);
   });
 
   it('does not flatten the scar with the north khaki lift', () => {

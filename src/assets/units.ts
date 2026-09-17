@@ -57,7 +57,8 @@ const INF_RANKS: Array<[number, number]> = [
   [-0.10, -0.16], [0.00, -0.17], [0.10, -0.16],
   [-0.12, -0.05], [-0.02, -0.06], [0.08, -0.05],
 ];
-const INF_FIGURE_SCALE = 2.15;
+const INF_FIGURE_SCALE = 2.45;
+const INF_TRUCK_SCALE = 2.35;
 
 // Hero formations are echelons. Vehicles are authored +x forward, and a hero
 // hull with its gun reaches ~0.32 across a 0.74 base plate, so a file abreast
@@ -128,9 +129,9 @@ export function makeMiniatureBuild(spec: MiniatureSpec): MiniatureBuild {
       const sz = spec.disorganized ? fz * 1.35 + 0.04 : fz;
       parts.push(...place(figure(), sx, sz, (i * 37) % 7 * 0.12, 0, INF_FIGURE_SCALE));
     }
-    parts.push(...place(lightTruck(spec.faction), 0.14, 0.15, spec.disorganized ? 0.7 : 0.10));
+    parts.push(...place(lightTruck(spec.faction), 0.10, 0.12, spec.disorganized ? 0.7 : 0.10, 0, INF_TRUCK_SCALE));
     if (spec.tier >= 3) {
-      parts.push(...place(lightTruck(spec.faction), -0.16, 0.16, spec.disorganized ? -0.4 : -0.08));
+      parts.push(...place(lightTruck(spec.faction), -0.12, 0.13, spec.disorganized ? -0.4 : -0.08, 0, INF_TRUCK_SCALE));
     }
   } else {
     const count = spec.type === 'recon' ? Math.min(2, Math.ceil(spec.tier / 2)) : spec.tier;
