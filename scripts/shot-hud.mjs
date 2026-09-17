@@ -86,15 +86,17 @@ if (chrome.mapModeButtons !== 1) {
 
 await page.screenshot({ path: join(OUT, '01-rest-map.png') });
 
+// Boot frame is already the tight Kupiansk–Sloviansk mid-zoom (lod.ts).
+// Re-assert it so the rest plate shot is the scar, not a whole-Donbas pullback.
 await page.evaluate(() => {
   const cam = window.__TBE_CAMERA__;
-  if (cam) cam.set(66.8, 16.8, 31.9, 66.8, 19.5);
+  if (cam) cam.set(67.1, 12.15, 26.15, 67.55, 18);
 });
 await sleep(600);
 await page.screenshot({ path: join(OUT, '01b-campaign-lod.png') });
 await page.evaluate(() => {
   const cam = window.__TBE_CAMERA__;
-  if (cam) cam.set(66.8, 38, 42, 66.8, 19.5);
+  if (cam) cam.set(67.55, 38, 36, 67.55, 18);
 });
 await sleep(700);
 await page.screenshot({ path: join(OUT, '01c-counter-lod.png') });
@@ -108,7 +110,8 @@ const u3 = await page.evaluate(() => {
 });
 await page.evaluate((u) => {
   const cam = window.__TBE_CAMERA__;
-  if (cam) cam.set(u.wx, 34, u.wz + 18, u.wx, u.wz);
+  // Selected at mid-zoom — select must not promote to blotting cards.
+  if (cam) cam.set(u.wx - 0.4, 12.15, u.wz + 8.15, u.wx, u.wz);
 }, u3);
 await sleep(900);
 

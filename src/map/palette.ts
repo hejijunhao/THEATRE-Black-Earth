@@ -24,13 +24,13 @@ export const FACTION_STRONG: Record<FactionId, string> = {
 };
 
 export const WEATHER_ENV: Record<WeatherType, { sky: string; fog: string; sun: number; ambient: number; fogDensity: number }> = {
-  // Atmosphere is air over soil, not a grey veil. Low density keeps the
-  // chernozem readable at rest; sun carries the volume, ambient does not.
-  clear:    { sky: '#c5d2c4', fog: '#c8c6b0', sun: 1.78, ambient: 0.48, fogDensity: 0.0021 },
-  overcast: { sky: '#9aa39a', fog: '#a8a898', sun: 1.18, ambient: 0.56, fogDensity: 0.0034 },
-  rain:     { sky: '#7c8680', fog: '#86887c', sun: 0.88, ambient: 0.52, fogDensity: 0.0055 },
-  mud:      { sky: '#9a927c', fog: '#9c9278', sun: 1.08, ambient: 0.5, fogDensity: 0.0042 },
-  snow:     { sky: '#c4ccd0', fog: '#d0d4d2', sun: 1.22, ambient: 0.62, fogDensity: 0.0038 },
+  // Air over soil, one place. Fog is warm earth-haze at low density so the
+  // north does not drop into a dark-grey veil under rain or mud.
+  clear:    { sky: '#c8d4c4', fog: '#c6be9e', sun: 1.72, ambient: 0.58, fogDensity: 0.0014 },
+  overcast: { sky: '#a8a890', fog: '#b4aa8c', sun: 1.16, ambient: 0.62, fogDensity: 0.0018 },
+  rain:     { sky: '#8e8c78', fog: '#9a9078', sun: 0.92, ambient: 0.6, fogDensity: 0.0022 },
+  mud:      { sky: '#a4987c', fog: '#a89a7c', sun: 1.1, ambient: 0.6, fogDensity: 0.0018 },
+  snow:     { sky: '#c4ccd0', fog: '#d0d2c8', sun: 1.2, ambient: 0.66, fogDensity: 0.002 },
 };
 
 const tmpA = new THREE.Color();
