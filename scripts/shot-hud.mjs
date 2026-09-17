@@ -86,11 +86,18 @@ if (chrome.mapModeButtons !== 1) {
 
 await page.screenshot({ path: join(OUT, '01-rest-map.png') });
 
-await page.evaluate(() => window.__TBE_DEBUG__.setMapMode('terrain'));
-await sleep(800);
-await page.screenshot({ path: join(OUT, '01b-rest-terrain.png') });
-await page.evaluate(() => window.__TBE_DEBUG__.setMapMode('political'));
-await sleep(400);
+await page.evaluate(() => {
+  const cam = window.__TBE_CAMERA__;
+  if (cam) cam.set(66.8, 19.5, 33.7, 66.8, 19.5);
+});
+await sleep(600);
+await page.screenshot({ path: join(OUT, '01b-campaign-lod.png') });
+await page.evaluate(() => {
+  const cam = window.__TBE_CAMERA__;
+  if (cam) cam.set(66.8, 38, 42, 66.8, 19.5);
+});
+await sleep(700);
+await page.screenshot({ path: join(OUT, '01c-counter-lod.png') });
 
 const u3 = await page.evaluate(() => {
   const hook = window.__TBE_DEBUG__;
@@ -143,12 +150,17 @@ const rail = await page.evaluate(() => {
     cls: el?.className,
     next: document.querySelector('.or-run')?.innerText?.replace(/\s+/g, ' ').trim() ?? '',
     rowCount: document.querySelectorAll('.outliner-row').length,
+    sectors: [...document.querySelectorAll('.or-sector')].map((s) => s.textContent?.trim()),
     rows,
   };
 });
 console.log('rail:', JSON.stringify(rail));
 if (!/or-run|Next/i.test(rail.next) || rail.rowCount < 4) {
   console.error('FAIL: week-runner rail empty or Next missing', rail);
+  process.exitCode = 1;
+}
+if (rail.sectors.length < 3 || !rail.sectors.includes('Kharkiv') || !rail.sectors.includes('Donets')) {
+  console.error('FAIL: rail is still one sorted list, not sector groups', rail.sectors);
   process.exitCode = 1;
 }
 if (rail.rows.some((r) => !r.hasGlyph || !r.hasStr || !r.hasMark || !/[A-Z]{2,}/.test(r.text))) {

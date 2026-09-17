@@ -28,7 +28,7 @@ export function Frontline() {
         if (!edge) continue;
         const h = groundY(edge.mx, edge.mz) + 0.06;
         const len = HEX_SIZE * 1.18;
-        const seg = new THREE.BoxGeometry(len, 0.07, 0.09);
+        const seg = new THREE.BoxGeometry(len, 0.1, 0.12);
         const angle = Math.atan2(edge.ez, edge.ex);
         const m = new THREE.Matrix4().makeRotationY(-angle).setPosition(edge.mx, h, edge.mz);
         seg.applyMatrix4(m);
@@ -41,7 +41,7 @@ export function Frontline() {
   if (!geo) return null;
   return (
     <mesh geometry={geo}>
-      <meshStandardMaterial color="#1d1a16" roughness={0.6} emissive="#33251a" emissiveIntensity={0.35} />
+      <meshStandardMaterial color="#1a1612" roughness={0.52} emissive="#4a321c" emissiveIntensity={0.48} />
     </mesh>
   );
 }

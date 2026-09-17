@@ -17,11 +17,11 @@ const N8AO = forwardRef<N8AOPostPass, { halfRes?: boolean }>(function N8AO({ hal
   const { scene, camera, size } = useThree();
   const pass = useMemo(() => {
     const p = new N8AOPostPass(scene, camera, size.width, size.height);
-    p.configuration.aoRadius = 1.3;
-    p.configuration.distanceFalloff = 1.2;
-    p.configuration.intensity = 1.5;
+    p.configuration.aoRadius = 1.55;
+    p.configuration.distanceFalloff = 1.05;
+    p.configuration.intensity = 1.85;
     p.configuration.halfRes = halfRes;
-    p.configuration.color = new THREE.Color('#1b1a14'); // warm-dark occlusion
+    p.configuration.color = new THREE.Color('#1a1610'); // warm-dark occlusion
     return p;
   }, [scene, camera]);
   useEffect(() => {
@@ -55,7 +55,7 @@ export function PostFX() {
       <N8AO />
       <Bloom intensity={0.22} luminanceThreshold={0.92} luminanceSmoothing={0.15} mipmapBlur />
       <GradePrimitive />
-      <Vignette eskil={false} offset={0.24} darkness={0.42} />
+      <Vignette eskil={false} offset={0.36} darkness={0.2} />
     </EffectComposer>
   );
 }

@@ -5,7 +5,7 @@
 import { UNIT_DEFS } from '../game/data/defs';
 import { neighborIds } from '../game/hex';
 import { attackableTargets, unitOnTile } from '../game/rules/movement';
-import { GameState, Unit } from '../game/types';
+import { GameState, TileId, Unit, parseTileId } from '../game/types';
 
 export interface BoardChrome {
   /** Player formations only: remaining / type-max movement. */
@@ -93,6 +93,29 @@ export function formationLane(game: GameState, unit: Unit): FormationLane {
 }
 
 const LANE_RANK: Record<FormationLane, number> = { contact: 0, march: 1, spent: 2 };
+
+export type FrontSector = 'kharkiv' | 'donets' | 'zaporizhzhia' | 'kherson' | 'rear';
+
+export const SECTOR_ORDER: FrontSector[] = ['kharkiv', 'donets', 'zaporizhzhia', 'kherson', 'rear'];
+
+export const SECTOR_LABEL: Record<FrontSector, string> = {
+  kharkiv: 'Kharkiv',
+  donets: 'Donets',
+  zaporizhzhia: 'Zaporizhzhia',
+  kherson: 'Kherson',
+  rear: 'Rear',
+};
+
+/** Geographic theatre, not a static OOB. Updates as plates march. */
+export function frontSector(tile: TileId): FrontSector {
+  const { x, y } = parseTileId(tile);
+  if (x < 28 && y < 21) return 'rear';
+  if (y <= 11) return 'kharkiv';
+  if (y <= 17) return 'donets';
+  if (y <= 21 && x >= 30) return 'zaporizhzhia';
+  if (y >= 21) return 'kherson';
+  return 'rear';
+}
 
 /** Next friendly plate that can still act this week. Same order as the ops rail. */
 export function cycleUnspent(game: GameState, currentId: string | null): string | null {

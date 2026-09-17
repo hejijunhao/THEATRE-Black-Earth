@@ -59,17 +59,17 @@ function noise2(x: number, y: number, salt: number): number {
 // Field palette: the cultivated steppe. Ochre stubble, dull green winter
 // cereal, dark fallow, straw. Luminance kept tight — high variance makes
 // whole strip-regions read as dark bands from map altitude.
-const FIELD_COLORS = ['#9a8354', '#8a7548', '#6d5538', '#a8905c', '#8f7a4a', '#7a6a40'].map(rgb);
-const GRASS = rgb('#8a8456');
+const FIELD_COLORS = ['#b08942', '#8a652e', '#4e3018', '#c4a056', '#9a7438', '#6e4e24'].map(rgb);
+const GRASS = rgb('#7e8648');
 // Forests must stay clearly lighter than water — dark green + blue fog reads
 // as lake at map scale.
-const FOREST_FLOOR = rgb('#5d6e42');
-const FOREST_DEEP = rgb('#4a5a36');
-const MARSH = rgb('#6a734c');
-const URBAN = rgb('#7c7870');
-const URBAN_DARK = rgb('#615e58');
-const SEA_FLOOR = rgb('#2c3c4c');
-const BEACH = rgb('#927e58');
+const FOREST_FLOOR = rgb('#5a6c38');
+const FOREST_DEEP = rgb('#46582c');
+const MARSH = rgb('#6a7044');
+const URBAN = rgb('#8a8478');
+const URBAN_DARK = rgb('#6a655c');
+const SEA_FLOOR = rgb('#2a3a4a');
+const BEACH = rgb('#a08854');
 
 // Strip-field pattern: long bands with a regional orientation, broken into
 // parcels along their length.
@@ -143,7 +143,7 @@ export function paintAlbedo(): { canvas: HTMLCanvasElement; texW: number; texH: 
           c = mix(c, speck > 0.55 ? URBAN_DARK : URBAN, umask);
         }
         // Macro variation so the plain never reads flat.
-        const macro = (noise2(wx * 0.22, wz * 0.22, 71) - 0.5) * 0.14;
+        const macro = (noise2(wx * 0.22, wz * 0.22, 71) - 0.5) * 0.2;
         c = { r: c.r * (1 + macro), g: c.g * (1 + macro), b: c.b * (1 + macro) };
         // Subtle valley darkening (moisture in low ground).
         if (m < 90) c = mix(c, MARSH, 0.12 * (1 - m / 90));
@@ -188,10 +188,10 @@ export function paintAlbedo(): { canvas: HTMLCanvasElement; texW: number; texH: 
   };
 
   for (const c of CORRIDORS) {
-    if (!c.rail) drawPath(c.path, '#5a5344', 2.0, 0.55);
+    if (!c.rail) drawPath(c.path, '#6a5c40', 2.2, 0.62);
   }
   for (const c of CORRIDORS) {
-    if (c.rail) drawPath(c.path, '#3b362e', 1.3, 0.8);
+    if (c.rail) drawPath(c.path, '#3a3228', 1.5, 0.86);
   }
 
   return { canvas, texW: TEX_W, texH };

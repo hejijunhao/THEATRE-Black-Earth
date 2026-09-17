@@ -24,13 +24,13 @@ export const FACTION_STRONG: Record<FactionId, string> = {
 };
 
 export const WEATHER_ENV: Record<WeatherType, { sky: string; fog: string; sun: number; ambient: number; fogDensity: number }> = {
-  // v2: brighter than v1 — the continuous surface absorbs more light than
-  // the prisms did, and readability outranks mood (Phase C adds grading).
-  clear:    { sky: '#a8b3ae', fog: '#a8b3a4', sun: 1.5, ambient: 0.72, fogDensity: 0.005 },
-  overcast: { sky: '#8d949a', fog: '#8d949a', sun: 1.05, ambient: 0.78, fogDensity: 0.007 },
-  rain:     { sky: '#6f7a82', fog: '#6f7a82', sun: 0.75, ambient: 0.7, fogDensity: 0.011 },
-  mud:      { sky: '#837f74', fog: '#837f74', sun: 0.95, ambient: 0.72, fogDensity: 0.009 },
-  snow:     { sky: '#aab4bd', fog: '#b6bec6', sun: 1.05, ambient: 0.85, fogDensity: 0.009 },
+  // Atmosphere is air over soil, not a grey veil. Low density keeps the
+  // chernozem readable at rest; sun carries the volume, ambient does not.
+  clear:    { sky: '#c5d2c4', fog: '#c8c6b0', sun: 1.78, ambient: 0.48, fogDensity: 0.0021 },
+  overcast: { sky: '#9aa39a', fog: '#a8a898', sun: 1.18, ambient: 0.56, fogDensity: 0.0034 },
+  rain:     { sky: '#7c8680', fog: '#86887c', sun: 0.88, ambient: 0.52, fogDensity: 0.0055 },
+  mud:      { sky: '#9a927c', fog: '#9c9278', sun: 1.08, ambient: 0.5, fogDensity: 0.0042 },
+  snow:     { sky: '#c4ccd0', fog: '#d0d4d2', sun: 1.22, ambient: 0.62, fogDensity: 0.0038 },
 };
 
 const tmpA = new THREE.Color();

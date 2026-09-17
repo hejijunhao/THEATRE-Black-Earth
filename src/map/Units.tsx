@@ -32,8 +32,8 @@ import { FACTION_STRONG } from './palette';
 // unit's per-frame material update. Driven by camera height or the Tab
 // override — the zoom metaphor's unit dial.
 const fadeState = { value: 0 };
-const COUNTER_ZOOM_IN = 16;  // counters (and their stamps) come in earlier
-const COUNTER_ZOOM_FULL = 26;
+const COUNTER_ZOOM_IN = 24;  // mid-zoom keeps machines; counters for the theatre
+const COUNTER_ZOOM_FULL = 42;
 
 /** Sit the token on the earth — a contact shadow, not another ring. */
 function GroundPresence({ radius }: { radius: number }) {
@@ -222,10 +222,10 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
       }}
       onPointerOver={(e) => e.stopPropagation()}
     >
-      <GroundPresence radius={0.58} />
+      <GroundPresence radius={0.78} />
       {/* Base plate: faction identity lives here, not on the vehicles. */}
-      <mesh position={[0, 0.016, 0]} castShadow>
-        <boxGeometry args={[0.74, 0.032, 0.52]} />
+      <mesh position={[0, 0.018, 0]} castShadow>
+        <boxGeometry args={[0.96, 0.04, 0.68]} />
         <meshStandardMaterial
           ref={baseMatRef}
           color={chrome.spent
@@ -245,7 +245,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
       </mesh>
       {/* The machines: hero vehicles as instances, everything else — foot
           elements, logistics, muzzle smoke — merged into one props mesh. */}
-      <group rotation={[0, facing, 0]} position={[0, 0.032, 0]}>
+      <group rotation={[0, facing, 0]} position={[0, 0.036, 0]} scale={1.32}>
         {build.props && <mesh geometry={build.props} material={MINI_MATERIAL} castShadow />}
         {build.heroType && (
           <HeroFormation type={build.heroType} faction={unit.faction} slots={build.heroSlots} />
@@ -260,11 +260,11 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
           <meshBasicMaterial color="#b04a3a" transparent opacity={0.4} depthWrite={false} />
         </mesh>
       )}
-      <AgencyMarks chrome={chrome} selected={selected} width={0.92} height={0.64} y={0.14} />
+      <AgencyMarks chrome={chrome} selected={selected} width={1.18} height={0.78} y={0.16} />
       {/* The standard. */}
-      <Billboard position={[0, 0.5, 0]} follow>
+      <Billboard position={[0, 0.64, 0]} follow>
         <mesh>
-          <planeGeometry args={[0.96, 0.29]} />
+          <planeGeometry args={[1.28, 0.38]} />
           <meshBasicMaterial ref={stdMatRef} map={stdTexture} transparent depthWrite={false} />
         </mesh>
       </Billboard>
@@ -339,9 +339,9 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
       }}
       onPointerOver={(e) => e.stopPropagation()}
     >
-      <GroundPresence radius={0.7} />
-      <mesh position={[0, 0.07, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.7, 0.12, 0.46]} />
+      <GroundPresence radius={0.82} />
+      <mesh position={[0, 0.08, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.86, 0.16, 0.56]} />
         <meshStandardMaterial
           ref={baseMatRef}
           color={chrome.spent ? '#1c1b17' : '#2e2c26'}
@@ -358,10 +358,10 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
           emissiveIntensity={selected ? 0.42 : chrome.threatened ? 0.22 : 0}
         />
       </mesh>
-      <AgencyMarks chrome={chrome} selected={selected} width={2.42} height={1.52} y={0.78} />
-      <Billboard position={[0, 0.86, 0]} follow>
+      <AgencyMarks chrome={chrome} selected={selected} width={2.62} height={1.64} y={0.86} />
+      <Billboard position={[0, 0.96, 0]} follow>
         <mesh>
-          <planeGeometry args={[2.42, 1.52]} />
+          <planeGeometry args={[2.62, 1.64]} />
           <meshBasicMaterial ref={plateMatRef} map={texture} transparent depthWrite={false} />
         </mesh>
       </Billboard>

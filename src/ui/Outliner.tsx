@@ -1,10 +1,13 @@
-// Week-runner: Next-unspent is the primary affordance. Each row is type
-// glyph + strength + agency — Civ/Vic outliner density, not a roster card.
+// Week-runner: Next-unspent is the primary affordance. Rows group by
+// front/sector. Each row is type glyph + strength + agency.
 
 import { UNIT_DEFS } from '../game/data/defs';
 import { useStore } from '../game/state/store';
 import { Unit } from '../game/types';
-import { AgencyKind, agencyKind, boardChrome, cycleUnspent, formationLane, unitOrders } from './boardChrome';
+import {
+  AgencyKind, agencyKind, boardChrome, cycleUnspent, formationLane,
+  frontSector, SECTOR_LABEL, SECTOR_ORDER, unitOrders,
+} from './boardChrome';
 import { Ico } from './icons';
 import { abbreviate } from '../map/textures';
 
@@ -55,11 +58,21 @@ export function Outliner() {
       };
     })
     .sort((a, b) => {
+      const sector = SECTOR_ORDER.indexOf(frontSector(a.unit.tile)) - SECTOR_ORDER.indexOf(frontSector(b.unit.tile));
+      if (sector !== 0) return sector;
       const rank = { contact: 0, march: 1, spent: 2 };
       const d = rank[a.kind] - rank[b.kind];
       if (d !== 0) return d;
       return a.unit.name.localeCompare(b.unit.name);
     });
+
+  const groups = SECTOR_ORDER
+    .map((sector) => ({
+      sector,
+      label: SECTOR_LABEL[sector],
+      rows: rows.filter((r) => frontSector(r.unit.tile) === sector),
+    }))
+    .filter((g) => g.rows.length > 0);
 
   const nextId = cycleUnspent(game, selectedUnitId);
   const nextUnit = nextId ? game.units[nextId] : null;
@@ -109,41 +122,46 @@ export function Outliner() {
         )}
       </button>
       <div className="outliner-list">
-        {rows.map(({ unit, kind, orders, mark }) => (
-          <button
-            key={unit.id}
-            type="button"
-            className={`outliner-row ${kind}${unit.id === selectedUnitId ? ' selected' : ''}`}
-            title={`${unit.name} · ${UNIT_DEFS[unit.type].label} · ${Math.round(unit.strength)}`}
-            onMouseEnter={() => hoverTile(unit.tile)}
-            onMouseLeave={() => hoverTile(null)}
-            onClick={() => {
-              selectUnit(unit.id);
-              focusCamera(unit.tile);
-            }}
-          >
-            <span className="or-type" aria-hidden>
-              <Ico name={unit.type} size={13} />
-            </span>
-            <span className="or-name">{abbreviate(unit.name, unit.type)}</span>
-            <span className={`or-str ${strengthTone(unit.strength)}`} aria-label={`strength ${Math.round(unit.strength)}`}>
-              <i style={{ width: `${Math.max(8, unit.strength)}%` }} />
-            </span>
-            <AgencyMark kind={mark} />
-            {kind === 'contact' && orders.contacts[0] ? (
-              <span
-                className="or-kind assault"
-                role="button"
-                title="Open the staff estimate"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openEstimate(unit, orders.contacts[0].id);
+        {groups.map(({ sector, label, rows: sectorRows }) => (
+          <div key={sector} className="or-group">
+            <div className="or-sector">{label}</div>
+            {sectorRows.map(({ unit, kind, orders, mark }) => (
+              <button
+                key={unit.id}
+                type="button"
+                className={`outliner-row ${kind}${unit.id === selectedUnitId ? ' selected' : ''}`}
+                title={`${unit.name} · ${UNIT_DEFS[unit.type].label} · ${Math.round(unit.strength)}`}
+                onMouseEnter={() => hoverTile(unit.tile)}
+                onMouseLeave={() => hoverTile(null)}
+                onClick={() => {
+                  selectUnit(unit.id);
+                  focusCamera(unit.tile);
                 }}
               >
-                {orders.contacts.length}×
-              </span>
-            ) : null}
-          </button>
+                <span className="or-type" aria-hidden>
+                  <Ico name={unit.type} size={13} />
+                </span>
+                <span className="or-name">{abbreviate(unit.name, unit.type)}</span>
+                <span className={`or-str ${strengthTone(unit.strength)}`} aria-label={`strength ${Math.round(unit.strength)}`}>
+                  <i style={{ width: `${Math.max(8, unit.strength)}%` }} />
+                </span>
+                <AgencyMark kind={mark} />
+                {kind === 'contact' && orders.contacts[0] ? (
+                  <span
+                    className="or-kind assault"
+                    role="button"
+                    title="Open the staff estimate"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEstimate(unit, orders.contacts[0].id);
+                    }}
+                  >
+                    {orders.contacts.length}×
+                  </span>
+                ) : null}
+              </button>
+            ))}
+          </div>
         ))}
       </div>
     </div>

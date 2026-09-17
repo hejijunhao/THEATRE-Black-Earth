@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildInitialState } from '../../game/scenarios/build';
-import { cycleUnspent, formationLane } from '../boardChrome';
+import { cycleUnspent, formationLane, frontSector, SECTOR_ORDER } from '../boardChrome';
 import {
   hudFrame,
   showCommandBench,
@@ -136,6 +136,24 @@ describe('theatre pulse', () => {
     expect(['Holding', 'Pressing', 'Slipping', 'Breaking']).toContain(b.headline);
     expect(b.decisiveCities.length).toBe(state.scenario.decisive.UA.length);
     expect(b.decisiveCities.every((c) => c.name.length > 0)).toBe(true);
+  });
+});
+
+describe('front sectors', () => {
+  it('reads the opening line as four theatres, not one roster', () => {
+    const state = buildInitialState('UA', 42);
+    expect(frontSector(state.units.u3.tile)).toBe('kharkiv');
+    expect(frontSector(state.units.u10.tile)).toBe('donets');
+    expect(frontSector(state.units.u19.tile)).toBe('zaporizhzhia');
+    expect(frontSector(state.units.u24.tile)).toBe('kherson');
+    const present = new Set(
+      Object.values(state.units)
+        .filter((u) => u.faction === 'UA')
+        .map((u) => frontSector(u.tile)),
+    );
+    expect([...SECTOR_ORDER.filter((s) => present.has(s))]).toEqual([
+      'kharkiv', 'donets', 'zaporizhzhia', 'kherson',
+    ]);
   });
 });
 
