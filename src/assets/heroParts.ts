@@ -313,8 +313,10 @@ export function makeHeroMaterial(): THREE.MeshStandardMaterial {
 // `#0a5816`. Dark hull / light top / dark steel must all keep green sat
 // above the grey gate, or rain lifts them back to khaki.
 export const STAMP_PAINT: Record<'UA' | 'RU', { base: string; dark: string; light: string; steel: string }> = {
-  UA: { base: '#0a5816', dark: '#032808', light: '#1a8024', steel: '#053010' },
-  RU: { base: '#0c5014', dark: '#032006', light: '#1c7820', steel: '#05280c' },
+  // Hull must sit well under the turret at boot — mid-green BODY and
+  // mid-green TOP averaged into one brick. Dark hull, light turret, dark gun.
+  UA: { base: '#043010', dark: '#032808', light: '#1c9028', steel: '#032808' },
+  RU: { base: '#04280c', dark: '#032006', light: '#1c8824', steel: '#032006' },
 };
 
 export function stampMats(faction: 'UA' | 'RU'): HeroMatSet {

@@ -67,10 +67,10 @@ export function makeMechHeroGeometry(faction: FactionId): THREE.BufferGeometry {
   parts.push(htrap(0.9, 3.1, 0.1, 3.0, 0.4, TOP, { x: 1.6, y: 1.45 }, -0.38, 0));
   // Troop compartment: tall rear box, flat roof.
   parts.push(htrap(4.6, 3.14, 4.55, 2.96, 0.42, BODY, { x: -1.1, y: 1.45 }, -0.02, 0));
-  // Roof stays BODY, not a pale TOP slab — looking down at boot height
-  // that slab was the NATO plate. A thin highlight strip is enough.
-  parts.push(hbox(4.5, 0.045, 2.9, BODY, { x: -1.12, y: 1.890 }));
-  parts.push(hbox(2.4, 0.02, 1.1, TOP, { x: -1.0, y: 1.918 }));
+  // Roof stays SHADE so the light turret owns the top-down read.
+  // A thin BODY strip is the only hull highlight.
+  parts.push(hbox(4.5, 0.045, 2.9, SHADE, { x: -1.12, y: 1.890 }));
+  parts.push(hbox(2.4, 0.02, 1.1, BODY, { x: -1.0, y: 1.918 }));
   // Rear ramp with seams, handle, convoy kit.
   parts.push(hbox(0.08, 0.95, 2.5, BODY, { x: -3.42, y: 1.32 }));
   for (const rz of [-0.55, 0.55]) {
