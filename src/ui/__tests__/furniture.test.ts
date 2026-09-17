@@ -9,6 +9,7 @@ import {
   showOrdersHint,
   showTheatreClockPanel,
 } from '../hudChrome';
+import { outlinerChrome, outlinerListMounted } from '../outlinerChrome';
 import { rankReasons, reasonCopy, reasonWeight } from '../briefingCopy';
 import { paperDock, paperLayoutFromScreen, SHEET_GAP } from '../paperLayout';
 import { chronologyTile } from '../journalChronology';
@@ -159,6 +160,17 @@ describe('subtractive HUD gate', () => {
   it('whispers only when targeting an op or reserve drop', () => {
     expect(showOrdersHint({ ...rest, interactionMode: 'op-target' })).toBe(true);
     expect(showOrdersHint({ ...rest, interactionMode: 'deploy' })).toBe(true);
+  });
+
+  it('collapses the week-runner to a chip at rest', () => {
+    expect(outlinerChrome(rest)).toBe('chip');
+    expect(outlinerListMounted('chip')).toBe(false);
+    expect(outlinerChrome({ ...rest, selectedUnitId: 'u3' })).toBe('open');
+    expect(outlinerChrome({ ...rest, showOutliner: true })).toBe('open');
+    expect(outlinerListMounted('open')).toBe(true);
+    expect(outlinerChrome({ ...rest, lastCombat: { kind: 'assault' } })).toBe('rail');
+    expect(outlinerChrome({ ...rest, selectedUnitId: 'u3', pendingAttackId: 'r1' })).toBe('rail');
+    expect(outlinerListMounted('rail')).toBe(true);
   });
 });
 

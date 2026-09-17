@@ -60,6 +60,9 @@ const chrome = await page.evaluate(() => {
     bench: Boolean(document.querySelector('.command-bench')),
     orders: Boolean(document.querySelector('.orders-hint')),
     outliner: Boolean(document.querySelector('.outliner')),
+    outlinerClass: document.querySelector('.outliner')?.className ?? '',
+    outlinerHeight: Math.round(document.querySelector('.outliner')?.getBoundingClientRect().height ?? 0),
+    outlinerRows: document.querySelectorAll('.outliner-row').length,
     next: Boolean(document.querySelector('.or-run')),
     mapModes: document.querySelector('.map-modes')?.className,
     mapModeButtons: document.querySelectorAll('.map-mode-btn').length,
@@ -91,12 +94,48 @@ if (!chrome.next) {
   console.error('FAIL: rail missing Next-unspent plate');
   process.exitCode = 1;
 }
+if (
+  !/\bchip\b/.test(chrome.outlinerClass)
+  || chrome.outlinerHeight > 48
+  || chrome.outlinerRows !== 0
+) {
+  console.error('FAIL: rest outliner still a full rail', {
+    cls: chrome.outlinerClass,
+    height: chrome.outlinerHeight,
+    rows: chrome.outlinerRows,
+  });
+  process.exitCode = 1;
+}
 if (chrome.mapModeButtons !== 1) {
   console.error('FAIL: map modes not collapsed at rest', chrome.mapModeButtons);
   process.exitCode = 1;
 }
 
 await page.screenshot({ path: join(OUT, '01-rest-map.png') });
+await page.screenshot({ path: join(OUT, 'rest-map-primary.png') });
+
+const opened = await page.evaluate(() => {
+  const toggle = document.querySelector('.outliner.chip .or-toggle');
+  if (toggle instanceof HTMLElement) toggle.click();
+  const el = document.querySelector('.outliner');
+  return {
+    cls: el?.className ?? '',
+    rows: document.querySelectorAll('.outliner-row').length,
+    selected: window.__TBE_DEBUG__.summary()?.selected ?? null,
+    height: Math.round(el?.getBoundingClientRect().height ?? 0),
+  };
+});
+console.log('opened outliner:', JSON.stringify(opened));
+if (!/\bopen\b/.test(opened.cls) || opened.rows < 4 || opened.selected) {
+  console.error('FAIL: explicit open did not mount the week-runner', opened);
+  process.exitCode = 1;
+}
+await page.screenshot({ path: join(OUT, 'outliner-open.png') });
+await page.evaluate(() => {
+  const toggle = document.querySelector('.outliner.open .or-toggle');
+  if (toggle instanceof HTMLElement) toggle.click();
+});
+await sleep(150);
 
 // Boot frame is already the tight Kupiansk–Sloviansk mid-zoom (lod.ts).
 // Re-assert it so the rest plate shot is the scar, not a whole-Donbas pullback.
