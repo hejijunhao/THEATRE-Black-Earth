@@ -125,6 +125,7 @@ export function Outliner() {
             <span className="or-type" aria-hidden>
               <Ico name={unit.type} size={13} />
             </span>
+            <span className="or-name">{abbreviate(unit.name, unit.type)}</span>
             <span className={`or-str ${strengthTone(unit.strength)}`} aria-label={`strength ${Math.round(unit.strength)}`}>
               <i style={{ width: `${Math.max(8, unit.strength)}%` }} />
             </span>

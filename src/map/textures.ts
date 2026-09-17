@@ -240,20 +240,20 @@ export function makeCounterTexture(spec: CounterSpec): THREE.CanvasTexture {
     ctx.fill();
   }
 
-  // Faction identity is a rail, not a flood.
+  // Faction identity is a rail, not a flood — thick enough to read at campaign zoom.
   ctx.fillStyle = spec.spent ? (spec.faction === 'UA' ? '#1c2838' : '#3a201c') : FACTION_RAIL[spec.faction];
-  ctx.fillRect(14, 16, 18, h - 32);
+  ctx.fillRect(14, 16, 36, h - 32);
   ctx.fillStyle = FACTION_EDGE[spec.faction];
-  ctx.fillRect(30, 16, 3, h - 32);
+  ctx.fillRect(48, 16, 4, h - 32);
 
   if (!spec.ghost && spec.inContact && !spec.selected && !spec.canAttack && !spec.threatened) {
     drawContactTicks(ctx, w, h);
   }
 
   const hasStamp = !spec.ghost && spec.movementMax != null && spec.movement != null;
-  const fx = 52;
+  const fx = 68;
   const fy = 28;
-  const fw = 300;
+  const fw = 292;
   const fh = 168;
   ctx.strokeStyle = ink;
   ctx.lineWidth = 7;
@@ -276,8 +276,8 @@ export function makeCounterTexture(spec: CounterSpec): THREE.CanvasTexture {
   ctx.fillText(abbreviate(spec.name, spec.type), fx, 230);
 
   if (!spec.ghost || (spec.intelLevel ?? 0) >= 3) {
-    const bw = 300;
-    const bx = 52;
+    const bw = 292;
+    const bx = 68;
     const by = 252;
     ctx.fillStyle = 'rgba(0,0,0,0.5)';
     ctx.fillRect(bx, by, bw, 18);

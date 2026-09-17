@@ -2131,7 +2131,7 @@ button {
   top: 50px;
   left: 10px;
   bottom: 56px;
-  width: 148px;
+  width: 176px;
   display: flex;
   flex-direction: column;
   z-index: 14;
@@ -2152,6 +2152,7 @@ button {
 .outliner.rail .or-run-name,
 .outliner.rail .or-run-left { display: none; }
 .outliner.rail .or-run { padding: 7px 6px; gap: 4px; }
+.outliner.rail .or-name { display: none; }
 .outliner.rail .outliner-row {
   grid-template-columns: 14px 1fr 10px;
   padding: 4px 5px;
@@ -2213,13 +2214,24 @@ button {
   scrollbar-color: rgba(190, 180, 150, 0.25) transparent;
   padding: 3px 0;
 }
+.outliner-row .or-name {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ink);
+}
+.outliner-row.selected .or-name,
+.outliner-row.contact .or-name { color: var(--ink-bright); }
 .outliner-row {
   display: grid;
-  grid-template-columns: 14px 1fr 10px auto;
+  grid-template-columns: 14px minmax(0, 1fr) 28px 10px auto;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   width: 100%;
-  padding: 4px 8px;
+  padding: 3px 8px;
   text-align: left;
   background: transparent;
   border: none;

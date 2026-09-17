@@ -86,6 +86,12 @@ if (chrome.mapModeButtons !== 1) {
 
 await page.screenshot({ path: join(OUT, '01-rest-map.png') });
 
+await page.evaluate(() => window.__TBE_DEBUG__.setMapMode('terrain'));
+await sleep(800);
+await page.screenshot({ path: join(OUT, '01b-rest-terrain.png') });
+await page.evaluate(() => window.__TBE_DEBUG__.setMapMode('political'));
+await sleep(400);
+
 const u3 = await page.evaluate(() => {
   const hook = window.__TBE_DEBUG__;
   hook.selectUnit('u3');
@@ -145,8 +151,8 @@ if (!/or-run|Next/i.test(rail.next) || rail.rowCount < 4) {
   console.error('FAIL: week-runner rail empty or Next missing', rail);
   process.exitCode = 1;
 }
-if (rail.rows.some((r) => !r.hasGlyph || !r.hasStr || !r.hasMark)) {
-  console.error('FAIL: rail rows are not glyph + strength + agency', rail.rows);
+if (rail.rows.some((r) => !r.hasGlyph || !r.hasStr || !r.hasMark || !/[A-Z]{2,}/.test(r.text))) {
+  console.error('FAIL: rail rows are not glyph + name + strength + agency', rail.rows);
   process.exitCode = 1;
 }
 await page.screenshot({ path: join(OUT, '03-rail.png') });
