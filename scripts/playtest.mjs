@@ -3,6 +3,7 @@
 // screenshots and console errors along the way.
 import { existsSync } from 'node:fs';
 import puppeteer from 'puppeteer-core';
+import { assertCountersOff, clearCountersBeforeScripts } from './lib/counters-off.mjs';
 
 const OUT = process.env.OUT_DIR ?? 'scripts/out';
 const URL = 'http://localhost:5199';
@@ -38,6 +39,7 @@ const browser = await puppeteer.launch({
 });
 
 const page = await browser.newPage();
+await clearCountersBeforeScripts(page);
 const errors = [];
 page.on('pageerror', (err) => errors.push(String(err)));
 page.on('console', (msg) => {
@@ -64,6 +66,8 @@ const skip = await page.$$eval('.tutorial-prompt a', (as) => {
   return false;
 });
 console.log('tutorial skipped:', skip);
+await page.waitForFunction(() => window.__TBE_DEBUG__, { timeout: 10000 });
+await assertCountersOff(page, 'playtest counters');
 await sleep(400);
 
 // Terrain picking: click the map centre and assert a tile got selected

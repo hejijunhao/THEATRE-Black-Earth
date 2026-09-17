@@ -194,6 +194,8 @@ function useDebugHook() {
       // Deterministic campaign start for the golden-image harness.
       newGame: (faction: 'UA' | 'RU', seed: number) =>
         useStore.getState().newCampaign(faction, false, seed),
+      counterMode: () => useStore.getState().counterMode,
+      setCounterMode: (on: boolean) => useStore.getState().setCounterMode(on),
       setWeather: (weather: 'clear' | 'overcast' | 'rain' | 'mud' | 'snow') => {
         const { game } = useStore.getState();
         if (!game) return;

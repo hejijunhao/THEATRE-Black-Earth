@@ -17,6 +17,7 @@ import {
 } from '../data/terrainData';
 import { MAP_H, MAP_W } from '../../game/scenarios/blackEarth2025';
 import { tileWorldById } from '../../game/hex';
+import { parcelRelief } from './strips';
 
 let heights: Uint8Array | null = null;
 let fracs: Uint8Array | null = null;
@@ -66,7 +67,17 @@ export function elevToY(m: number): number {
 }
 
 export function groundY(wx: number, wz: number): number {
-  return elevToY(heightM(wx, wz));
+  const m = heightM(wx, wz);
+  const base = elevToY(m);
+  if (m < 6) return base;
+  // Contact-scale dirt: strip terraces + furrow wave. Crop land takes the
+  // full amplitude; open steppe still gets a lip so the rest frame is not
+  // a quiet slab. Forest / urban stay on the DEM.
+  const crop = fracAtWorld(wx, wz, 2);
+  const tree = fracAtWorld(wx, wz, 0);
+  const urb = fracAtWorld(wx, wz, 1);
+  const work = Math.max(0, crop - tree * 0.55 - urb * 0.8);
+  return base + parcelRelief(wx, wz) * (0.28 + work * 0.72);
 }
 
 // Ground height at a tile centre (the anchor for units and overlays).

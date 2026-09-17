@@ -17,7 +17,8 @@ const PAINT: Record<FactionId, { hull: string; dark: string; accent: string }> =
 const TRACK = '#2e2c26';
 const TIRE = '#26241f';
 const CANVAS_TOP = '#6a6250';
-const FIGURE = '#44483e';
+const FIGURE = '#2a2c22';
+const FIGURE_DARK = '#161810';
 const BARREL = '#3a3d36';
 
 export function tank(faction: FactionId): THREE.BufferGeometry[] {
@@ -224,11 +225,13 @@ export function mrap(faction: FactionId): THREE.BufferGeometry[] {
 }
 
 export function figure(): THREE.BufferGeometry[] {
-  // Deliberately abstract: silhouette-level only (v2-vision §6.1). Sized
-  // symbolically — a figure must read at gameplay camera height.
+  // Deliberately abstract: silhouette-level only (v2-vision §6.1). Dark
+  // olive so a rank stamps on khaki the way a hull does. Infantry
+  // composition scales this up; mech/recon dismounts keep the raw size.
   return [
-    cbox(0.026, 0.068, 0.02, FIGURE, 0, 0.034, 0),
-    csphere(0.014, '#3c4038', 0, 0.082, 0),
+    cbox(0.030, 0.052, 0.024, FIGURE, 0, 0.046, 0),
+    cbox(0.026, 0.028, 0.022, FIGURE_DARK, 0, 0.016, 0),
+    csphere(0.015, '#1e2018', 0, 0.086, 0),
   ];
 }
 

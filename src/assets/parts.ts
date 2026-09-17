@@ -95,10 +95,11 @@ export function ctrap(
 // Transform a list of parts as one rigid piece.
 export function place(
   parts: THREE.BufferGeometry[],
-  x: number, z: number, ry = 0, rz = 0,
+  x: number, z: number, ry = 0, rz = 0, scale = 1,
 ): THREE.BufferGeometry[] {
   const m = new THREE.Matrix4();
   if (rz) m.multiply(new THREE.Matrix4().makeRotationZ(rz));
+  if (scale !== 1) m.multiply(new THREE.Matrix4().makeScale(scale, scale, scale));
   const rot = new THREE.Matrix4().makeRotationY(ry);
   const trans = new THREE.Matrix4().makeTranslation(x, 0, z);
   const full = trans.clone().multiply(rot).multiply(m);

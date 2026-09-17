@@ -1,10 +1,12 @@
 // LOD / boot / north-air gate shots: rest, selected, mid-zoom.
 // Fail the cut if hexes disappear under plates, if the north rain veil
-// returns, or if mid-zoom reads as plates-only.
+// returns, if the rest frame is a quiet khaki slab, or if mid-zoom reads
+// as plates-only. tbe-counters must be off before any machine shot.
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import puppeteer from 'puppeteer-core';
 import { PNG } from 'pngjs';
+import { assertCountersOff, clearCountersBeforeScripts } from './lib/counters-off.mjs';
 
 const OUT = process.env.OUT_DIR ?? '/opt/cursor/artifacts/screenshots';
 const URL = process.env.URL ?? 'http://127.0.0.1:5199';
@@ -67,6 +69,29 @@ function assertNorthKhaki(path) {
   }
 }
 
+/** Rest midground must show parcel edges, not a quiet khaki slab. */
+function assertStripVolume(path) {
+  const png = PNG.sync.read(readFileSync(path));
+  const cell = 18;
+  const x0 = 300, y0 = 420, x1 = 1260, y1 = 700;
+  let diffs = 0;
+  let n = 0;
+  for (let y = y0; y < y1 - cell; y += cell) {
+    for (let x = x0; x < x1 - cell; x += cell) {
+      const a = sampleRegion(png, x, y, x + cell, y + cell);
+      const b = sampleRegion(png, x + cell, y, x + cell * 2, y + cell);
+      diffs += Math.abs(a.luma - b.luma);
+      n += 1;
+    }
+  }
+  const contrast = diffs / Math.max(1, n);
+  console.log('strip contrast', contrast.toFixed(2));
+  if (contrast < 2.4) {
+    console.error('FAIL: rest is a quiet khaki slab — strip/parcel contrast too low');
+    process.exitCode = 1;
+  }
+}
+
 const executablePath = chromePath();
 if (!executablePath) {
   console.error('FAIL: no Chrome/Chromium. Set CHROME_PATH.');
@@ -82,10 +107,13 @@ const browser = await puppeteer.launch({
 
 const page = await browser.newPage();
 page.on('pageerror', (err) => console.error('PAGE', err));
+await clearCountersBeforeScripts(page);
 
 await page.goto(URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
 await page.waitForFunction(() => window.__TBE_DEBUG__, { timeout: 20000 });
+await assertCountersOff(page, 'boot counters');
 await page.evaluate(() => window.__TBE_DEBUG__.newGame('UA', 42));
+await assertCountersOff(page, 'newGame counters');
 await sleep(2800);
 await page.evaluate(() => {
   window.__TBE_DEBUG__.setWeather('rain');
@@ -126,6 +154,7 @@ await sleep(700);
 const restPath = join(OUT, 'lod-01-rest.png');
 await page.screenshot({ path: restPath });
 assertNorthKhaki(restPath);
+assertStripVolume(restPath);
 
 const mid = await page.evaluate(() => {
   const cam = window.__TBE_CAMERA__;
@@ -133,6 +162,7 @@ const mid = await page.evaluate(() => {
   return true;
 });
 console.log('midzoom set:', mid);
+await assertCountersOff(page, 'midzoom counters');
 await sleep(700);
 await page.screenshot({ path: join(OUT, 'lod-02-midzoom.png') });
 
@@ -171,8 +201,37 @@ const machine = await page.evaluate(() => {
   return { id: armored?.id, type: armored?.type, tile: armored?.tile };
 });
 console.log('machine:', JSON.stringify(machine));
+await assertCountersOff(page, 'armor counters');
 await sleep(800);
 await page.screenshot({ path: join(OUT, 'lod-04-machine.png') });
+
+async function shootClass(type, file) {
+  const shot = await page.evaluate((want) => {
+    const hook = window.__TBE_DEBUG__;
+    const cam = window.__TBE_CAMERA__;
+    const unit = hook.units()
+      .filter((u) => u.faction === 'UA' && u.type === want)
+      .sort((a, b) => b.strength - a.strength || a.id.localeCompare(b.id))[0];
+    if (unit) {
+      hook.selectUnit(unit.id);
+      if (cam) cam.set(unit.wx - 0.15, 10.4, unit.wz + 6.7, unit.wx, unit.wz);
+    }
+    return { id: unit?.id, type: unit?.type, tile: unit?.tile };
+  }, type);
+  console.log(`${type}:`, JSON.stringify(shot));
+  if (!shot.id) {
+    console.error(`FAIL: no UA ${type} to frame`);
+    process.exitCode = 1;
+    return;
+  }
+  await assertCountersOff(page, `${type} counters`);
+  await sleep(700);
+  await page.screenshot({ path: join(OUT, file) });
+}
+
+await shootClass('infantry', 'lod-05-infantry.png');
+await shootClass('mechanized', 'lod-06-mech.png');
+await shootClass('artillery', 'lod-07-arty.png');
 
 await browser.close();
 if (process.exitCode) process.exit(process.exitCode);
