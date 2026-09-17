@@ -26,7 +26,7 @@ describe('north soil continuity gate', () => {
     const charcoal = { r: 40, g: 36, b: 30 };
     const north = applySoilContinuity(charcoal, WORLD_H * 0.06, 70);
     const mid = applySoilContinuity(charcoal, WORLD_H * 0.5, 70);
-    expect(luma(north)).toBeGreaterThan(130);
+    expect(luma(north)).toBeGreaterThan(108);
     expect(luma(north)).toBeGreaterThan(luma(mid));
     expect(north.r).toBeGreaterThan(north.b);
     expect(north.g).toBeGreaterThan(north.b);

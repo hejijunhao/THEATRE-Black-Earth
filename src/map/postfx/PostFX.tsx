@@ -17,9 +17,9 @@ const N8AO = forwardRef<N8AOPostPass, { halfRes?: boolean }>(function N8AO({ hal
   const { scene, camera, size } = useThree();
   const pass = useMemo(() => {
     const p = new N8AOPostPass(scene, camera, size.width, size.height);
-    p.configuration.aoRadius = 1.15;
-    p.configuration.distanceFalloff = 1.35;
-    p.configuration.intensity = 0.72;
+    p.configuration.aoRadius = 1.25;
+    p.configuration.distanceFalloff = 1.25;
+    p.configuration.intensity = 0.95;
     p.configuration.halfRes = halfRes;
     p.configuration.color = new THREE.Color('#4a4030'); // warm soil, not charcoal
     return p;

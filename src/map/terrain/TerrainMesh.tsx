@@ -101,11 +101,11 @@ export function TerrainMesh() {
 
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardMaterial({
-      roughness: 0.9,
-      metalness: 0.02,
-      // Khaki keep-alive: PBR + rain must not be able to open a north hole.
-      emissive: new THREE.Color('#8a7848'),
-      emissiveIntensity: 0.28,
+      roughness: 0.88,
+      metalness: 0.03,
+      // Warm keep-alive, not a floodlight — midground must still show strips.
+      emissive: new THREE.Color('#6e6040'),
+      emissiveIntensity: 0.16,
     });
     mat.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, uniforms);
@@ -201,13 +201,14 @@ export function TerrainMesh() {
               float shade = smoothstep(0.52, 0.78, cl) * uCloud * (1.0 - uPaper);
               ground *= 1.0 - shade * 0.10;
             }
-            // North keep: far soil stays khaki, not a grey hole.
+            // North keep: far soil stays khaki, not a grey hole. Midground
+            // is left alone so strip-fields still read as a place.
             float northLat = 1.0 - clamp(wp.y / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
-            vec3 khakiKeep = vec3(0.80, 0.70, 0.45);
-            float keep = 0.14 + 0.42 * smoothstep(0.16, 0.88, northLat);
-            ground = mix(ground, max(ground, khakiKeep), keep * 0.70);
+            vec3 khakiKeep = vec3(0.72, 0.62, 0.40);
+            float keep = smoothstep(0.48, 0.92, northLat);
+            ground = mix(ground, max(ground, khakiKeep), keep * 0.38);
             float luma = dot(ground, vec3(0.2126, 0.7152, 0.0722));
-            float floorL = 0.40 + 0.14 * northLat;
+            float floorL = 0.22 + 0.12 * keep;
             if (luma < floorL) ground *= floorL / max(luma, 0.001);
             uSoilGround = ground;
             diffuseColor.rgb = ground;
@@ -217,7 +218,7 @@ export function TerrainMesh() {
           '#include <emissivemap_fragment>',
           `#include <emissivemap_fragment>
           float northEmit = 1.0 - clamp(vWorldPos3.z / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
-          totalEmissiveRadiance += uSoilGround * (0.16 + 0.34 * smoothstep(0.18, 0.86, northEmit));`,
+          totalEmissiveRadiance += uSoilGround * (0.06 + 0.20 * smoothstep(0.48, 0.92, northEmit));`,
         );
     };
     return mat;

@@ -16,8 +16,9 @@ export const HERO_SCALE = 0.026;
 // step richer. Every hero factory draws from this so the tier reads as one
 // production line, not four art styles.
 export const HERO_PAINT: Record<'UA' | 'RU', { base: string; dark: string; light: string }> = {
-  UA: { base: '#727a64', dark: '#565c50', light: '#8e9674' },
-  RU: { base: '#746e58', dark: '#585444', light: '#90886c' },
+  // Value split against khaki soil: dark hull, lighter top plates.
+  UA: { base: '#4a5242', dark: '#2e342c', light: '#7a8466' },
+  RU: { base: '#4c4838', dark: '#302c24', light: '#7c7460' },
 };
 
 export interface HeroMatSet {

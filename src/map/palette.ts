@@ -26,11 +26,11 @@ export const FACTION_STRONG: Record<FactionId, string> = {
 export const WEATHER_ENV: Record<WeatherType, { sky: string; fog: string; sun: number; ambient: number; fogDensity: number }> = {
   // Air over soil, one place. Rain fog is the same khaki as the midground
   // field — a cool or dark fog is what opened the north hole.
-  clear:    { sky: '#c8d4c4', fog: '#c8c09a', sun: 1.72, ambient: 0.72, fogDensity: 0.00055 },
-  overcast: { sky: '#b8b294', fog: '#c4b890', sun: 1.28, ambient: 0.78, fogDensity: 0.0005 },
-  rain:     { sky: '#b8b090', fog: '#c8bc90', sun: 1.24, ambient: 0.84, fogDensity: 0.00036 },
-  mud:      { sky: '#b4a888', fog: '#c4b488', sun: 1.2, ambient: 0.8, fogDensity: 0.00048 },
-  snow:     { sky: '#c4ccd0', fog: '#d0d2c8', sun: 1.2, ambient: 0.76, fogDensity: 0.0007 },
+  clear:    { sky: '#c8d4c4', fog: '#c8c09a', sun: 1.72, ambient: 0.66, fogDensity: 0.0006 },
+  overcast: { sky: '#b4ae90', fog: '#c0b488', sun: 1.22, ambient: 0.72, fogDensity: 0.00055 },
+  rain:     { sky: '#b0aa88', fog: '#c4b888', sun: 1.16, ambient: 0.76, fogDensity: 0.00042 },
+  mud:      { sky: '#b0a484', fog: '#c0b084', sun: 1.16, ambient: 0.74, fogDensity: 0.0005 },
+  snow:     { sky: '#c4ccd0', fog: '#d0d2c8', sun: 1.2, ambient: 0.72, fogDensity: 0.00075 },
 };
 
 const tmpA = new THREE.Color();

@@ -103,16 +103,17 @@ function fieldColor(wx: number, wz: number): RGB {
  */
 export function northSoilLift(wz: number, heightMetres: number): number {
   const lat = 1 - Math.min(1, Math.max(0, wz / WORLD_H));
-  const north = 0.12 + 0.40 * smooth(0.20, 0.90, lat);
-  const height = 0.14 * smooth(110, 280, heightMetres);
-  return Math.min(0.62, north + height);
+  // Midground stays a strip-field. Lift concentrates on the far north.
+  const north = 0.04 + 0.34 * smooth(0.42, 0.94, lat);
+  const height = 0.08 * smooth(140, 300, heightMetres);
+  return Math.min(0.46, north + height);
 }
 
 export function applySoilContinuity(c: RGB, wz: number, heightMetres: number): RGB {
   const lift = northSoilLift(wz, heightMetres);
   let out = mix(c, KHAKI_FIELD, lift);
   const luma = 0.2126 * out.r + 0.7152 * out.g + 0.0722 * out.b;
-  const floor = 108 + 36 * (1 - Math.min(1, Math.max(0, wz / WORLD_H)));
+  const floor = 88 + 28 * (1 - Math.min(1, Math.max(0, wz / WORLD_H)));
   if (luma < floor) {
     const k = floor / Math.max(1, luma);
     out = { r: out.r * k, g: out.g * k, b: out.b * k };
