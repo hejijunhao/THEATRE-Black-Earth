@@ -51,10 +51,10 @@ export function WeatherParticles() {
   return (
     <points ref={pointsRef} geometry={geometry}>
       <pointsMaterial
-        color={weather === 'rain' ? '#7d8b96' : '#dfe5ea'}
-        size={weather === 'rain' ? 0.05 : 0.09}
+        color={weather === 'rain' ? '#b4aa88' : '#dfe5ea'}
+        size={weather === 'rain' ? 0.04 : 0.09}
         transparent
-        opacity={weather === 'rain' ? 0.5 : 0.8}
+        opacity={weather === 'rain' ? 0.28 : 0.8}
         sizeAttenuation
         depthWrite={false}
       />

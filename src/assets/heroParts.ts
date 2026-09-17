@@ -16,8 +16,9 @@ export const HERO_SCALE = 0.026;
 // step richer. Every hero factory draws from this so the tier reads as one
 // production line, not four art styles.
 export const HERO_PAINT: Record<'UA' | 'RU', { base: string; dark: string; light: string }> = {
-  UA: { base: '#5a6151', dark: '#454b3e', light: '#687059' },
-  RU: { base: '#5c5747', dark: '#474334', light: '#6b6654' },
+  // Value split against khaki soil: dark hull, lighter top plates.
+  UA: { base: '#4a5242', dark: '#2e342c', light: '#7a8466' },
+  RU: { base: '#4c4838', dark: '#302c24', light: '#7c7460' },
 };
 
 export interface HeroMatSet {
@@ -192,8 +193,8 @@ export function makeHeroMaterial(): THREE.MeshStandardMaterial {
     roughness: 1.0,
     metalness: 1.0,
     // Mid-zoom must still silhouette under flat rain light.
-    emissive: new THREE.Color('#3d3628'),
-    emissiveIntensity: 0.4,
+    emissive: new THREE.Color('#6a5c40'),
+    emissiveIntensity: 0.62,
   });
   mat.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader

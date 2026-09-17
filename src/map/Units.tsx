@@ -35,9 +35,9 @@ import {
   COUNTER_PLATE_W,
   COUNTER_ZOOM_FULL,
   COUNTER_ZOOM_IN,
+  MACHINE_SCALE,
   MINI_BASE_D,
   MINI_BASE_W,
-  MINI_SCALE,
   SELECT_RING_IN,
   SELECT_RING_OUT,
   STANDARD_H,
@@ -120,11 +120,11 @@ function useCrossfade() {
 
 const MINI_MATERIAL = new THREE.MeshStandardMaterial({
   vertexColors: true,
-  roughness: 0.72,
-  metalness: 0.08,
+  roughness: 0.68,
+  metalness: 0.1,
   transparent: true,
-  emissive: '#4a4030',
-  emissiveIntensity: 0.48,
+  emissive: '#5a4e38',
+  emissiveIntensity: 0.62,
 });
 
 function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boolean; chrome: BoardChrome }) {
@@ -245,7 +245,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
       </mesh>
       {/* The machines: hero vehicles as instances, everything else — foot
           elements, logistics, muzzle smoke — merged into one props mesh. */}
-      <group rotation={[0, facing, 0]} position={[0, 0.036, 0]} scale={MINI_SCALE}>
+      <group rotation={[0, facing, 0]} position={[0, 0.036, 0]} scale={MACHINE_SCALE}>
         {build.props && <mesh geometry={build.props} material={MINI_MATERIAL} castShadow />}
         {build.heroType && (
           <HeroFormation type={build.heroType} faction={unit.faction} slots={build.heroSlots} />
@@ -262,7 +262,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
       )}
       <AgencyMarks chrome={chrome} selected={selected} />
       {/* The standard. */}
-      <Billboard position={[0, 0.56, 0]} follow>
+      <Billboard position={[0, 0.40, 0]} follow>
         <mesh>
           <planeGeometry args={[STANDARD_W, STANDARD_H]} />
           <meshBasicMaterial ref={stdMatRef} map={stdTexture} transparent depthWrite={false} />

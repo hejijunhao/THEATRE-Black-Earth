@@ -60,7 +60,13 @@ export function Forests() {
       }}
       castShadow
     >
-      <meshStandardMaterial color={snow ? '#5d6b58' : '#3f5233'} roughness={0.9} flatShading />
+      <meshStandardMaterial
+        color={snow ? '#6d7b68' : '#627048'}
+        roughness={0.88}
+        flatShading
+        emissive={snow ? '#3a4438' : '#4a5434'}
+        emissiveIntensity={0.22}
+      />
     </instancedMesh>
   );
 }

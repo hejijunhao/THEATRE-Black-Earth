@@ -194,6 +194,11 @@ function useDebugHook() {
       // Deterministic campaign start for the golden-image harness.
       newGame: (faction: 'UA' | 'RU', seed: number) =>
         useStore.getState().newCampaign(faction, false, seed),
+      setWeather: (weather: 'clear' | 'overcast' | 'rain' | 'mud' | 'snow') => {
+        const { game } = useStore.getState();
+        if (!game) return;
+        useStore.setState({ game: { ...game, weather } });
+      },
       setMapMode: (mode: 'political' | 'supply' | 'terrain' | 'objectives' | 'intel') =>
         useStore.getState().setMapMode(mode),
       selectUnit: (id: string) => useStore.getState().selectUnit(id),

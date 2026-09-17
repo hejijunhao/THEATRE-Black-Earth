@@ -19,6 +19,8 @@ export const STANDARD_H = 0.31;
 export const MINI_BASE_W = 0.86;
 export const MINI_BASE_D = 0.60;
 export const MINI_SCALE = 1.18;
+/** Vehicle group only — plates stay at MINI_BASE_*. Must still fit the hex. */
+export const MACHINE_SCALE = 1.34;
 
 /** Select is a ground annulus, never a camera-facing parchment card. */
 export const SELECT_RING_IN = 0.48;

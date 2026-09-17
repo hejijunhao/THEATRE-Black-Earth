@@ -30,6 +30,10 @@ npx tsc --noEmit            # strict typecheck on its own
 There is **no linter or formatter** in this project. `tsc --noEmit` (strict) is
 the only static check; don't go looking for `npm run lint`.
 
+**No GitHub Actions.** Do not add `.github/workflows/*`. Do not enable Actions.
+Do not create workflow files. Verification is local only: `npx tsc --noEmit`,
+`npm test`, `node scripts/playtest.mjs`, and the shot scripts. No CI minutes.
+
 Focused test runs:
 
 ```bash
