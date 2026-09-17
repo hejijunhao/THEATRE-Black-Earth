@@ -97,6 +97,16 @@ export function buildTerritoryGeometry(
     pos.setY(i, drape(x, z));
   }
   pos.needsUpdate = true;
+  // ShapeGeometry + Rx(+90) lands facing -Y. Flip so the camera above sees the wash.
+  const idx = geo.index;
+  if (idx) {
+    for (let i = 0; i < idx.count; i += 3) {
+      const b = idx.getX(i + 1);
+      idx.setX(i + 1, idx.getX(i + 2));
+      idx.setX(i + 2, b);
+    }
+    idx.needsUpdate = true;
+  }
   geo.computeVertexNormals();
   geo.computeBoundingSphere();
   geo.computeBoundingBox();

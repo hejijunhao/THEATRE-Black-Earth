@@ -17,6 +17,10 @@ describe('territory fill geometry', () => {
     // One outline (18) plus earcut internals — never 7 discs × (center+6).
     expect(verts).toBeGreaterThanOrEqual(18);
     expect(verts).toBeLessThan(7 * 7);
+    const nrm = geo!.attributes.normal;
+    let ny = 0;
+    for (let i = 0; i < nrm.count; i++) ny += nrm.getY(i);
+    expect(ny / nrm.count).toBeGreaterThan(0.8);
     geo!.dispose();
   });
 

@@ -69,6 +69,7 @@ function ReachTerritory({
         opacity={opacity}
         depthWrite={false}
         depthTest={false}
+        side={THREE.DoubleSide}
         polygonOffset
         polygonOffsetFactor={-1}
         polygonOffsetUnits={-1}
