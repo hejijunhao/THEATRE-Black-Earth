@@ -104,31 +104,40 @@ if (!outliner || !/contact/i.test(outliner)) {
 
 if (hasHook) {
   // Hex-click path: pick plane → selectTile, not the debug move() hook.
-  await page.evaluate(() => {
+  // Snap the camera onto a rear formation so a highlighted dest is on-screen.
+  const framed = await page.evaluate(() => {
     const hook = window.__TBE_DEBUG__;
+    const cam = window.__TBE_CAMERA__;
     hook.selectUnit('u1');
     const unit = hook.units().find((u) => u.id === 'u1');
-    if (unit) hook.focusCamera(unit.tile);
+    if (!unit || !cam) return { ok: false, dests: 0, hasCam: Boolean(cam) };
+    cam.set(unit.wx, 18, unit.wz + 12, unit.wx, unit.wz);
+    return { ok: true, dests: hook.reachable().length, hasCam: true, tile: unit.tile };
   });
-  await sleep(500);
+  console.log('hex-click frame:', JSON.stringify(framed));
+  await sleep(250);
   const clickPt = await page.evaluate(() => {
     const hook = window.__TBE_DEBUG__;
     const cam = window.__TBE_CAMERA__;
     const dests = hook.reachable();
-    if (!dests.length || !cam) return null;
+    if (!dests.length || !cam) return { reason: !cam ? 'no camera' : 'no dests', dests: dests.length };
     const mid = { x: 800, y: 500 };
     let best = null;
+    const rejected = [];
     for (const dest of dests) {
       const pt = cam.projectTile(dest);
-      if (!pt || !pt.visible) continue;
-      if (pt.y < 80 || pt.y > 820 || pt.x < 240 || pt.x > 1280) continue;
+      if (!pt || !pt.visible) { rejected.push({ dest, why: 'hidden' }); continue; }
+      if (pt.y < 80 || pt.y > 820 || pt.x < 240 || pt.x > 1280) {
+        rejected.push({ dest, why: 'hud', x: Math.round(pt.x), y: Math.round(pt.y) });
+        continue;
+      }
       const dist = Math.hypot(pt.x - mid.x, pt.y - mid.y);
       if (!best || dist < best.dist) best = { x: pt.x, y: pt.y, dest, dist };
     }
-    return best;
+    return best ?? { reason: 'none in view', dests: dests.length, rejected };
   });
   console.log('hex-click target:', JSON.stringify(clickPt));
-  if (!clickPt) {
+  if (!clickPt || !clickPt.dest) {
     console.error('FAIL: no on-screen reachable hex to click');
     process.exitCode = 1;
   } else {
