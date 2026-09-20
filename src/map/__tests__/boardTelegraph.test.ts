@@ -1,22 +1,26 @@
 import { describe, expect, it } from 'vitest';
-import { HEX_W, neighborIds } from '../../game/hex';
+import { neighborIds } from '../../game/hex';
 import { tileId } from '../../game/types';
 import {
   classifyReach,
-  fillFitsHex,
   FRONT_CONTACT_HATCH,
   FRONT_QUIET_HATCH,
   FRONT_SCAR_H,
   FRONT_SCAR_W,
+  loopSignedArea,
+  nearReachTiles,
+  neighborAcrossHexEdge,
+  partitionTerritoryLoops,
   perimeterEdges,
   REACH_EDGE,
   REACH_FILL_OPACITY,
-  REACH_FILL_RADIUS,
   reachFillLeadsRim,
   reachFillOpacity,
   reachInkIsWarm,
   scarIsHairline,
   seamHatchTs,
+  territoryIsSingleSilhouette,
+  tileUnionLoops,
 } from '../boardTelegraph';
 
 describe('board telegraph', () => {
@@ -32,12 +36,40 @@ describe('board telegraph', () => {
     expect(reachFillOpacity('open', 4, 4)).toBeLessThan(reachFillOpacity('open', 1, 4));
   });
 
-  it('overlaps adjacent hexes so the wash reads as a blob, not a plate necklace', () => {
-    expect(fillFitsHex()).toBe(true);
-    expect(REACH_FILL_RADIUS * 2).toBeGreaterThan(HEX_W);
-    expect(REACH_FILL_RADIUS).toBeLessThan(1.05);
-    expect(fillFitsHex(0.56)).toBe(false);
-    expect(fillFitsHex(1.2)).toBe(false);
+  it('merges adjacent hexes into one silhouette, not a disc per cell', () => {
+    const a = tileId(10, 10);
+    const ring = neighborIds(a);
+    const flower = [a, ...ring];
+    expect(territoryIsSingleSilhouette(flower)).toBe(true);
+    const loops = tileUnionLoops(flower);
+    expect(loops).toHaveLength(1);
+    expect(loops[0]).toHaveLength(18);
+    expect(loopSignedArea(loops[0]!)).toBeGreaterThan(0);
+
+    const pair = tileUnionLoops([a, ring[0]!]);
+    expect(pair).toHaveLength(1);
+    expect(pair[0]).toHaveLength(10);
+
+    const hole = tileUnionLoops(ring);
+    const parts = partitionTerritoryLoops(hole);
+    expect(parts.outers).toHaveLength(1);
+    expect(parts.holes).toHaveLength(1);
+    expect(parts.outers[0]).toHaveLength(18);
+    expect(parts.holes[0]).toHaveLength(6);
+  });
+
+  it('keeps a near-cost heart inside the plated set', () => {
+    const near = nearReachTiles(
+      [
+        { id: tileId(1, 1), cost: 0 },
+        { id: tileId(1, 2), cost: 1 },
+        { id: tileId(1, 3), cost: 2 },
+        { id: tileId(1, 4), cost: 4 },
+      ],
+      4,
+    );
+    expect(near).toEqual([tileId(1, 1), tileId(1, 2), tileId(1, 3)]);
+    expect(neighborAcrossHexEdge(tileId(10, 10), 0)).toBeTruthy();
   });
 
   it('lets the soil wash lead a warm perimeter seam', () => {

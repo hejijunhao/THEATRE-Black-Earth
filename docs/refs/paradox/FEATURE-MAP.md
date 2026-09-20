@@ -7,7 +7,8 @@
 | Formation / contact outliner | Vic 3 outliner; HOI4 army list | `outliner/` | TODO |
 | Map modes | Vic 3 / HOI4 mapmode buttons | `map-modes/` | TODO |
 | Select → move → attack | HOI4 province/unit selection + order | `selection-orders/` | TODO |
-| Reach wash / frontline | HOI4 frontline / planned movement overlays | `board-chrome/` | TODO |
+| Reach wash (territorial blob) | Vic 3 selected-territory fill; Civ 6 movement range | `reach-telegraph/` | seeded (notes; shots TODO) |
+| Frontline / ZOC telegraph | HOI4 frontline / planned movement overlays | `board-chrome/` | TODO |
 | Resources (manpower, equipment, command) | HOI4 / Vic 3 top-bar resource chips | `header/` | seeded |
 | Week / weather / date | Vic 3 date; HOI4 date+speed | `header/` | seeded |
 | Strategic operations | HOI4 decisions / command abilities | — | TODO |

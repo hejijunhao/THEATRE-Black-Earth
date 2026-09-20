@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.23](#0223--2026-09-17--slice-5-reach-polygon) | 2026-09-17 | Slice 5 — reach polygon | tile-union Shape, secondary interior, no disc soup |
 | [docs-combat-paper](#docs-combat-paper--2026-09-20--paradox-combat-paper-pack) | 2026-09-20 | docs | combat-paper NOTES, Vic3/EU5 shots |
 | [docs-paradox-lib](#docs-paradox-lib--2026-09-17--paradox-reference-library) | 2026-09-17 | docs | paradox refs, feature map |
 | [0.2.22](#0222--2026-09-17--slice-5-reach-retip) | 2026-09-17 | Slice 5 — reach retip | soil-stain wash, seam-only silhouette, warm parchment ink |
@@ -41,6 +42,20 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.23] — 2026-09-17 · Slice 5 — reach polygon
+
+Presentation only. Slice 5 reach path only. Frontline stays the MeshBasic hairline scar from 0.2.21. Ground, atmosphere, unit meshes and HUD panels stay locked. No new rules.
+
+0.2.22 closed the necklace and warmed the wash, but the fill was still overlapping `CircleGeometry` discs (r ≈ 0.94). Amplified, that is hex-cell soup — not a Vic / Civ territorial blob.
+
+This cut:
+
+- **Replaces disc punches with one ShapeGeometry** built from the tile-union outline (`tileUnionLoops` / `perimeter` of reachable tiles). Internal hex edges disappear; mid-zoom is one silhouette.
+- **Keeps cost fade as a secondary interior** — a nested near-cost union, not a Voronoi of discs. Fill still leads the seam.
+- **Leaves the warm umber/ochre seam** as a supporting ribbon on the outer perimeter only.
+
+Picks still go through (`raycast={() => null}`). Frontline is untouched. Notes under `docs/refs/paradox/reach-telegraph/` (Vic 3 selected territory / Civ 6 movement range).
 
 ## [docs-combat-paper] — 2026-09-20 · Paradox combat-paper pack
 

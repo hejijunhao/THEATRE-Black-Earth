@@ -15,7 +15,8 @@ docs/refs/paradox/
   outliner/                 ← formation list / contact list
   map-modes/                ← political / supply / terrain overlays
   selection-orders/         ← select unit, move, attack, entrench
-  board-chrome/             ← reach wash, frontline, ZOC telegraph
+  board-chrome/             ← frontline / ZOC telegraph (HOI4 scar)
+  reach-telegraph/          ← Vic 3 territory fill + Civ 6 movement blob
   (add a folder per feature as we go)
 ```
 
