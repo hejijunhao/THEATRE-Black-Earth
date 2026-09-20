@@ -1,5 +1,5 @@
-// Bound journal: week-as-chapter chronology first; situation as marginalia.
-// A book, not a card stack.
+// Journal overlay: week chapters as type, situation as a single sitrep line.
+// Same instrument language as the strip — not a bound parchment book.
 
 import { useMemo } from 'react';
 import { WEATHER_DEFS } from '../game/data/defs';
@@ -104,76 +104,78 @@ export function Journal() {
   })) return null;
 
   return (
-    <div className="bound-journal on-demand" aria-label="Theatre journal">
-      <button
-        type="button"
-        className="bj-spine"
-        onClick={() => setShowJournal(false)}
-        title="Close journal · J"
-      >
-        <span className="bj-spine-title">Journal</span>
-      </button>
-      <div className="bj-page">
-        <div className="bj-head">
-          <span className="bj-week">Week {game.turn}</span>
-          <span className="bj-wx">{WEATHER_DEFS[game.weather].label}</span>
-          <span className="bj-date">{formatTurnDate(game)}</span>
-        </div>
+    <div className="bound-journal journal-overlay on-demand" aria-label="Theatre journal">
+      <div className="jl-head">
+        <span className="jl-kicker">Journal</span>
+        <span className="jl-week">Week {game.turn}</span>
+        <span className="jl-wx">{WEATHER_DEFS[game.weather].label}</span>
+        <span className="jl-date">{formatTurnDate(game)}</span>
+        <button
+          type="button"
+          className="jl-close"
+          onClick={() => setShowJournal(false)}
+          title="Close journal · J"
+        >
+          Close
+        </button>
+      </div>
 
-        {weeks.length > 0 && (
-          <div className="bj-section chronology">
-            {weeks.map((w) => (
-              <div key={w.turn} className="bj-chapter">
-                <div className="bj-chapter-head">
-                  <span className="bj-chap-num">Week {w.turn}</span>
-                  <span className="bj-chap-rule" />
-                </div>
-                {w.lines.map((e) => {
-                  const hex = chronologyTile(game, e.text);
-                  const body = (
-                    <>
-                      <span className="bj-kind">{e.kind}</span>
-                      <span className="bj-copy">{e.text}</span>
-                      {e.atk != null && (
-                        <span className="bj-dice" aria-label={`2d6 ${e.atk}${e.def != null ? ` vs ${e.def}` : ''}`}>
-                          <span className="bj-pip">{e.atk}</span>
-                          {e.def != null && <span className="bj-pip">{e.def}</span>}
-                        </span>
-                      )}
-                    </>
-                  );
-                  if (!hex) {
-                    return <div key={e.id} className={`bj-fight ${e.kind}`}>{body}</div>;
-                  }
-                  return (
-                    <button
-                      key={e.id}
-                      type="button"
-                      className={`bj-fight ${e.kind} locatable`}
-                      onMouseEnter={() => hoverTile(hex)}
-                      onMouseLeave={() => hoverTile(null)}
-                      onClick={() => {
-                        selectTile(hex);
-                        focusCamera(hex);
-                      }}
-                    >
-                      {body}
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-        )}
-
-        <aside className="bj-margin" aria-label="Situation">
+      {notes.length > 0 && (
+        <aside className="jl-sit" aria-label="Situation">
           {notes.map((c) => (
-            <p key={c.key} className={`bj-note ${c.tone}`}>
-              <em>{c.title}.</em> {c.body}
+            <p key={c.key} className={`jl-note ${c.tone}`}>
+              <em>{c.title}</em>
+              {c.body}
             </p>
           ))}
         </aside>
-      </div>
+      )}
+
+      {weeks.length > 0 && (
+        <div className="jl-weeks">
+          {weeks.map((w) => (
+            <div key={w.turn} className="jl-chapter">
+              <div className="jl-chap-head">
+                <span>Week {w.turn}</span>
+                <i />
+              </div>
+              {w.lines.map((e) => {
+                const hex = chronologyTile(game, e.text);
+                const body = (
+                  <>
+                    <span className="bj-kind">{e.kind}</span>
+                    <span className="bj-copy">{e.text}</span>
+                    {e.atk != null && (
+                      <span className="bj-dice" aria-label={`2d6 ${e.atk}${e.def != null ? ` vs ${e.def}` : ''}`}>
+                        <span className="bj-pip">{e.atk}</span>
+                        {e.def != null && <span className="bj-pip">{e.def}</span>}
+                      </span>
+                    )}
+                  </>
+                );
+                if (!hex) {
+                  return <div key={e.id} className={`bj-fight ${e.kind}`}>{body}</div>;
+                }
+                return (
+                  <button
+                    key={e.id}
+                    type="button"
+                    className={`bj-fight ${e.kind} locatable`}
+                    onMouseEnter={() => hoverTile(hex)}
+                    onMouseLeave={() => hoverTile(null)}
+                    onClick={() => {
+                      selectTile(hex);
+                      focusCamera(hex);
+                    }}
+                  >
+                    {body}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

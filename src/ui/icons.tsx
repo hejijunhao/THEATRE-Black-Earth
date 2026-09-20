@@ -23,6 +23,12 @@ const ICONS: Record<string, ReactNode> = {
     </>
   ),
   command: P('M6 20V5m0 0h10l-2.5 3.5L16 12H6'),
+  depot: (
+    <>
+      {P('M4 10h16v10H4zM4 10l8-6 8 6')}
+      {P('M10 20v-6h4v6')}
+    </>
+  ),
   support: (
     <>
       {P('M12 20V10M12 10c-4.5 0-7-2.5-7-6 4.5 0 7 2.5 7 6zM12 10c4.5 0 7-2.5 7-6-4.5 0-7 2.5-7 6z')}

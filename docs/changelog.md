@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.13](#0213--2026-09-17--instrument-hud-craft) | 2026-09-17 | Instrument HUD craft | strip as war instrument, depot popover, week-runner rail, NATO counter plates, ground lighting, thin clock/journal overlays |
 | [0.2.12](#0212--2026-09-17--subtractive-hud) | 2026-09-17 | Subtractive HUD | rest-state map hero, one strip, one rail, on-demand journal/clock/dossier, collapsed map modes, campaign-zoom counters |
 | [0.2.11](#0211--2026-09-16--ui-cut-6-world-anchor) | 2026-09-16 | UI cut #6 | world-anchored combat paper, bench stays through AAR, encyclopedia index, journal→map |
 | [0.2.10](#0210--2026-09-16--ui-cut-5-combat-paper-craft) | 2026-09-16 | UI cut #5 | unified combat paper, wash-not-curtain AAR, ops rail through AAR, one-ritual clock, chronology journal, pin encyclopedia |
@@ -29,6 +30,17 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.13] — 2026-09-17 · Instrument HUD craft
+
+Presentation only. Hierarchy from 0.2.12 is locked: map hero, one strip, one rail, bench on select, clock/journal on demand. No new panels. Rules, click-to-move and combat paper are unchanged.
+
+- **Strip is an instrument.** Week / weather as one reading. One theatre pulse — Holding / Pressing plus decisive beads inline. Manpower / Equipment / Command delta chips are gone; they live in one Depot popover.
+- **Rail runs the week.** Next-unspent is the primary plate. Each row is type glyph + strength + agency. No roster headers, MP column or supply dots.
+- **Campaign LOD plates.** Counters redrawn as cardstock NATO tokens: faction rail, ink frame as the read, designation and strength below, MP as a small brass disc. Ground albedo and lighting lifted so the theatre has volume, not just bigger tokens.
+- **On-demand surfaces rewritten.** Clock and journal hang as thin overlays in the strip's language. The analog plaque and bound-book spine are gone.
+
+The campaign, map, AI, supply and combat math are unchanged.
 
 ## [0.2.12] — 2026-09-17 · Subtractive HUD
 
