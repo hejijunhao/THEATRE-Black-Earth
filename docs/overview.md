@@ -28,7 +28,7 @@ stance is a design constraint, not decoration — it shapes the combat model
 | --- | --- |
 | **Version** | 0.2.0 — v1 vertical slice + the full [v2 presentation release](plans/v2-vision.md) (phases A–F) |
 | **Stack** | Vite 5 · React 18 · TypeScript 5.6 (strict) · React Three Fiber / three 0.170 · @react-three/postprocessing + n8ao · Zustand + immer · vitest |
-| **Health** | `tsc --noEmit` clean · 16/16 tests passing (~6s) · golden-image harness byte-stable |
+| **Health** | `tsc --noEmit` clean · vitest rule tests (core + combat) · golden-image harness byte-stable |
 | **Scenario** | 48 × 36 geodata-derived hex grid (~26 km hexes) → ~890 land tiles · 52 cities · 34 UA / 34 RU formations · 36-turn campaign |
 | **Geodata** | Terrain/rivers/roads/cities from Copernicus DEM + ESA WorldCover + Natural Earth via `scripts/geo/build-scenario.mjs`; front line and OOB remain designed |
 
@@ -233,8 +233,10 @@ destination, and zeroes entrenchment.
 ### Combat — [`combat.ts`](../src/game/rules/combat.ts)
 `attackPower()` / `defensePower()` build a power figure **and** a list of
 labelled `CombatFactor`s. The preview and the resolution call the *same*
-functions, so the preview is honest by construction — the only difference at
-resolution is a ±10 % seeded swing per side (`combat.ts:231`).
+functions, so the preview is honest by construction. Fortune is an explicit
+**2d6 per side**: the attack roll scales damage given, the defence roll
+scales damage taken (`fortuneFrom2d6` — 7 → ×1.00, 2 → ×0.70, 12 → ×1.30).
+The after-action report shows the dice, odds, and before/after strength.
 
 Factors modelled: condition (readiness × morale), supply state, unit-vs-terrain
 tables, weather, river assault (×0.7) or contested bridge (×0.88), adjacent
@@ -354,7 +356,7 @@ manual slots.
 
 | Command | What it covers |
 | --- | --- |
-| `npm test` | 16 tests: hex adjacency symmetry, scenario integrity, movement/ZOC, combat determinism + degradation, a 10-turn no-corruption run, save roundtrip |
+| `npm test` | Rule tests: hex adjacency, scenario integrity, movement/ZOC, combat dice + exchange math, determinism, a 10-turn no-corruption run, save roundtrip |
 | `npx tsc --noEmit` | Strict typecheck (also runs as part of `npm run build`) |
 | `BALANCE=1 [SEEDS=a,b] [VERBOSE=1] npx vitest run src/game/__tests__/balance.test.ts` | AI-vs-AI full campaign; opt-in because it's slow; VERBOSE logs captures/destructions |
 | `node scripts/playtest.mjs` | Drives **real Chrome** through terrain-click picking → selection → attack preview → attack → end turn → a full AI turn, asserting zero page errors |

@@ -116,8 +116,9 @@ These do not throw. Breaking one corrupts campaigns or determinism quietly.
   new data module and an import swap, no engine work.
 - **Combat preview and resolution call the same functions** (`attackPower` /
   `defensePower` in `rules/combat.ts`), so the preview is honest by
-  construction; resolution only adds a ±10% seeded swing. Add a new factor there
-  and it appears in the preview automatically.
+  construction; resolution adds an explicit 2d6 per side (attack roll =
+  damage given, defence roll = damage taken). Add a new factor there and it
+  appears in the preview automatically.
 - **Encirclement is emergent, not special-cased.** `rules/supply.ts` is a
   budget-depleting flood fill that only crosses friendly-controlled tiles
   (the `nTile.controller !== faction` check, `supply.ts:52`). Taking one tile

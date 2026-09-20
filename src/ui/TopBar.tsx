@@ -40,6 +40,9 @@ export function TopBar() {
           <span className="ico"><Ico name="turn" /></span>
           <span className="v">{game.turn}/{game.scenario.maxTurns}</span>
           <span className="v" style={{ color: 'var(--ink-dim)' }}>{formatTurnDate(game)}</span>
+          <span className={`phase-pill ${game.phase}`}>
+            {game.phase === 'player' ? 'Your week' : game.phase === 'ai' ? 'Enemy week' : 'Ended'}
+          </span>
         </div>
       </Tip>
 

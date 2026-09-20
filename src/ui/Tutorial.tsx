@@ -26,7 +26,7 @@ const STEPS: StepDef[] = [
   },
   {
     title: 'Combat preview',
-    text: 'Select a formation adjacent to an enemy and click the enemy counter. A preview will show the expected result and every factor. Nothing is committed until you confirm.',
+    text: 'Select a formation adjacent to an enemy and click the enemy counter. The preview shows odds and expected losses. Confirm to roll 2d6 each — attack roll decides damage given, defence roll decides damage taken. Read the after-action report before you continue.',
     skippable: true,
   },
   {

@@ -9,6 +9,7 @@ import { useStore } from './game/state/store';
 import { MapScene } from './map/MapScene';
 import { AIOverlay } from './ui/AIOverlay';
 import { CommandBar, MapModes } from './ui/CommandBar';
+import { OrdersHint } from './ui/OrdersHint';
 import { MainMenu } from './ui/MainMenu';
 import {
   CombatResultPanel,
@@ -119,6 +120,7 @@ function useKeyboard() {
       if (e.key === 'Escape') {
         const s = useStore.getState();
         if (s.showSettings) setShowSettings(false);
+        else if (s.lastCombat) s.dismissCombat();
         else if (s.interactionMode !== 'idle' || s.pendingAttackId) cancelInteraction();
         else selectTile(null);
       } else if (e.key === 'Enter' && e.shiftKey) {
@@ -201,6 +203,19 @@ function useDebugHook() {
           selectedTile: s.selectedTileId,
           notifications: s.game.notifications.slice(-5).map((n) => n.text),
           result: s.game.result,
+          lastCombat: s.lastCombat
+            ? {
+                kind: s.lastCombat.kind,
+                attacker: s.lastCombat.attackerName,
+                defender: s.lastCombat.defenderName,
+                attackerRoll: s.lastCombat.attackerRoll.total,
+                defenderRoll: s.lastCombat.defenderRoll?.total ?? null,
+                attackerLoss: s.lastCombat.attackerLoss,
+                defenderLoss: s.lastCombat.defenderLoss,
+                verdict: s.lastCombat.resolvedVerdict,
+                tileCaptured: s.lastCombat.tileCaptured,
+              }
+            : null,
         };
       },
     };
@@ -240,6 +255,7 @@ export default function App() {
         <TopBar />
         <SidePanel />
         <CommandBar />
+        <OrdersHint />
         <MapModes />
         <Notifications />
         <AIOverlay />
