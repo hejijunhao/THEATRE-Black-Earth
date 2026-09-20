@@ -175,6 +175,24 @@ if (hasHook) {
     if (!previewOdds) {
       console.error('FAIL: assault briefing not in the DOM');
       process.exitCode = 1;
+    } else {
+      if (/2d6|d6 showing/i.test(previewOdds)) {
+        console.error('FAIL: estimate still talks dice / 2d6');
+        process.exitCode = 1;
+      }
+      if (!/odds/i.test(previewOdds) || !previewOdds.includes('→')) {
+        console.error('FAIL: estimate missing odds or strength delta');
+        process.exitCode = 1;
+      }
+      if (!/Commit|Fires/i.test(previewOdds) || !/Withdraw/i.test(previewOdds)) {
+        console.error('FAIL: estimate missing confirm or dismiss');
+        process.exitCode = 1;
+      }
+    }
+    const estimateDice = await page.$('.die-face, .aar-dice, .aar-fortune');
+    if (estimateDice) {
+      console.error('FAIL: die-face / fortune chrome still on the estimate');
+      process.exitCode = 1;
     }
     await page.evaluate((id) => window.__TBE_DEBUG__.attack(id), targets[0]);
     await sleep(700);
@@ -197,6 +215,26 @@ if (hasHook) {
       if (!aar) {
         console.error('FAIL: after-action report not in the DOM');
         process.exitCode = 1;
+      } else {
+        const aarText = await page.$eval('.aar', (el) => el.innerText);
+        console.log('after-action report:\n', aarText.slice(0, 400));
+        if (/2d6|d6 showing/i.test(aarText)) {
+          console.error('FAIL: AAR still talks dice / 2d6');
+          process.exitCode = 1;
+        }
+        if (!aarText.includes('→') || !/staff odds|odds/i.test(aarText)) {
+          console.error('FAIL: AAR missing odds or strength delta');
+          process.exitCode = 1;
+        }
+        if (!/Continue/i.test(aarText)) {
+          console.error('FAIL: AAR missing dismiss');
+          process.exitCode = 1;
+        }
+        const aarDice = await page.$('.die-face, .aar-dice, .aar-fortune');
+        if (aarDice) {
+          console.error('FAIL: die-face / fortune chrome still on the AAR');
+          process.exitCode = 1;
+        }
       }
     }
     await page.keyboard.press('Escape');

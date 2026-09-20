@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.24](#0224--2026-09-17--slice-6-hud-dice-strip) | 2026-09-17 | Slice 6 — HUD dice-strip | estimate+AAR numbers only, no die faces |
 | [0.2.23](#0223--2026-09-17--slice-5-reach-polygon) | 2026-09-17 | Slice 5 — reach polygon | tile-union Shape, secondary interior, no disc soup |
 | [docs-combat-paper](#docs-combat-paper--2026-09-20--paradox-combat-paper-pack) | 2026-09-20 | docs | combat-paper NOTES, Vic3/EU5 shots |
 | [docs-paradox-lib](#docs-paradox-lib--2026-09-17--paradox-reference-library) | 2026-09-17 | docs | paradox refs, feature map |
@@ -42,6 +43,23 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.24] — 2026-09-17 · Slice 6 — HUD dice-strip
+
+Presentation only. Slice 6 combat paper only. Ground, atmosphere, units, board chrome / reach, and the play header stay locked. No new rules.
+
+Phil: die faces are not useful on the staff estimate or the after-action. HOI4 / Vic 3 combat paper is odds, losses, and outcome — not pip dice (EU land-combat theater is the reject).
+
+This cut:
+
+- **Drops die-face glyphs and the AAR fortune row** (pip grid, roll totals, ×fortune). `DieFace` is gone.
+- **Keeps the ranked read:** one-line verdict, odds in the middle, strength before → after (and the −delta).
+- **Keeps one confirm and one dismiss** on the estimate (Commit / Withdraw). AAR still dismisses with Continue.
+- **Rewrites paper copy** so the sheets do not say “2d6”, “before dice”, or “the roll”. Confirm restates the odds.
+
+Notes under `docs/refs/paradox/combat-paper/` (HOI4 land-battle / Vic 3 battle language). Shots of those live panels are still TODO — did not invent replacement chrome.
+
+The campaign, map, AI, supply and combat math are unchanged. Journal / AI banner still print 2d6 totals; that is not this slice.
 
 ## [0.2.23] — 2026-09-17 · Slice 5 — reach polygon
 

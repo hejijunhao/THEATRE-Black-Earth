@@ -14,6 +14,13 @@ import { paperDock, paperLayoutFromScreen, SHEET_GAP } from '../paperLayout';
 import { chronologyTile } from '../journalChronology';
 import { bindChronology, parseDice } from '../journalChronology';
 import { theatreBalance } from '../theatreBalance';
+import {
+  aarOddsCaption,
+  aarVerdictShift,
+  estimateDetail,
+  paperCopyIsNumeric,
+  strengthNowLine,
+} from '../combatChrome';
 import { CombatFactor, NotificationEntry } from '../../game/types';
 
 function factor(label: string, value: number): CombatFactor {
@@ -44,6 +51,25 @@ describe('staff estimate ranking', () => {
     expect(reasonCopy(factor('River assault', -0.3))).toMatch(/wet bank/i);
     expect(reasonWeight(factor('Terrain (Urban)', 0.4))).toBe(1);
     expect(reasonWeight(factor('Weather (Mud)', -0.15))).toBeLessThan(1);
+  });
+});
+
+describe('combat paper copy', () => {
+  it('keeps estimate and AAR language numeric — no die faces or 2d6 chrome', () => {
+    const lines = [
+      estimateDetail(false),
+      estimateDetail(true),
+      strengthNowLine(80, 71, 'estimate'),
+      strengthNowLine(80, 71, 'result'),
+      aarOddsCaption(),
+      aarVerdictShift('favourable', 'even'),
+      aarVerdictShift('even', 'even'),
+    ].filter((s): s is string => Boolean(s));
+    expect(lines.every(paperCopyIsNumeric)).toBe(true);
+    expect(lines.join(' ')).not.toMatch(/2d6|die face|before dice|the roll/i);
+    expect(estimateDetail(false)).toMatch(/odds/i);
+    expect(strengthNowLine(80, 71, 'estimate')).toMatch(/80 → 71/);
+    expect(aarVerdictShift('favourable', 'even')).toMatch(/staff estimate/i);
   });
 });
 
