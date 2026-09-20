@@ -62,11 +62,11 @@ function AgencyMarks({
     <Billboard position={[0, y, 0]} follow>
       {selected && (
         <group>
-          <mesh position={[0, 0, -0.02]}>
+          <mesh position={[0, 0, -0.02]} raycast={() => null}>
             <planeGeometry args={[inkW, inkH]} />
             <meshBasicMaterial color="#2a2418" depthWrite={false} />
           </mesh>
-          <mesh position={[0, 0, -0.01]}>
+          <mesh position={[0, 0, -0.01]} raycast={() => null}>
             <planeGeometry args={[paperW, paperH]} />
             <meshBasicMaterial color="#d8c89a" depthWrite={false} />
           </mesh>
@@ -74,11 +74,11 @@ function AgencyMarks({
       )}
       {chrome.canAttack && (
         <group position={[inkW * 0.5 + chevR * 0.72, 0, -0.01]}>
-          <mesh>
+          <mesh raycast={() => null}>
             <circleGeometry args={[chevR, 3]} />
             <meshBasicMaterial color="#1e1b14" depthWrite={false} />
           </mesh>
-          <mesh position={[0, 0, 0.004]} scale={0.78}>
+          <mesh position={[0, 0, 0.004]} scale={0.78} raycast={() => null}>
             <circleGeometry args={[chevR, 3]} />
             <meshBasicMaterial color="#d4b05a" depthWrite={false} />
           </mesh>

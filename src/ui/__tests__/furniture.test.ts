@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { buildInitialState } from '../../game/scenarios/build';
 import { cycleUnspent, formationLane } from '../boardChrome';
 import { rankReasons, reasonCopy, reasonWeight } from '../briefingCopy';
-import { paperDock } from '../combatPaper';
+import { paperDock, paperLayoutFromScreen, SHEET_GAP } from '../paperLayout';
+import { chronologyTile } from '../journalChronology';
 import { bindChronology, parseDice } from '../journalChronology';
 import { CombatFactor, NotificationEntry } from '../../game/types';
 
@@ -38,12 +39,34 @@ describe('staff estimate ranking', () => {
 });
 
 describe('combat paper dock', () => {
-  it('puts the sheet on the opposite side of the contested hex', () => {
+  it('falls back to tile-grid side when the projector has not spoken', () => {
     expect(paperDock('8,18').side).toBe('east');
     expect(paperDock('36,18').side).toBe('west');
     expect(paperDock('24,6').yBias).toBe('low');
     expect(paperDock('24,18').yBias).toBe('mid');
     expect(paperDock('24,30').yBias).toBe('high');
+  });
+
+  it('docks from the contested hex screen position and leaves the pulse clear', () => {
+    const westHex = paperLayoutFromScreen(
+      { x: 420, y: 360 },
+      { w: 1600, h: 1000 },
+      { w: 500, h: 320 },
+    );
+    expect(westHex.side).toBe('east');
+    expect(westHex.left).toBeGreaterThan(420 + SHEET_GAP - 1);
+    expect(westHex.callout.x1).toBe(420);
+    expect(westHex.callout.y1).toBe(360);
+    expect(westHex.callout.x2).toBe(westHex.left);
+
+    const eastHex = paperLayoutFromScreen(
+      { x: 1180, y: 400 },
+      { w: 1600, h: 1000 },
+      { w: 500, h: 320 },
+    );
+    expect(eastHex.side).toBe('west');
+    expect(eastHex.left + eastHex.width).toBeLessThan(1180 - SHEET_GAP + 1);
+    expect(eastHex.callout.x2).toBe(eastHex.left + eastHex.width);
   });
 });
 
@@ -84,5 +107,15 @@ describe('bound journal chronology', () => {
     const fight = weeks[1].lines.find((l) => l.kind === 'combat');
     expect(fight?.atk).toBe(8);
     expect(fight?.def).toBe(6);
+  });
+
+  it('focuses the last named living unit, else a city', () => {
+    const state = buildInitialState('UA', 42);
+    const atk = Object.values(state.units).find((u) => u.faction === 'UA')!;
+    const def = Object.values(state.units).find((u) => u.faction === 'RU')!;
+    expect(chronologyTile(state, `${atk.name} vs ${def.name} · 2d6 8–6`)).toBe(def.tile);
+    const city = Object.values(state.cities).find((c) => c.name === 'Melitopol')!;
+    expect(chronologyTile(state, 'Melitopol has been captured by Ukrainian forces.')).toBe(city.tile);
+    expect(chronologyTile(state, 'Week opens.')).toBeNull();
   });
 });

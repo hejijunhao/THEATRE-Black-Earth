@@ -124,16 +124,17 @@ export function CommandBar() {
   const [showOps, setShowOps] = useState(false);
   const [showReserves, setShowReserves] = useState(false);
 
-  if (!game || game.phase !== 'player' || lastCombat) return null;
+  if (!game || game.phase !== 'player') return null;
 
   const unit = selectedUnitId ? game.units[selectedUnitId] : null;
   const faction = game.factions[game.playerFaction];
   const orders = unit ? unitOrders(game, unit) : null;
   const def = unit ? UNIT_DEFS[unit.type] : null;
+  const paperUp = Boolean(pendingAttackId || lastCombat);
 
   return (
     <>
-      <div className={`command-bench panel panel-framed${pendingAttackId ? ' dimmed' : ''}`}>
+      <div className={`command-bench panel panel-framed${paperUp ? ' dimmed thin' : ''}`}>
         <div className="bench-formation">
           {unit && orders && def ? (
             <>
@@ -237,7 +238,7 @@ export function CommandBar() {
         </div>
       </div>
 
-      {showOps && (
+      {showOps && !paperUp && (
         <div
           className="panel panel-framed"
           style={{ position: 'absolute', bottom: 148, left: '50%', transform: 'translateX(-50%)', width: 460, zIndex: 25 }}
@@ -277,7 +278,7 @@ export function CommandBar() {
         </div>
       )}
 
-      {showReserves && (
+      {showReserves && !paperUp && (
         <div
           className="panel"
           style={{ position: 'absolute', bottom: 148, left: '50%', transform: 'translateX(-50%)', width: 380, zIndex: 25 }}

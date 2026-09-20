@@ -144,6 +144,17 @@ export const LEXICON = {
 
 export type LexiconId = keyof typeof LEXICON;
 
+export const LEXICON_SECTIONS: { title: string; ids: LexiconId[] }[] = [
+  { title: 'The fight', ids: ['odds', 'strength', 'attack', 'defence', 'breakthrough', 'support', 'assault'] },
+  { title: 'The plate', ids: ['readiness', 'morale', 'movement', 'march', 'entrench', 'reinforce'] },
+  { title: 'The week', ids: ['operations', 'reserves', 'command', 'endWeek', 'manpower', 'equipment'] },
+  { title: 'The theatre', ids: ['supply', 'terrain', 'weather', 'cities', 'army', 'warSupport', 'score'] },
+];
+
+export function lexiconIds(): LexiconId[] {
+  return LEXICON_SECTIONS.flatMap((s) => s.ids);
+}
+
 export function toneOf(value: number, good = 65, warn = 35): Tone {
   if (value > good) return 'good';
   if (value > warn) return 'warn';

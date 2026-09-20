@@ -7,7 +7,7 @@ import { neighborIds } from '../game/hex';
 import { formatTurnDate } from '../game/rules/weather';
 import { useStore } from '../game/state/store';
 import { opposing } from '../game/types';
-import { bindChronology } from './journalChronology';
+import { bindChronology, chronologyTile } from './journalChronology';
 
 interface Note {
   key: string;
@@ -20,6 +20,9 @@ export function Journal() {
   const game = useStore((s) => s.game);
   const pendingAttackId = useStore((s) => s.pendingAttackId);
   const lastCombat = useStore((s) => s.lastCombat);
+  const focusCamera = useStore((s) => s.focusCamera);
+  const selectTile = useStore((s) => s.selectTile);
+  const hoverTile = useStore((s) => s.hoverTile);
 
   const { notes, weeks } = useMemo(() => {
     if (!game) return { notes: [] as Note[], weeks: [] as ReturnType<typeof bindChronology> };
@@ -102,18 +105,39 @@ export function Journal() {
                   <span className="bj-chap-num">Week {w.turn}</span>
                   <span className="bj-chap-rule" />
                 </div>
-                {w.lines.map((e) => (
-                  <div key={e.id} className={`bj-fight ${e.kind}`}>
-                    <span className="bj-kind">{e.kind}</span>
-                    <span className="bj-copy">{e.text}</span>
-                    {e.atk != null && (
-                      <span className="bj-dice" aria-label={`2d6 ${e.atk}${e.def != null ? ` vs ${e.def}` : ''}`}>
-                        <span className="bj-pip">{e.atk}</span>
-                        {e.def != null && <span className="bj-pip">{e.def}</span>}
-                      </span>
-                    )}
-                  </div>
-                ))}
+                {w.lines.map((e) => {
+                  const hex = chronologyTile(game, e.text);
+                  const body = (
+                    <>
+                      <span className="bj-kind">{e.kind}</span>
+                      <span className="bj-copy">{e.text}</span>
+                      {e.atk != null && (
+                        <span className="bj-dice" aria-label={`2d6 ${e.atk}${e.def != null ? ` vs ${e.def}` : ''}`}>
+                          <span className="bj-pip">{e.atk}</span>
+                          {e.def != null && <span className="bj-pip">{e.def}</span>}
+                        </span>
+                      )}
+                    </>
+                  );
+                  if (!hex) {
+                    return <div key={e.id} className={`bj-fight ${e.kind}`}>{body}</div>;
+                  }
+                  return (
+                    <button
+                      key={e.id}
+                      type="button"
+                      className={`bj-fight ${e.kind} locatable`}
+                      onMouseEnter={() => hoverTile(hex)}
+                      onMouseLeave={() => hoverTile(null)}
+                      onClick={() => {
+                        selectTile(hex);
+                        focusCamera(hex);
+                      }}
+                    >
+                      {body}
+                    </button>
+                  );
+                })}
               </div>
             ))}
           </div>

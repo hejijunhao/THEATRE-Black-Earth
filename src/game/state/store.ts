@@ -8,7 +8,7 @@ import { aiTurnDone, planAIQueue, stepAI } from '../ai/ai';
 import { UNIT_DEFS, TERRAIN_DEFS } from '../data/defs';
 import { computePreview, describeEngagement, resolveBombardment, resolveCombat } from '../rules/combat';
 import { recomputeFog } from '../rules/fog';
-import { applyMove, attackableTargets, unitOnTile } from '../rules/movement';
+import { applyMove, attackableTargets, reachableTiles, unitOnTile } from '../rules/movement';
 import { applyOperation, canUseOperation, validateOpTarget } from '../rules/ops';
 import { applyEventEffects } from '../rules/events';
 import {
@@ -235,6 +235,15 @@ export const useStore = create<StoreState>((set, get) => {
           return;
         }
       }
+      // Highlighted legal march hex → order. Must run before the empty-hex
+      // fallthrough or the reach wash is a no-op (or drops the selection).
+      if (!unit && selectedUnitId && game.phase === 'player') {
+        const mover = game.units[selectedUnitId];
+        if (mover && mover.faction === game.playerFaction && reachableTiles(game, mover).has(tile)) {
+          get().orderMove(tile);
+          return;
+        }
+      }
       set({ selectedTileId: tile, selectedUnitId: null, interactionMode: 'idle', pendingAttackId: null });
     },
 
@@ -267,7 +276,7 @@ export const useStore = create<StoreState>((set, get) => {
         }
         recomputeFog(draft);
       });
-      set({ game: next, selectedTileId: dest });
+      set({ game: next, selectedTileId: dest, pendingAttackId: null });
     },
 
     orderAttack: (defenderId) => {
