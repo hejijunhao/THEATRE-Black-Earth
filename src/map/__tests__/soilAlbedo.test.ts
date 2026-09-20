@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { WORLD_H } from '../data/terrainData';
 import { BOOT } from '../lod';
-import { CHERNOZEM, KHAKI_FIELD, LOESS, applySoilContinuity } from '../terrain/albedo';
+import { CHERNOZEM, KHAKI_FIELD, LOESS, albedoAt, applySoilContinuity } from '../terrain/albedo';
 import { fieldColor, fieldLumaDelta, regionSoil } from '../terrain/strips';
 
 function luma(c: { r: number; g: number; b: number }): number {
@@ -77,6 +77,26 @@ describe('slice 1 ground albedo — cadastral soil', () => {
     expect(avg.g).toBeLessThan(avg.r * 0.92);
     expect(avg.r - avg.b).toBeGreaterThan(18);
     expect(luma(CHERNOZEM)).toBeLessThan(58);
+  });
+
+  it('paints the scar as crushed soil, not a khaki loft swatch', () => {
+    const colors = [];
+    for (let i = 0; i < 24; i++) {
+      colors.push(albedoAt(BOOT.wx + i * 0.41, BOOT.wz + (i % 5) * 0.37));
+    }
+    const avg = colors.reduce(
+      (a, c) => ({ r: a.r + c.r, g: a.g + c.g, b: a.b + c.b }),
+      { r: 0, g: 0, b: 0 },
+    );
+    avg.r /= colors.length;
+    avg.g /= colors.length;
+    avg.b /= colors.length;
+    expect(luma(avg)).toBeLessThan(78);
+    expect(avg.g).toBeLessThan(avg.r * 0.92);
+    expect(avg.r).toBeGreaterThan(avg.b);
+    const north = albedoAt(BOOT.wx, WORLD_H * 0.06);
+    expect(luma(north)).toBeGreaterThan(luma(avg));
+    expect(north.r).toBeGreaterThan(north.b);
   });
 
   it('does not lift midground crush back to an ochre floor', () => {

@@ -77,6 +77,38 @@ export function applySoilContinuity(c: RGB, wz: number, heightMetres: number): R
   return out;
 }
 
+/** One painted texel. Shared by the canvas baker and the soil gate tests. */
+export function albedoAt(wx: number, wz: number): RGB {
+  const m = heightM(wx, wz);
+  if (m < 2) return SEA_FLOOR;
+  if (m < 6) return mix(BEACH, GRASS, (m - 2) / 4);
+  const crop = fracAtWorld(wx, wz, 2);
+  const fields = fieldColor(wx, wz);
+  let c = mix(GRASS, fields, Math.min(1, 0.55 + crop * 0.7));
+  const soil = mix(CHERNOZEM, LOESS, smooth(70, 210, m));
+  c = mix(c, soil, 0.26 + (1 - Math.min(1, crop * 1.15)) * 0.20);
+  const tree = fracAtWorld(wx, wz, 0);
+  const fnoise = noise2(wx * 0.9, wz * 0.9, 31);
+  const fmask = smooth(0.48, 0.82, tree + (fnoise - 0.5) * 0.22) * 0.48;
+  if (fmask > 0) {
+    const depth = mix(FOREST_FLOOR, FOREST_DEEP, noise2(wx * 2.2, wz * 2.2, 47));
+    c = mix(c, depth, fmask);
+  }
+  const wet = fracAtWorld(wx, wz, 4);
+  const wmask = smooth(0.18, 0.5, wet + (noise2(wx, wz, 53) - 0.5) * 0.2);
+  if (wmask > 0) c = mix(c, MARSH, wmask * 0.55);
+  const urb = fracAtWorld(wx, wz, 1);
+  const umask = smooth(0.12, 0.42, urb + (noise2(wx * 1.6, wz * 1.6, 61) - 0.5) * 0.12);
+  if (umask > 0) {
+    const speck = noise2(wx * 6, wz * 6, 67);
+    c = mix(c, speck > 0.55 ? URBAN_DARK : URBAN, umask);
+  }
+  const macro = (noise2(wx * 0.22, wz * 0.22, 71) - 0.5) * 0.1;
+  c = { r: c.r * (1 + macro), g: c.g * (1 + macro), b: c.b * (1 + macro) };
+  if (m < 90) c = mix(c, MARSH, 0.04 * (1 - m / 90));
+  return applySoilContinuity(c, wz, m);
+}
+
 export function paintAlbedo(): { canvas: HTMLCanvasElement; texW: number; texH: number } {
   const spanX = WORLD_W + ALBEDO_MARGIN * 2;
   const spanZ = WORLD_H + ALBEDO_MARGIN * 2;
@@ -92,54 +124,7 @@ export function paintAlbedo(): { canvas: HTMLCanvasElement; texW: number; texH: 
     for (let px = 0; px < TEX_W; px++) {
       const wx = (px / TEX_W) * spanX - ALBEDO_MARGIN;
       const wz = (py / texH) * spanZ - ALBEDO_MARGIN;
-      const m = heightM(wx, wz);
-
-      let c: RGB;
-      if (m < 2) {
-        c = SEA_FLOOR;
-      } else if (m < 6) {
-        c = mix(BEACH, GRASS, (m - 2) / 4);
-      } else {
-        // Base: cultivated steppe with grass blending at low crop fraction.
-        const crop = fracAtWorld(wx, wz, 2);
-        const fields = fieldColor(wx, wz);
-        // Crop carries the strip; grass only fills the leftover steppe.
-        c = mix(GRASS, fields, Math.min(1, 0.55 + crop * 0.7));
-        // Surveyed soil under the crop. Valleys hold chernozem; higher
-        // ground goes loess. Strong enough to kill the mustard plate;
-        // strip parcels still lead via fieldColor.
-        const soil = mix(CHERNOZEM, LOESS, smooth(70, 210, m));
-        c = mix(c, soil, 0.26 + (1 - Math.min(1, crop * 1.15)) * 0.20);
-        // Forest fields (soft shapes from the hex fractions + noise breakup).
-        // Threshold sits above the forest-steppe shelter-belt range: partial
-        // tree cover must NOT read as a dark smear over half the map — the
-        // tree instances carry that signal instead.
-        const tree = fracAtWorld(wx, wz, 0);
-        const fnoise = noise2(wx * 0.9, wz * 0.9, 31);
-        const fmask = smooth(0.48, 0.82, tree + (fnoise - 0.5) * 0.22) * 0.48;
-        if (fmask > 0) {
-          const depth = mix(FOREST_FLOOR, FOREST_DEEP, noise2(wx * 2.2, wz * 2.2, 47));
-          c = mix(c, depth, fmask);
-        }
-        // Wetland.
-        const wet = fracAtWorld(wx, wz, 4);
-        const wmask = smooth(0.18, 0.5, wet + (noise2(wx, wz, 53) - 0.5) * 0.2);
-        if (wmask > 0) c = mix(c, MARSH, wmask * 0.55);
-        // Urban concrete with speckle.
-        const urb = fracAtWorld(wx, wz, 1);
-        const umask = smooth(0.12, 0.42, urb + (noise2(wx * 1.6, wz * 1.6, 61) - 0.5) * 0.12);
-        if (umask > 0) {
-          const speck = noise2(wx * 6, wz * 6, 67);
-          c = mix(c, speck > 0.55 ? URBAN_DARK : URBAN, umask);
-        }
-        // Macro variation so the plain never reads flat — kept tight so
-        // dark lobes cannot become a north hole.
-        const macro = (noise2(wx * 0.22, wz * 0.22, 71) - 0.5) * 0.1;
-        c = { r: c.r * (1 + macro), g: c.g * (1 + macro), b: c.b * (1 + macro) };
-        // Subtle valley moisture — lift, do not bury.
-        if (m < 90) c = mix(c, MARSH, 0.04 * (1 - m / 90));
-        c = applySoilContinuity(c, wz, m);
-      }
+      const c = albedoAt(wx, wz);
 
       const o = (py * TEX_W + px) * 4;
       d[o] = c.r;
@@ -197,7 +182,10 @@ function smooth(a: number, b: number, x: number): number {
 export function makeAlbedoTexture(): THREE.CanvasTexture {
   const { canvas } = paintAlbedo();
   const tex = new THREE.CanvasTexture(canvas);
-  tex.colorSpace = THREE.SRGBColorSpace;
+  // Custom sampler — GPU sRGB decode is unreliable on SwiftShader and
+  // was leaving scar texels as bright linear khaki. The terrain shader
+  // decodes once via sRGBTransferEOTF.
+  tex.colorSpace = THREE.NoColorSpace;
   tex.wrapS = THREE.ClampToEdgeWrapping;
   tex.wrapT = THREE.ClampToEdgeWrapping;
   tex.anisotropy = 8;
