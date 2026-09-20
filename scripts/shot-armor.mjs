@@ -30,16 +30,43 @@ if (!executablePath) {
 const browser = await puppeteer.launch({
   executablePath,
   headless: 'new',
-  args: ['--no-sandbox', '--disable-dev-shm-usage', '--window-size=1600,1000'],
+  args: [
+    '--no-sandbox',
+    '--disable-dev-shm-usage',
+    '--use-gl=angle',
+    '--use-angle=swiftshader',
+    '--enable-unsafe-swiftshader',
+    '--ignore-gpu-blocklist',
+    '--enable-webgl',
+    '--enable-webgl2',
+    '--window-size=1600,1000',
+  ],
   defaultViewport: { width: 1600, height: 1000 },
 });
 
 const page = await browser.newPage();
 page.on('pageerror', (err) => console.error('PAGE', err));
 await clearCountersBeforeScripts(page);
+// Software GL on this host blows PostFX (blit depth). Low quality skips the
+// composer so the unlit stamp can be judged. Not a game default.
+await page.evaluateOnNewDocument(() => {
+  try { localStorage.setItem('tbe-quality', 'low'); } catch { /* private */ }
+});
 
 await page.goto(URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
 await page.waitForFunction(() => window.__TBE_DEBUG__, { timeout: 20000 });
+const glInfo = await page.evaluate(() => {
+  const c = document.createElement('canvas');
+  const gl = c.getContext('webgl2') || c.getContext('webgl');
+  if (!gl) return { ok: false };
+  const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+  return {
+    ok: true,
+    renderer: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+    quality: localStorage.getItem('tbe-quality'),
+  };
+});
+console.log('gl:', JSON.stringify(glInfo));
 await assertCountersOff(page, 'boot counters');
 await page.evaluate(() => window.__TBE_DEBUG__.newGame('UA', 42));
 await assertCountersOff(page, 'newGame counters');
@@ -95,6 +122,16 @@ await page.evaluate(() => {
 await assertCountersOff(page, 'midzoom counters');
 await sleep(800);
 await page.screenshot({ path: join(OUT, 'armor-03-midzoom.png') });
+
+await page.evaluate(() => {
+  const hook = window.__TBE_DEBUG__;
+  const cam = window.__TBE_CAMERA__;
+  const armored = hook.units().find((u) => u.id === hook.summary()?.selected);
+  if (cam && armored) cam.set(armored.wx - 0.08, 5.4, armored.wz + 3.6, armored.wx, armored.wz);
+});
+await assertCountersOff(page, 'close counters');
+await sleep(800);
+await page.screenshot({ path: join(OUT, 'armor-04-close.png') });
 
 await browser.close();
 if (process.exitCode) process.exit(process.exitCode);

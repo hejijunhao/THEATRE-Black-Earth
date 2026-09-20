@@ -41,8 +41,21 @@ from 0.2.17 stays; the wash leaves.
 **Rejects held:** wash keep-alive; counters-on judging; INF/MECH/ARTY
 retouch; ground / rain / HUD / atmosphere.
 
-**Honest craft verdict (live mid-zoom, counters OFF):** pending first
-shot. Code-side the wash is gone and the vertex-paint split is
-tested. Live rain + Grade still have to prove the stamp, not a pale
-plate or a green blob. Not Vic diorama. Not HOI4 3D. A type-read
-stamp.
+**Honest craft verdict (live mid-zoom, counters OFF):**
+
+Stamp authority vs pale wash: **PASS**. Close frame of 17th Tank
+(`tbe-counters=0`; this host is SwiftShader and PostFX is off because
+the composer blit-breaks) reads as a dark-green hull, light
+field-green turret, dark gun finger, four-tank echelon. Not a khaki
+plastic plate and not a NATO counter. Turret-like texels sit on the
+stamp green (`≈20,90,23`).
+
+Vs HOI4 gameplay-zoom 3D: **FAIL, parked**. No GPU here. SwiftShader
+draws the hero mesh as a blocky stamp, not HOI4 unit density. The
+paint split is the steal; the mesh fidelity is not.
+
+Vs Vic diorama / political colour: **FAIL, parked**. Ground is locked;
+the ochre slab in these shots is the terrain shader dying on software
+GL, not an armor retune.
+
+Live HOI4 reference shots still TODO (Steam/CDN). Do not invent them.
