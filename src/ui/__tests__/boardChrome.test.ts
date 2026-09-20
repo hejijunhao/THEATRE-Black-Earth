@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildInitialState } from '../../game/scenarios/build';
-import { boardChrome, threatenedIds, unitOrders } from '../boardChrome';
+import { agencyKind, boardChrome, threatenedIds, unitOrders } from '../boardChrome';
 
 describe('board chrome', () => {
   const state = buildInitialState('UA', 42);
@@ -47,5 +47,13 @@ describe('board chrome', () => {
     expect(orders.canEntrench).toBe(true);
     expect(orders.contacts.some((t) => t.id === 'r1')).toBe(true);
     expect(orders.spent).toBe(false);
+  });
+
+  it('ranks the squint mark: selected, then assault, then spent', () => {
+    const chrome = boardChrome(state, u3, false);
+    expect(agencyKind(chrome, true)).toBe('selected');
+    expect(agencyKind(chrome, false)).toBe('assault');
+    const spent = boardChrome(state, { ...u3, movement: 0 }, false);
+    expect(agencyKind(spent, false)).toBe('contact');
   });
 });

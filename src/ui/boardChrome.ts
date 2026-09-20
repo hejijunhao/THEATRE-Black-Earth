@@ -100,8 +100,16 @@ export function unitOrders(game: GameState, unit: Unit): UnitOrders {
   };
 }
 
-export function strengthNowCopy(strength: number): string {
-  if (strength > 65) return 'still a fighting body';
-  if (strength > 35) return 'worn — replacements will matter';
-  return 'near collapse';
+export type AgencyKind = 'selected' | 'assault' | 'contact' | 'spent' | 'threatened' | 'idle';
+
+/** The one mark a squint should read. Selected outranks assault; assault outranks spent. */
+export function agencyKind(chrome: BoardChrome, selected: boolean): AgencyKind {
+  if (selected) return 'selected';
+  if (chrome.threatened) return 'threatened';
+  if (chrome.canAttack) return 'assault';
+  if (chrome.inContact) return 'contact';
+  if (chrome.spent) return 'spent';
+  return 'idle';
 }
+
+export { strengthNowCopy } from './lexicon';

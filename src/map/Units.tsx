@@ -32,45 +32,59 @@ import { FACTION_STRONG } from './palette';
 // unit's per-frame material update. Driven by camera height or the Tab
 // override — the zoom metaphor's unit dial.
 const fadeState = { value: 0 };
-const COUNTER_ZOOM_IN = 24;  // camera.y where counters start fading in
-const COUNTER_ZOOM_FULL = 34;
+const COUNTER_ZOOM_IN = 20;  // counters (and their stamps) come in earlier
+const COUNTER_ZOOM_FULL = 30;
 
-/** Glanceable agency at campaign camera. Five reads: selected / spent /
- *  contact / can-attack / (MP lives on the plate). */
-function AgencyRings({ chrome, selected }: { chrome: BoardChrome; selected: boolean }) {
+// ONE selected language: a camera-facing parchment mat with an ink rim,
+// sitting behind the plate / standard so it frames the token. Ground
+// washers vanished — cream-on-cream plus the billboard covering them.
+// Can-attack is an amber chevron on the same billboard (screen-right),
+// a different silhouette. Contact-only and threatened stay on the plate.
+function AgencyMarks({
+  chrome,
+  selected,
+  width,
+  height,
+  y,
+}: {
+  chrome: BoardChrome;
+  selected: boolean;
+  width: number;
+  height: number;
+  y: number;
+}) {
+  const inkW = width * 1.48;
+  const inkH = height * 1.62;
+  const paperW = width * 1.28;
+  const paperH = height * 1.38;
+  const chevR = height * 0.95;
   return (
-    <group>
+    <Billboard position={[0, y, 0]} follow>
       {selected && (
-        <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.90, 1.10, 32]} />
-          <meshBasicMaterial color="#e8dfc8" transparent opacity={0.78} depthWrite={false} />
-        </mesh>
+        <group>
+          <mesh position={[0, 0, -0.02]}>
+            <planeGeometry args={[inkW, inkH]} />
+            <meshBasicMaterial color="#2a2418" depthWrite={false} />
+          </mesh>
+          <mesh position={[0, 0, -0.01]}>
+            <planeGeometry args={[paperW, paperH]} />
+            <meshBasicMaterial color="#d8c89a" depthWrite={false} />
+          </mesh>
+        </group>
       )}
       {chrome.canAttack && (
-        <mesh position={[0, 0.038, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.58, 0.86, 32]} />
-          <meshBasicMaterial color="#c9a352" transparent opacity={0.7} depthWrite={false} />
-        </mesh>
+        <group position={[inkW * 0.5 + chevR * 0.72, 0, -0.01]}>
+          <mesh>
+            <circleGeometry args={[chevR, 3]} />
+            <meshBasicMaterial color="#1e1b14" depthWrite={false} />
+          </mesh>
+          <mesh position={[0, 0, 0.004]} scale={0.78}>
+            <circleGeometry args={[chevR, 3]} />
+            <meshBasicMaterial color="#d4b05a" depthWrite={false} />
+          </mesh>
+        </group>
       )}
-      {chrome.inContact && !chrome.canAttack && (
-        <mesh position={[0, 0.036, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.58, 0.80, 28]} />
-          <meshBasicMaterial color="#c9a352" transparent opacity={0.28} depthWrite={false} />
-        </mesh>
-      )}
-      {chrome.threatened && (
-        <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.58, 0.88, 32]} />
-          <meshBasicMaterial color="#e8dfc8" transparent opacity={0.55} depthWrite={false} />
-        </mesh>
-      )}
-      {chrome.spent && (
-        <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.48, 0.70, 28]} />
-          <meshBasicMaterial color="#2a2a28" transparent opacity={0.55} depthWrite={false} />
-        </mesh>
-      )}
-    </group>
+    </Billboard>
   );
 }
 
@@ -139,7 +153,8 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
     movementMax: chrome.showMp ? chrome.mpMax : undefined,
     spent: chrome.spent,
     hasAttacked: chrome.hasAttacked,
-    inContact: chrome.canAttack,
+    inContact: chrome.inContact,
+    canAttack: chrome.canAttack,
     threatened: chrome.threatened,
   };
   const stdTexture = useMemo(() => makeStandardTexture(stdSpec), [standardKey(stdSpec)]);
@@ -168,7 +183,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
       g.position.lerp(target.current, Math.min(1, delta * 7));
     }
     // Crossfade against the counters.
-    const vis = (1 - fadeState.value) * (chrome.spent ? 0.48 : 1);
+    const vis = (1 - fadeState.value) * (chrome.spent ? 0.78 : 1);
     g.visible = vis > 0.02;
     if (baseMatRef.current) baseMatRef.current.opacity = vis;
     if (stdMatRef.current) stdMatRef.current.opacity = vis;
@@ -204,11 +219,11 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
           emissive={
             selected
               ? FACTION_STRONG[unit.faction]
-              : chrome.canAttack || chrome.threatened
-                ? '#c9a352'
+              : chrome.threatened
+                ? '#cfc6a8'
                 : '#000000'
           }
-          emissiveIntensity={selected ? 0.55 : chrome.threatened ? 0.4 : chrome.canAttack ? 0.32 : 0}
+          emissiveIntensity={selected ? 0.55 : chrome.threatened ? 0.28 : 0}
         />
       </mesh>
       {/* The machines: hero vehicles as instances, everything else — foot
@@ -228,11 +243,11 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
           <meshBasicMaterial color="#b04a3a" transparent opacity={0.4} depthWrite={false} />
         </mesh>
       )}
-      <AgencyRings chrome={chrome} selected={selected} />
+      <AgencyMarks chrome={chrome} selected={selected} width={0.92} height={0.64} y={0.14} />
       {/* The standard. */}
       <Billboard position={[0, 0.5, 0]} follow>
         <mesh>
-          <planeGeometry args={[0.66, 0.22]} />
+          <planeGeometry args={[0.82, 0.28]} />
           <meshBasicMaterial ref={stdMatRef} map={stdTexture} transparent depthWrite={false} />
         </mesh>
       </Billboard>
@@ -265,7 +280,8 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
     movementMax: chrome.showMp ? chrome.mpMax : undefined,
     spent: chrome.spent,
     hasAttacked: chrome.hasAttacked,
-    inContact: chrome.canAttack,
+    inContact: chrome.inContact,
+    canAttack: chrome.canAttack,
     threatened: chrome.threatened,
   };
   const key = counterKey(spec);
@@ -288,7 +304,7 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
     if (g.position.distanceTo(target.current) > 0.002) {
       g.position.lerp(target.current, Math.min(1, delta * 7));
     }
-    const vis = fadeState.value * (chrome.spent ? 0.48 : 1);
+    const vis = fadeState.value * (chrome.spent ? 0.78 : 1);
     g.visible = vis > 0.02;
     if (plateMatRef.current) plateMatRef.current.opacity = vis;
     if (baseMatRef.current) baseMatRef.current.opacity = vis;
@@ -318,17 +334,17 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
           emissive={
             selected
               ? FACTION_STRONG[unit.faction]
-              : chrome.canAttack || chrome.threatened
-                ? '#c9a352'
+              : chrome.threatened
+                ? '#cfc6a8'
                 : '#000000'
           }
-          emissiveIntensity={selected ? 0.5 : chrome.threatened ? 0.38 : chrome.canAttack ? 0.3 : 0}
+          emissiveIntensity={selected ? 0.5 : chrome.threatened ? 0.26 : 0}
         />
       </mesh>
-      <AgencyRings chrome={chrome} selected={selected} />
+      <AgencyMarks chrome={chrome} selected={selected} width={2.05} height={1.28} y={0.70} />
       <Billboard position={[0, 0.78, 0]} follow>
         <mesh>
-          <planeGeometry args={[1.18, 0.74]} />
+          <planeGeometry args={[2.05, 1.28]} />
           <meshBasicMaterial ref={plateMatRef} map={texture} transparent depthWrite={false} />
         </mesh>
       </Billboard>
