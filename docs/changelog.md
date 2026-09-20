@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.21](#0221--2026-09-17--slice-5-board-chrome) | 2026-09-17 | Slice 5 — board chrome | reach silhouette, hatched frontline, click-through overlays |
 | [0.2.20](#0220--2026-09-17--slice-4-mech-arty-stamp) | 2026-09-17 | Slice 4 — MECH / ARTY silhouette punch | unlit field-green stamp, IFV turret/gun, arty tube |
 | [0.2.19](#0219--2026-09-17--slice-4-non-armor-silhouettes) | 2026-09-17 | Slice 4 — infantry / non-armor silhouettes | rifle ranks, command truck, IFV gun, arty tube |
 | [0.2.18](#0218--2026-09-17--strip-volume-formations) | 2026-09-17 | Strip volume + non-armor silhouettes | parcel dirt/relief, INF ranks, counters-off harness |
@@ -37,6 +38,20 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.21] — 2026-09-17 · Slice 5 — board chrome
+
+Presentation only. Hierarchy from 0.2.12–0.2.20 stays locked. Ground, atmosphere, unit meshes and HUD panels are untouched. No new rules.
+
+The reach wash was a per-hex plate (0.9-radius discs at 0.24–0.34). That is not Vic 3 / Civ authority — it is a noisy acetate sheet. The frontline was a 0.10 × 0.12 fence that stole picks on high ground and competed with boot-height silhouettes.
+
+This cut authors the telegraph:
+
+- **Reach.** Inset soil stain (radius 0.56, cost-faded, ZOC never fills) plus a rim on the blob edge only. Open / enemy / contact are chinagraph, not a plate on every cell.
+- **Frontline.** A hairline scar with quiet vs contact hatch. MeshBasic so rain lighting cannot hide the seam. Clear at boot mid-zoom without a second plate language.
+- **Picks.** Every decorative overlay and frontline mesh keeps `raycast={() => null}`. Highlighted hexes still march through the TerrainMesh pick plane.
+
+The campaign, map, AI, supply and combat math are unchanged. Still not Vic 3 / Civ — this is a chinagraph seam, not a province-border renderer.
 
 ## [0.2.20] — 2026-09-17 · Slice 4 — MECH / ARTY silhouette punch
 
