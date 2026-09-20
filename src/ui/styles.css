@@ -1434,6 +1434,7 @@ button {
     radial-gradient(ellipse at 50% 0%, rgba(201, 163, 82, 0.06), transparent 55%);
 }
 
+/* Event-window Decision still uses the boxed mark. Combat paper does not. */
 .stamp {
   position: absolute;
   top: 16px;
@@ -1452,10 +1453,38 @@ button {
   background: rgba(176, 74, 58, 0.08);
   z-index: 3;
 }
-.brief-sheet .stamp {
+
+/* ASSAULT / DISPATCH / FIRES: thin classification rail, not a rubber badge. */
+.brief-sheet .stamp-strip {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 22px;
+  padding: 7px 18px 6px 36px;
+  border-bottom: 1px solid rgba(90, 70, 40, 0.2);
+  background: transparent;
+}
+.brief-sheet .stamp-kicker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  min-width: 0;
+}
+.brief-sheet .stamp-mark {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
   color: #8a3228;
-  border-color: rgba(138, 50, 40, 0.7);
-  background: rgba(176, 74, 58, 0.08);
+  transform: none;
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+  background: none;
 }
 
 .brief-sheet.dispatch {
@@ -1483,7 +1512,7 @@ button {
   padding-top: 8px;
   border-top: 1px dashed rgba(190, 180, 150, 0.22);
 }
-.aar-head { padding: 20px 22px 4px 36px; text-align: left; }
+.aar-head { padding: 12px 22px 4px 36px; text-align: left; }
 .aar-kicker {
   font-family: var(--font-mono);
   font-size: 10px;

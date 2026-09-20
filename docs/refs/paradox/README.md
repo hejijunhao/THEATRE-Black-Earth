@@ -12,6 +12,7 @@ docs/refs/paradox/
   FEATURE-MAP.md            ← feature → Paradox equivalent → ref shots → our target
   header/                   ← top bar / resource chips / date-speed
   combat-paper/             ← estimate / AAR / engagement (no die glyphs)
+  combat-stamps/            ← ASSAULT / DISPATCH / FIRES strip (not rubber badge)
   outliner/                 ← formation list / contact list
   map-modes/                ← political / supply / terrain overlays
   selection-orders/         ← select unit, move, attack, entrench
@@ -56,3 +57,7 @@ delta.
 ## Combat paper (seeded, notes)
 
 Target: HOI4 land-battle / Vic 3 battle language — **odds, strength before→after, one-line verdict**. No die-face glyphs. Confirm / dismiss only. EU pip-dice theater is the reject. Live Paradox screenshots still TODO; do not invent a fortune row to replace the faces.
+
+## Combat stamps (seeded, notes)
+
+Target: Vic 3 thin-strip + HOI4 window-type — **ASSAULT / DISPATCH / FIRES as a hairline classification rail**, kicker left, mark right. No rotated rubber badge, no ledger chips on the strip. Live Paradox screenshots still TODO; do not invent a seal to replace the box we removed.

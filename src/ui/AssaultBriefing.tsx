@@ -6,7 +6,7 @@ import { computePreview } from '../game/rules/combat';
 import { useStore } from '../game/state/store';
 import { rankReasons, reasonCopy, reasonWeight } from './briefingCopy';
 import { CombatPaper } from './CombatPaper';
-import { estimateDetail, StrengthStrip, strengthNowLine, VERDICT_LABEL } from './combatChrome';
+import { estimateDetail, paperStamp, StrengthStrip, strengthNowLine, VERDICT_LABEL } from './combatChrome';
 import { LexiconTip } from './Tip';
 
 export function AssaultBriefing() {
@@ -39,7 +39,7 @@ export function AssaultBriefing() {
   return (
     <CombatPaper
       tile={defender.tile}
-      stamp={isArtillery ? 'Fires' : 'Assault'}
+      stamp={paperStamp(isArtillery ? 'fires' : 'assault')}
       kicker={`Staff estimate · week ${game.turn}`}
       headline={isArtillery ? 'Fires mission' : VERDICT_LABEL[preview.verdict]}
       detail={estimateDetail(isArtillery)}

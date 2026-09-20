@@ -172,8 +172,14 @@ if (hasHook) {
     await page.screenshot({ path: `${OUT}/11-attack-preview.png` });
     const previewOdds = await page.$eval('.brief-sheet', (el) => el.innerText).catch(() => '');
     console.log('assault briefing:\n', previewOdds.slice(0, 400));
+    const estimateStamp = await page.$eval('.brief-sheet .stamp-strip', (el) => el.innerText).catch(() => '');
+    const estimateRubber = await page.$('.brief-sheet .stamp');
+    console.log('estimate stamp strip:', JSON.stringify(estimateStamp.trim()));
     if (!previewOdds) {
       console.error('FAIL: assault briefing not in the DOM');
+      process.exitCode = 1;
+    } else if (!estimateStamp || !/Assault|Fires/i.test(estimateStamp) || estimateRubber) {
+      console.error('FAIL: estimate missing subtractive stamp strip or still has rubber badge');
       process.exitCode = 1;
     } else {
       if (/2d6|d6 showing/i.test(previewOdds)) {
@@ -218,6 +224,13 @@ if (hasHook) {
       } else {
         const aarText = await page.$eval('.aar', (el) => el.innerText);
         console.log('after-action report:\n', aarText.slice(0, 400));
+        const aarStamp = await page.$eval('.aar .stamp-strip', (el) => el.innerText).catch(() => '');
+        const aarRubber = await page.$('.aar .stamp');
+        console.log('AAR stamp strip:', JSON.stringify(aarStamp.trim()));
+        if (!aarStamp || !/Dispatch|Fires/i.test(aarStamp) || aarRubber) {
+          console.error('FAIL: AAR missing subtractive stamp strip or still has rubber badge');
+          process.exitCode = 1;
+        }
         if (/2d6|d6 showing/i.test(aarText)) {
           console.error('FAIL: AAR still talks dice / 2d6');
           process.exitCode = 1;

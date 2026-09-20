@@ -42,6 +42,12 @@ Drop: die-face glyphs, pip grids, “2d6” as chrome, “before dice” / “th
 
 Honest gap vs HOI4: we do not have a live 0–100 battle-progress bar or hourly org ticks. This is a single-resolution PC2 exchange presented as staff paper. Do not fake a HOI4 progress pip to replace the dice we removed.
 
+## Stamps (0.2.30)
+
+The rotated rubber badge on this sheet was busy ledger chrome. Classification
+now lives on a thin strip — see `../combat-stamps/NOTES.md`. Odds / strength /
+verdict language here is unchanged.
+
 ## Status
 
 Notes only until HOI4 land-battle / combat-prediction and Vic 3 battle-result screenshots land in this folder.

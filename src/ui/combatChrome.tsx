@@ -1,7 +1,43 @@
 // Shared combat chrome: strength strips, verdict copy, estimate/AAR language.
 // Slice 6: no die faces. Odds, strength delta, and one-line verdict only.
+// Decorative ASSAULT / DISPATCH / FIRES marks live on a thin stamp strip —
+// classification type, not a rotated rubber badge.
 
 import { CombatVerdict } from '../game/types';
+
+export type PaperStamp = 'Assault' | 'Dispatch' | 'Fires';
+
+export const PAPER_STAMPS: readonly PaperStamp[] = ['Assault', 'Dispatch', 'Fires'];
+
+/** Classification rail only. Not a second ledger and not a rubber badge. */
+export interface StampStrip {
+  mark: PaperStamp;
+  kicker: string;
+  chrome: 'strip';
+}
+
+export function paperStamp(kind: 'assault' | 'dispatch' | 'fires'): PaperStamp {
+  if (kind === 'fires') return 'Fires';
+  if (kind === 'dispatch') return 'Dispatch';
+  return 'Assault';
+}
+
+export function stampStrip(mark: PaperStamp, kicker: string): StampStrip {
+  return { mark, kicker, chrome: 'strip' };
+}
+
+export function stampStripIsSubtractive(strip: StampStrip): boolean {
+  return (
+    strip.chrome === 'strip'
+    && (PAPER_STAMPS as readonly string[]).includes(strip.mark)
+    && !/ledger|2d6|die face|rubber/i.test(`${strip.mark} ${strip.kicker}`)
+  );
+}
+
+/** Old corner badge: rotation + box + fill. The strip never uses it. */
+export function stampIsBoxedRubber(): boolean {
+  return false;
+}
 
 export const VERDICT_LABEL: Record<CombatVerdict, string> = {
   decisive: 'Decisive advantage',
