@@ -1,9 +1,11 @@
 // Shared combat sheet — estimate and after-action are one paper family.
 // Wash, not curtain. Docks from the contested hex's screen position.
+// ASSAULT / DISPATCH / FIRES sit on a thin stamp strip, not a rubber badge.
 
 import { CSSProperties, ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { projectHex } from '../map/hexScreen';
 import { TileId } from '../game/types';
+import { PaperStamp, stampStrip } from './combatChrome';
 import { paperLayoutFromScreen, paperOverClass, SHEET_WIDTH } from './paperLayout';
 
 export function CombatPaper({
@@ -17,7 +19,7 @@ export function CombatPaper({
   children,
 }: {
   tile: TileId;
-  stamp: string;
+  stamp: PaperStamp;
   kicker: string;
   headline: string;
   headlineClass?: string;
@@ -25,6 +27,7 @@ export function CombatPaper({
   titleId: string;
   children: ReactNode;
 }) {
+  const strip = stampStrip(stamp, kicker);
   const sheetRef = useRef<HTMLElement>(null);
   const overRef = useRef<HTMLDivElement>(null);
   const [sheetH, setSheetH] = useState(320);
@@ -93,9 +96,11 @@ export function CombatPaper({
         <div className="brief-holes" aria-hidden>
           <i /><i /><i />
         </div>
-        <div className="stamp">{stamp}</div>
+        <div className="stamp-strip">
+          <span className="stamp-kicker">{strip.kicker}</span>
+          <span className="stamp-mark">{strip.mark}</span>
+        </div>
         <header className="aar-head">
-          <div className="aar-kicker">{kicker}</div>
           <h2 className={`aar-headline${headlineClass ? ` ${headlineClass}` : ''}`} id={titleId}>
             {headline}
           </h2>

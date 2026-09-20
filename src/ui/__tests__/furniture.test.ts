@@ -26,7 +26,12 @@ import {
   aarOddsCaption,
   aarVerdictShift,
   estimateDetail,
+  PAPER_STAMPS,
   paperCopyIsNumeric,
+  paperStamp,
+  stampIsBoxedRubber,
+  stampStrip,
+  stampStripIsSubtractive,
   strengthNowLine,
 } from '../combatChrome';
 import { CombatFactor, NotificationEntry } from '../../game/types';
@@ -59,6 +64,27 @@ describe('staff estimate ranking', () => {
     expect(reasonCopy(factor('River assault', -0.3))).toMatch(/wet bank/i);
     expect(reasonWeight(factor('Terrain (Urban)', 0.4))).toBe(1);
     expect(reasonWeight(factor('Weather (Mud)', -0.15))).toBeLessThan(1);
+  });
+});
+
+describe('combat paper stamp strip', () => {
+  it('classifies Assault / Dispatch / Fires on a subtractive strip, not a rubber badge', () => {
+    expect(paperStamp('assault')).toBe('Assault');
+    expect(paperStamp('dispatch')).toBe('Dispatch');
+    expect(paperStamp('fires')).toBe('Fires');
+    expect(PAPER_STAMPS).toEqual(['Assault', 'Dispatch', 'Fires']);
+
+    const estimate = stampStrip(paperStamp('assault'), 'Staff estimate · week 1');
+    const aar = stampStrip(paperStamp('dispatch'), 'After action · week 1');
+    const fires = stampStrip(paperStamp('fires'), 'Staff estimate · week 1');
+    expect(estimate.chrome).toBe('strip');
+    expect([estimate, aar, fires].every(stampStripIsSubtractive)).toBe(true);
+    expect(stampIsBoxedRubber()).toBe(false);
+    expect(stampStripIsSubtractive({
+      mark: 'Assault',
+      kicker: 'ledger chrome',
+      chrome: 'strip',
+    })).toBe(false);
   });
 });
 

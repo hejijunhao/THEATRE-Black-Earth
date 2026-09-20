@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.30](#0230--2026-09-20--slice-6-assault-dispatch-stamps) | 2026-09-20 | Slice 6 — ASSAULT/DISPATCH stamps | thin classification strip, no rubber badge |
 | [0.2.29](#0229--2026-09-20--slice-3-armor-stamp) | 2026-09-20 | Slice 3 — armor stamp | unlit MeshBasic, dark hull / light turret, no wash |
 | [0.2.28](#0228--2026-09-17--slice-1-ground-retip) | 2026-09-17 | Slice 1 — ground retip | chernozem midground, district chroma, north umber keep |
 | [0.2.27](#0227--2026-09-17--slice-1-ground-albedo) | 2026-09-17 | Slice 1 — ground albedo | cadastral soil, chernozem/loess, no khaki slab |
@@ -48,6 +49,36 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.30] — 2026-09-20 · Slice 6 — ASSAULT / DISPATCH stamps
+
+Presentation only. Decorative combat-paper stamps. Armor (#28), INF /
+MECH / ARTY, ground, reach, atmosphere, Vic flat political colour,
+header, outliner and dice-strip stay locked. No new rules. No
+workflows.
+
+Parked soft debt: ASSAULT / DISPATCH still sat as a rotated rubber
+badge (border, fill, inset glow, 7° tilt) on the staff sheet. That is
+busy ledger chrome. Subtractive HUD wants a classification rail, not
+a seal competing with the headline.
+
+This cut:
+
+- **Thin stamp strip.** Kicker left (`Staff estimate` / `After
+  action` · week). Mark right (`Assault` / `Dispatch` / `Fires`).
+  Hairline only — no box, no rotation, no fill.
+- **Same paper family.** Estimate and AAR share the strip. Confirm /
+  dismiss plates and the numeric read (odds, strength before → after,
+  one-line verdict) are untouched.
+- **Event Decision stays boxed.** That mark is not this slice.
+
+Notes under `docs/refs/paradox/combat-stamps/` (Vic 3 thin strip /
+HOI4 window type). Live Paradox shots are still TODO — did not invent
+a wax seal or a chip row to fake them. Subtractive stamp authority
+**PASS** on the playtest estimate / AAR; Vic / HOI live-panel match
+stays **FAIL, parked**.
+
+The campaign, map, AI, supply and combat math are unchanged.
 
 ## [0.2.29] — 2026-09-20 · Slice 3 — armor stamp
 

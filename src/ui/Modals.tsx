@@ -6,7 +6,7 @@ import { useStore } from '../game/state/store';
 import { opposing } from '../game/types';
 import { formatOdds } from '../game/rules/combat';
 import { CombatPaper } from './CombatPaper';
-import { aarOddsCaption, aarVerdictShift, StrengthStrip, VERDICT_LABEL } from './combatChrome';
+import { aarOddsCaption, aarVerdictShift, paperStamp, StrengthStrip, VERDICT_LABEL } from './combatChrome';
 
 export function EventModal() {
   const game = useStore((s) => s.game);
@@ -103,7 +103,7 @@ export function CombatResultPanel() {
   return (
     <CombatPaper
       tile={result.tile}
-      stamp={isFire ? 'Fires' : 'Dispatch'}
+      stamp={paperStamp(isFire ? 'fires' : 'dispatch')}
       kicker={`After action · week ${game.turn}`}
       headline={headline}
       headlineClass={outcomeCls}
