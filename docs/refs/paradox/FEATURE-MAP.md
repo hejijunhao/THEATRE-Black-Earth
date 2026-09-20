@@ -3,7 +3,7 @@
 | BLACK THEATRE feature | Paradox equivalent | Ref folder | Status |
 | --- | --- | --- | --- |
 | Play HUD top header | Vic 3 top bar (flag + resource chips); HOI4 top info bar | `header/` | seeded |
-| Combat estimate / AAR | HOI4 combat prediction / battle result panels (numbers, not dice) | `combat-paper/` | TODO |
+| Combat estimate / AAR | Vic 3 battle paper (Offense/Defense + casualty bill); HOI4 forecast / result (numbers, not dice) | [`combat-paper/`](combat-paper/) | seeded |
 | Formation / contact outliner | Vic 3 outliner; HOI4 army list | `outliner/` | TODO |
 | Map modes | Vic 3 / HOI4 mapmode buttons | `map-modes/` | TODO |
 | Select → move → attack | HOI4 province/unit selection + order | `selection-orders/` | TODO |
