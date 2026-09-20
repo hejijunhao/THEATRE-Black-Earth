@@ -27,13 +27,27 @@ import {
 import { HeroFormation } from './HeroFormation';
 import { hashSeed } from '../game/rng';
 import { FACTION_STRONG } from './palette';
+import {
+  ATTACK_CHEV_R,
+  COUNTER_BASE_D,
+  COUNTER_BASE_W,
+  COUNTER_PLATE_H,
+  COUNTER_PLATE_W,
+  COUNTER_ZOOM_FULL,
+  COUNTER_ZOOM_IN,
+  MINI_BASE_D,
+  MINI_BASE_W,
+  MINI_SCALE,
+  SELECT_RING_IN,
+  SELECT_RING_OUT,
+  STANDARD_H,
+  STANDARD_W,
+} from './lod';
 
 // Global crossfade state (0 = miniatures, 1 = counters), shared by every
 // unit's per-frame material update. Driven by camera height or the Tab
 // override — the zoom metaphor's unit dial.
 const fadeState = { value: 0 };
-const COUNTER_ZOOM_IN = 24;  // mid-zoom keeps machines; counters for the theatre
-const COUNTER_ZOOM_FULL = 42;
 
 /** Sit the token on the earth — a contact shadow, not another ring. */
 function GroundPresence({ radius }: { radius: number }) {
@@ -51,56 +65,40 @@ function GroundPresence({ radius }: { radius: number }) {
   );
 }
 
-// ONE selected language: a camera-facing parchment mat with an ink rim,
-// sitting behind the plate / standard so it frames the token. Ground
-// washers vanished — cream-on-cream plus the billboard covering them.
-// Can-attack is an amber chevron on the same billboard (screen-right),
-// a different silhouette. Contact-only and threatened stay on the plate.
+// Select is a ground annulus that stays inside the hex. A camera-facing
+// parchment card was the LOD fail: it promoted under select and blotted
+// neighbouring soil. Can-attack is a small amber chevron off the ring.
 function AgencyMarks({
   chrome,
   selected,
-  width,
-  height,
-  y,
 }: {
   chrome: BoardChrome;
   selected: boolean;
-  width: number;
-  height: number;
-  y: number;
 }) {
-  const inkW = width * 1.48;
-  const inkH = height * 1.62;
-  const paperW = width * 1.28;
-  const paperH = height * 1.38;
-  const chevR = height * 0.95;
+  const chevR = ATTACK_CHEV_R;
   return (
-    <Billboard position={[0, y, 0]} follow>
+    <group>
       {selected && (
-        <group>
-          <mesh position={[0, 0, -0.02]} raycast={() => null}>
-            <planeGeometry args={[inkW, inkH]} />
-            <meshBasicMaterial color="#2a2418" depthWrite={false} />
-          </mesh>
-          <mesh position={[0, 0, -0.01]} raycast={() => null}>
-            <planeGeometry args={[paperW, paperH]} />
-            <meshBasicMaterial color="#d8c89a" depthWrite={false} />
-          </mesh>
-        </group>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]} raycast={() => null}>
+          <ringGeometry args={[SELECT_RING_IN, SELECT_RING_OUT, 40]} />
+          <meshBasicMaterial color="#d4c28a" transparent opacity={0.92} depthWrite={false} />
+        </mesh>
       )}
       {chrome.canAttack && (
-        <group position={[inkW * 0.5 + chevR * 0.72, 0, -0.01]}>
-          <mesh raycast={() => null}>
-            <circleGeometry args={[chevR, 3]} />
-            <meshBasicMaterial color="#1e1b14" depthWrite={false} />
-          </mesh>
-          <mesh position={[0, 0, 0.004]} scale={0.78} raycast={() => null}>
-            <circleGeometry args={[chevR, 3]} />
-            <meshBasicMaterial color="#d4b05a" depthWrite={false} />
-          </mesh>
-        </group>
+        <Billboard position={[SELECT_RING_OUT + chevR * 0.9, 0.18, 0]} follow>
+          <group>
+            <mesh raycast={() => null}>
+              <circleGeometry args={[chevR, 3]} />
+              <meshBasicMaterial color="#1e1b14" depthWrite={false} />
+            </mesh>
+            <mesh position={[0, 0, 0.004]} scale={0.78} raycast={() => null}>
+              <circleGeometry args={[chevR, 3]} />
+              <meshBasicMaterial color="#d4b05a" depthWrite={false} />
+            </mesh>
+          </group>
+        </Billboard>
       )}
-    </Billboard>
+    </group>
   );
 }
 
@@ -125,8 +123,8 @@ const MINI_MATERIAL = new THREE.MeshStandardMaterial({
   roughness: 0.72,
   metalness: 0.08,
   transparent: true,
-  emissive: '#2c2618',
-  emissiveIntensity: 0.28,
+  emissive: '#4a4030',
+  emissiveIntensity: 0.48,
 });
 
 function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boolean; chrome: BoardChrome }) {
@@ -224,10 +222,10 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
       }}
       onPointerOver={(e) => e.stopPropagation()}
     >
-      <GroundPresence radius={0.78} />
+      <GroundPresence radius={0.62} />
       {/* Base plate: faction identity lives here, not on the vehicles. */}
       <mesh position={[0, 0.018, 0]} castShadow>
-        <boxGeometry args={[0.96, 0.04, 0.68]} />
+        <boxGeometry args={[MINI_BASE_W, 0.036, MINI_BASE_D]} />
         <meshStandardMaterial
           ref={baseMatRef}
           color={chrome.spent
@@ -247,7 +245,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
       </mesh>
       {/* The machines: hero vehicles as instances, everything else — foot
           elements, logistics, muzzle smoke — merged into one props mesh. */}
-      <group rotation={[0, facing, 0]} position={[0, 0.036, 0]} scale={1.32}>
+      <group rotation={[0, facing, 0]} position={[0, 0.036, 0]} scale={MINI_SCALE}>
         {build.props && <mesh geometry={build.props} material={MINI_MATERIAL} castShadow />}
         {build.heroType && (
           <HeroFormation type={build.heroType} faction={unit.faction} slots={build.heroSlots} />
@@ -262,11 +260,11 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
           <meshBasicMaterial color="#b04a3a" transparent opacity={0.4} depthWrite={false} />
         </mesh>
       )}
-      <AgencyMarks chrome={chrome} selected={selected} width={1.18} height={0.78} y={0.16} />
+      <AgencyMarks chrome={chrome} selected={selected} />
       {/* The standard. */}
-      <Billboard position={[0, 0.64, 0]} follow>
+      <Billboard position={[0, 0.56, 0]} follow>
         <mesh>
-          <planeGeometry args={[1.28, 0.38]} />
+          <planeGeometry args={[STANDARD_W, STANDARD_H]} />
           <meshBasicMaterial ref={stdMatRef} map={stdTexture} transparent depthWrite={false} />
         </mesh>
       </Billboard>
@@ -341,9 +339,9 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
       }}
       onPointerOver={(e) => e.stopPropagation()}
     >
-      <GroundPresence radius={0.82} />
-      <mesh position={[0, 0.08, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.86, 0.16, 0.56]} />
+      <GroundPresence radius={0.64} />
+      <mesh position={[0, 0.07, 0]} castShadow receiveShadow>
+        <boxGeometry args={[COUNTER_BASE_W, 0.12, COUNTER_BASE_D]} />
         <meshStandardMaterial
           ref={baseMatRef}
           color={chrome.spent ? '#1c1b17' : '#2e2c26'}
@@ -360,10 +358,10 @@ function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean
           emissiveIntensity={selected ? 0.42 : chrome.threatened ? 0.22 : 0}
         />
       </mesh>
-      <AgencyMarks chrome={chrome} selected={selected} width={2.62} height={1.64} y={0.86} />
-      <Billboard position={[0, 0.96, 0]} follow>
+      <AgencyMarks chrome={chrome} selected={selected} />
+      <Billboard position={[0, 0.62, 0]} follow>
         <mesh>
-          <planeGeometry args={[2.62, 1.64]} />
+          <planeGeometry args={[COUNTER_PLATE_W, COUNTER_PLATE_H]} />
           <meshBasicMaterial ref={plateMatRef} map={texture} transparent depthWrite={false} />
         </mesh>
       </Billboard>

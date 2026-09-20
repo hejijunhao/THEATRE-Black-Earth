@@ -393,6 +393,7 @@ Ukrainian decisive victory at turn 21. Swingy, but plausible by design.
 | Colours, map modes, atmosphere | [`map/palette.ts`](../src/map/palette.ts) |
 | HUD layout / styling | [`ui/styles.css`](../src/ui/styles.css) + component |
 | Board selection chrome (MP / spent / contact) | [`map/Units.tsx`](../src/map/Units.tsx) + [`map/textures.ts`](../src/map/textures.ts) + [`ui/boardChrome.ts`](../src/ui/boardChrome.ts) |
+| Campaign LOD / boot camera / plate caps | [`map/lod.ts`](../src/map/lod.ts) — plates must fit a hex; select is a ring, not a card |
 | Assault briefing / command bench | [`ui/AssaultBriefing.tsx`](../src/ui/AssaultBriefing.tsx) + [`ui/CommandBar.tsx`](../src/ui/CommandBar.tsx) |
 | Formations outliner / ops rail | [`ui/Outliner.tsx`](../src/ui/Outliner.tsx) · sectors in [`ui/boardChrome.ts`](../src/ui/boardChrome.ts) |
 | Victory clock | [`ui/VictoryClock.tsx`](../src/ui/VictoryClock.tsx) + [`ui/theatreBalance.ts`](../src/ui/theatreBalance.ts) |
