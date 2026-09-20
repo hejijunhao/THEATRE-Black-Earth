@@ -10,6 +10,7 @@ import {
   COUNTER_PLATE_W,
   COUNTER_ZOOM_IN,
   MACHINE_SCALE,
+  PLATE_NEAR_OPACITY,
   MINI_BASE_D,
   MINI_BASE_W,
   MINI_SCALE,
@@ -17,10 +18,13 @@ import {
   PLATE_MAX_W,
   SELECT_RING_OUT,
   STANDARD_H,
+  STANDARD_HIDE_Y,
   STANDARD_W,
   bootCamera,
+  machineFitsHex,
   plateFitsHex,
   selectFitsHex,
+  standardOpacityAtHeight,
 } from '../lod';
 
 describe('campaign LOD gate', () => {
@@ -32,10 +36,11 @@ describe('campaign LOD gate', () => {
     expect(plateFitsHex(MINI_BASE_W, MINI_BASE_D)).toBe(true);
     expect(MINI_BASE_W * MINI_SCALE).toBeLessThan(HEX_W);
     expect(MINI_BASE_D * MINI_SCALE).toBeLessThan(HEX_H);
-    // Machines grow inside the hex; plates do not.
+    // Machines grow; plates do not. The hex cap is the echelon, not plate*scale.
+    expect(MACHINE_SCALE).toBeGreaterThan(2.2);
     expect(MACHINE_SCALE).toBeGreaterThan(MINI_SCALE);
-    expect(MINI_BASE_W * MACHINE_SCALE).toBeLessThan(HEX_W);
-    expect(MINI_BASE_D * MACHINE_SCALE).toBeLessThan(HEX_H);
+    expect(machineFitsHex()).toBe(true);
+    expect(machineFitsHex(3.4)).toBe(false);
     expect(MINI_BASE_W).toBeLessThanOrEqual(PLATE_MAX_W);
     expect(MINI_BASE_D).toBeLessThanOrEqual(PLATE_MAX_H);
   });
@@ -70,5 +75,14 @@ describe('boot camera gate', () => {
     expect(dist).toBeLessThan(14.5);
     expect(dist).toBeGreaterThan(10);
     expect(BOOT_CAM.dz).toBeLessThan(8);
+  });
+
+  it('drops the standard billboard at boot so hulls are not plated over', () => {
+    expect(STANDARD_HIDE_Y).toBeGreaterThan(BOOT_CAM.y);
+    expect(standardOpacityAtHeight(BOOT_CAM.y)).toBe(0);
+    expect(standardOpacityAtHeight(10.4)).toBe(0);
+    expect(standardOpacityAtHeight(13.2)).toBe(0);
+    expect(standardOpacityAtHeight(24)).toBe(1);
+    expect(PLATE_NEAR_OPACITY).toBeLessThan(0.35);
   });
 });

@@ -38,10 +38,12 @@ import {
   MACHINE_SCALE,
   MINI_BASE_D,
   MINI_BASE_W,
+  PLATE_NEAR_OPACITY,
   SELECT_RING_IN,
   SELECT_RING_OUT,
   STANDARD_H,
   STANDARD_W,
+  standardOpacityAtHeight,
 } from './lod';
 
 // Global crossfade state (0 = miniatures, 1 = counters), shared by every
@@ -123,8 +125,9 @@ const MINI_MATERIAL = new THREE.MeshStandardMaterial({
   roughness: 0.68,
   metalness: 0.1,
   transparent: true,
-  emissive: '#5a4e38',
-  emissiveIntensity: 0.62,
+  // Flat flood wash killed the dark-hull / light-top split.
+  emissive: '#2a2418',
+  emissiveIntensity: 0.18,
 });
 
 function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boolean; chrome: BoardChrome }) {
@@ -192,7 +195,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
     }
   }, [wx, wz, y]);
 
-  useFrame(({ clock }, delta) => {
+  useFrame(({ camera, clock }, delta) => {
     const g = groupRef.current;
     if (!g) return;
     if (g.position.distanceTo(target.current) > 0.002) {
@@ -201,8 +204,18 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
     // Crossfade against the counters.
     const vis = (1 - fadeState.value) * (chrome.spent ? 0.78 : 1);
     g.visible = vis > 0.02;
-    if (baseMatRef.current) baseMatRef.current.opacity = vis;
-    if (stdMatRef.current) stdMatRef.current.opacity = vis;
+    if (baseMatRef.current) {
+      const plate = PLATE_NEAR_OPACITY + (1 - PLATE_NEAR_OPACITY) * standardOpacityAtHeight(camera.position.y);
+      baseMatRef.current.opacity = vis * plate;
+    }
+    // The NATO standard is a plate. At boot height it sits on the hull
+    // and the mid-zoom read collapses to "plates only". Drop it while
+    // the machines are the LOD.
+    const stdVis = vis * standardOpacityAtHeight(camera.position.y);
+    if (stdMatRef.current) {
+      stdMatRef.current.opacity = stdVis;
+      stdMatRef.current.visible = stdVis > 0.04;
+    }
     // Isolated: slow red pulse on the base ring.
     if (pulseRef.current) {
       const m = pulseRef.current.material as THREE.MeshBasicMaterial;
@@ -229,9 +242,9 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
         <meshStandardMaterial
           ref={baseMatRef}
           color={chrome.spent
-            ? (unit.faction === 'UA' ? '#1c2838' : '#3a201c')
-            : (unit.faction === 'UA' ? '#33507a' : '#67352c')}
-          roughness={0.6}
+            ? (unit.faction === 'UA' ? '#141820' : '#221614')
+            : (unit.faction === 'UA' ? '#1e2a38' : '#2e1c18')}
+          roughness={0.72}
           transparent
           emissive={
             selected
@@ -240,12 +253,12 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
                 ? '#cfc6a8'
                 : FACTION_STRONG[unit.faction]
           }
-          emissiveIntensity={selected ? 0.55 : chrome.threatened ? 0.28 : 0.16}
+          emissiveIntensity={selected ? 0.22 : chrome.threatened ? 0.14 : 0.06}
         />
       </mesh>
       {/* The machines: hero vehicles as instances, everything else — foot
           elements, logistics, muzzle smoke — merged into one props mesh. */}
-      <group rotation={[0, facing, 0]} position={[0, 0.036, 0]} scale={MACHINE_SCALE}>
+      <group rotation={[0, facing, 0]} position={[0, 0.055, 0]} scale={MACHINE_SCALE}>
         {build.props && <mesh geometry={build.props} material={MINI_MATERIAL} castShadow />}
         {build.heroType && (
           <HeroFormation type={build.heroType} faction={unit.faction} slots={build.heroSlots} />
