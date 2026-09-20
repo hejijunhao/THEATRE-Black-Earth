@@ -155,7 +155,8 @@ export function TerrainMesh() {
           `{
             vec2 wp = vWorldPos3.xz;
             vec2 auv = (wp - uOrigin) / uSpan;
-            vec3 ground = sRGBTransferEOTF(texture2D(uAlbedo, auv)).rgb;
+            vec3 groundSrgb = texture2D(uAlbedo, auv).rgb;
+            vec3 ground = pow(groundSrgb, vec3(2.2));
 
             // Snow cover (uniform-driven; water plane handles the sea).
             ground = mix(ground, vec3(0.72, 0.74, 0.76), uSnow * 0.5 * (1.0 - uPaper));
