@@ -15,11 +15,20 @@ const PAINT: Record<FactionId, { hull: string; dark: string; accent: string }> =
   RU: { hull: '#5f5a49', dark: '#403c31', accent: '#6e6957' },
 };
 const TRACK = '#2e2c26';
-const TIRE = '#26241f';
-const CANVAS_TOP = '#8a7a58';
-const FIGURE = '#2a2c22';
-const FIGURE_DARK = '#161810';
+const TIRE = '#1a1814';
+const CANVAS_TOP = '#2a281e';
+// Punchy field-green. THREE.Color stores linear, and the rain veil-break
+// lifts dark+grey linear pixels to khaki. Grey olive vanished; this sat
+// stays above the gate so a rank stamps.
+const FIGURE = '#0a5816';
+const FIGURE_DARK = '#064010';
+const FIGURE_HELM = '#085014';
+const FIGURE_RIM = '#14701c';
+const RIFLE = '#032008';
+const INF_HULL = '#084812';
+const INF_CANVAS = '#0a4010';
 const BARREL = '#3a3d36';
+const GLASS = '#101410';
 
 export function tank(faction: FactionId): THREE.BufferGeometry[] {
   const p = PAINT[faction];
@@ -174,10 +183,35 @@ export function lightTruck(faction: FactionId): THREE.BufferGeometry[] {
   const parts: THREE.BufferGeometry[] = [];
   for (const zx of [-0.05, 0.05]) {
     parts.push(ccyl(0.016, 0.016, 0.02, TIRE, zx, 0.016, -0.036, 'z', 8));
+    parts.push(ccyl(0.010, 0.010, 0.008, p.dark, zx, 0.016, -0.036, 'z', 6));
     parts.push(ccyl(0.016, 0.016, 0.02, TIRE, zx, 0.016, 0.036, 'z', 8));
+    parts.push(ccyl(0.010, 0.010, 0.008, p.dark, zx, 0.016, 0.036, 'z', 6));
   }
-  parts.push(cbox(0.05, 0.04, 0.07, p.hull, 0.05, 0.05, 0)); // cab
-  parts.push(cbox(0.1, 0.036, 0.072, CANVAS_TOP, -0.03, 0.052, 0)); // canvas bed
+  parts.push(cbox(0.11, 0.012, 0.068, p.dark, 0.0, 0.022, 0)); // chassis
+  parts.push(cbox(0.048, 0.038, 0.068, p.hull, 0.052, 0.052, 0)); // cab
+  parts.push(cbox(0.028, 0.016, 0.056, GLASS, 0.068, 0.058, 0)); // windshield
+  parts.push(cbox(0.092, 0.032, 0.066, CANVAS_TOP, -0.028, 0.048, 0)); // canvas bed
+  return parts;
+}
+
+// Infantry command wagon: cab / canvas / wheels / whip antenna. Same
+// scale as lightTruck so it stays a truck, not a barn. Saturated dark
+// green so the rain veil cannot lift it back to a pale plate.
+export function commandTruck(_faction: FactionId): THREE.BufferGeometry[] {
+  const parts: THREE.BufferGeometry[] = [];
+  for (const zx of [-0.05, 0.05]) {
+    parts.push(ccyl(0.016, 0.016, 0.02, TIRE, zx, 0.016, -0.036, 'z', 8));
+    parts.push(ccyl(0.010, 0.010, 0.008, FIGURE_DARK, zx, 0.016, -0.036, 'z', 6));
+    parts.push(ccyl(0.016, 0.016, 0.02, TIRE, zx, 0.016, 0.036, 'z', 8));
+    parts.push(ccyl(0.010, 0.010, 0.008, FIGURE_DARK, zx, 0.016, 0.036, 'z', 6));
+  }
+  parts.push(cbox(0.11, 0.012, 0.068, FIGURE_DARK, 0.0, 0.022, 0));
+  parts.push(cbox(0.048, 0.038, 0.068, INF_HULL, 0.052, 0.052, 0));
+  parts.push(cbox(0.028, 0.016, 0.056, GLASS, 0.068, 0.058, 0));
+  parts.push(cbox(0.092, 0.032, 0.066, INF_CANVAS, -0.028, 0.048, 0));
+  parts.push(ccyl(0.0022, 0.0022, 0.055, FIGURE_DARK, 0.042, 0.094, 0.018, 'y', 5));
+  parts.push(cbox(0.012, 0.008, 0.028, FIGURE_DARK, 0.052, 0.074, 0.028));
+  parts.push(cbox(0.018, 0.006, 0.062, FIGURE_RIM, 0.078, 0.030, 0));
   return parts;
 }
 
@@ -225,14 +259,26 @@ export function mrap(faction: FactionId): THREE.BufferGeometry[] {
 }
 
 export function figure(): THREE.BufferGeometry[] {
-  // Deliberately abstract: silhouette-level only (v2-vision §6.1). Dark
-  // olive so a rank stamps on khaki the way a hull does. Infantry
+  // Chunky 15mm-style infantry, still abstract (no face, no wounds).
+  // Mid-zoom read is a squat person + a thick rifle. Near-black pins
+  // alias away on the plate shadow; mid-olive stamps on khaki. Infantry
   // composition scales this up; mech/recon dismounts keep the raw size.
-  return [
-    cbox(0.030, 0.052, 0.024, FIGURE, 0, 0.046, 0),
-    cbox(0.026, 0.028, 0.022, FIGURE_DARK, 0, 0.016, 0),
-    csphere(0.015, '#1e2018', 0, 0.086, 0),
+  const parts: THREE.BufferGeometry[] = [
+    cbox(0.040, 0.036, 0.028, FIGURE, 0.002, 0.050, 0),           // torso
+    cbox(0.016, 0.032, 0.016, FIGURE_DARK, -0.006, 0.016, 0.008), // rear leg
+    cbox(0.016, 0.032, 0.016, FIGURE_DARK, 0.010, 0.016, -0.008), // stride leg
+    cbox(0.046, 0.012, 0.030, FIGURE_RIM, 0.000, 0.070, 0),       // shoulders
+    cbox(0.018, 0.022, 0.016, FIGURE_DARK, -0.016, 0.052, 0),     // pack
+    csphere(0.012, FIGURE_HELM, 0.002, 0.082, 0),                 // head
+    ccyl(0.014, 0.015, 0.010, FIGURE_HELM, 0.002, 0.092, 0, 'y', 6), // helmet
+    cbox(0.014, 0.008, 0.014, FIGURE_RIM, 0.002, 0.098, 0),       // helmet rim
+    cbox(0.024, 0.012, 0.012, FIGURE, 0.020, 0.054, 0.014),       // support arm
+    cbox(0.026, 0.010, 0.010, FIGURE_DARK, -0.006, 0.048, -0.016), // off arm
+    ccyl(0.0048, 0.0044, 0.072, RIFLE, 0.040, 0.050, 0.015, 'x', 6), // barrel
+    cbox(0.020, 0.010, 0.010, RIFLE, 0.004, 0.048, 0.015),        // stock
+    cbox(0.010, 0.012, 0.008, RIFLE, 0.020, 0.054, 0.015),        // receiver
   ];
+  return parts;
 }
 
 export function droneMast(faction: FactionId): THREE.BufferGeometry[] {
