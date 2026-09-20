@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [docs-combat-paper](#docs-combat-paper--2026-09-20--paradox-combat-paper-pack) | 2026-09-20 | docs | combat-paper NOTES, Vic3/EU5 shots |
 | [docs-paradox-lib](#docs-paradox-lib--2026-09-17--paradox-reference-library) | 2026-09-17 | docs | paradox refs, feature map |
 | [0.2.22](#0222--2026-09-17--slice-5-reach-retip) | 2026-09-17 | Slice 5 — reach retip | soil-stain wash, seam-only silhouette, warm parchment ink |
 | [0.2.21](#0221--2026-09-17--slice-5-board-chrome) | 2026-09-17 | Slice 5 — board chrome | reach silhouette, hatched frontline, click-through overlays |
@@ -40,6 +41,31 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [docs-combat-paper] — 2026-09-20 · Paradox combat-paper pack
+
+Docs only. No game version. No `src/` changes. No new rules. Stacked on the
+paradox library seed (docs-paradox-lib).
+
+Seeds the steal sheet for a later HUD tip: strip die faces on Staff Estimate
+and After Action Report; keep **odds → strength delta → one verdict line**.
+
+- **`combat-paper/NOTES.md`.** Steal vs reject for Vic 3 / HOI4 / EU5
+  combat-paper language — thin dock, odds, strength bill, one verdict.
+  Reject pip-dice and busy unit ledgers.
+- **`vic3-battle-1.jpg`.** Official Steam store shot, Vic 3 *Battle for
+  L'Aquila* (Offense/Defense + start→current + Dead/Wounded/Demoralized; no
+  die faces). Primary steal.
+- **`eu5-battle-1.jpg`.** Official Steam store shot, EU5 *Battle of Gandia*
+  (two-sided dock + dense unit ledger). Reject as chrome.
+- **`FEATURE-MAP.md` / `README.md`.** Combat-paper marked **seeded** and
+  linked, same header-pack style.
+
+HOI4 land-battle window is not in the public store CDN set. NOTES steal its
+forecast / casualty language from the wiki; no invented HOI4 screenshot.
+
+The campaign, map, AI, supply and combat math are unchanged. The no-dice HUD
+tip consumes this pack later.
 
 ## [docs-paradox-lib] — 2026-09-17 · Paradox reference library
 
