@@ -9,6 +9,7 @@ import {
   COUNTER_PLATE_H,
   COUNTER_PLATE_W,
   COUNTER_ZOOM_IN,
+  MACHINE_SCALE,
   MINI_BASE_D,
   MINI_BASE_W,
   MINI_SCALE,
@@ -31,6 +32,12 @@ describe('campaign LOD gate', () => {
     expect(plateFitsHex(MINI_BASE_W, MINI_BASE_D)).toBe(true);
     expect(MINI_BASE_W * MINI_SCALE).toBeLessThan(HEX_W);
     expect(MINI_BASE_D * MINI_SCALE).toBeLessThan(HEX_H);
+    // Machines grow inside the hex; plates do not.
+    expect(MACHINE_SCALE).toBeGreaterThan(MINI_SCALE);
+    expect(MINI_BASE_W * MACHINE_SCALE).toBeLessThan(HEX_W);
+    expect(MINI_BASE_D * MACHINE_SCALE).toBeLessThan(HEX_H);
+    expect(MINI_BASE_W).toBeLessThanOrEqual(PLATE_MAX_W);
+    expect(MINI_BASE_D).toBeLessThanOrEqual(PLATE_MAX_H);
   });
 
   it('keeps select as a ring inside the hex, not a blotting card', () => {

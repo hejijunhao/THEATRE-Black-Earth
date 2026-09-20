@@ -101,11 +101,11 @@ export function TerrainMesh() {
 
   const material = useMemo(() => {
     const mat = new THREE.MeshStandardMaterial({
-      roughness: 0.86,
-      metalness: 0.035,
-      // Unlit soil so the far north cannot drop into a grey hole under rain.
+      roughness: 0.88,
+      metalness: 0.03,
+      // Warm keep-alive, not a floodlight — midground must still show strips.
       emissive: new THREE.Color('#6e6040'),
-      emissiveIntensity: 0.36,
+      emissiveIntensity: 0.16,
     });
     mat.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, uniforms);
@@ -133,6 +133,7 @@ export function TerrainMesh() {
           uniform float uCloud;
           uniform float uCloudTime;
           uniform float uPaper;
+          vec3 uSoilGround;
           ${HEX_GLSL}
           // Cheap 2-octave value noise for drifting cloud shadow patches.
           float chash(vec2 p) {
@@ -179,10 +180,12 @@ export function TerrainMesh() {
               // Hex overlay seam, faded on paper.
               float d = hexEdgeDist(wp - center);
               float seam = smoothstep(${(Math.sqrt(3) / 2 - 0.085).toFixed(4)}, ${(Math.sqrt(3) / 2 - 0.012).toFixed(4)}, d);
-              ground = mix(ground, ground * 0.62, seam * uHexOpacity * (1.0 - uPaper * 0.85));
+              float northLatSeam = 1.0 - clamp(wp.y / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
+              float seamDark = mix(0.78, 0.90, northLatSeam);
+              ground = mix(ground, ground * seamDark, seam * uHexOpacity * (1.0 - uPaper * 0.85));
             } else {
-              vec3 haze = mix(vec3(0.72, 0.70, 0.58), vec3(0.84, 0.80, 0.68), uPaper);
-              ground = mix(ground, haze, mix(0.8, 0.97, uPaper));
+              vec3 haze = mix(vec3(0.80, 0.74, 0.52), vec3(0.84, 0.80, 0.68), uPaper);
+              ground = mix(ground, haze, mix(0.55, 0.97, uPaper));
             }
             // Printed graticule on paper (1° lon/lat over the linear mapping).
             if (uPaper > 0.001) {
@@ -196,10 +199,26 @@ export function TerrainMesh() {
               vec2 cuv = wp * 0.045 + vec2(uCloudTime * 0.010, uCloudTime * 0.004);
               float cl = cnoise(cuv) * 0.6 + cnoise(cuv * 2.3 + 7.0) * 0.4;
               float shade = smoothstep(0.52, 0.78, cl) * uCloud * (1.0 - uPaper);
-              ground *= 1.0 - shade * 0.22;
+              ground *= 1.0 - shade * 0.10;
             }
+            // North keep: far soil stays khaki, not a grey hole. Midground
+            // is left alone so strip-fields still read as a place.
+            float northLat = 1.0 - clamp(wp.y / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
+            vec3 khakiKeep = vec3(0.72, 0.62, 0.40);
+            float keep = smoothstep(0.48, 0.92, northLat);
+            ground = mix(ground, max(ground, khakiKeep), keep * 0.38);
+            float luma = dot(ground, vec3(0.2126, 0.7152, 0.0722));
+            float floorL = 0.22 + 0.12 * keep;
+            if (luma < floorL) ground *= floorL / max(luma, 0.001);
+            uSoilGround = ground;
             diffuseColor.rgb = ground;
           }`,
+        )
+        .replace(
+          '#include <emissivemap_fragment>',
+          `#include <emissivemap_fragment>
+          float northEmit = 1.0 - clamp(vWorldPos3.z / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
+          totalEmissiveRadiance += uSoilGround * (0.06 + 0.20 * smoothstep(0.48, 0.92, northEmit));`,
         );
     };
     return mat;
@@ -216,7 +235,7 @@ export function TerrainMesh() {
     const w = game?.weather;
     uniforms.uSnow.value = w === 'snow' ? 1 : 0;
     uniforms.uCloud.value =
-      w === 'overcast' ? 0.55 : w === 'rain' ? 0.4 : w === 'mud' ? 0.28 : w === 'snow' ? 0.35 : 0.1;
+      w === 'overcast' ? 0.28 : w === 'rain' ? 0.14 : w === 'mud' ? 0.16 : w === 'snow' ? 0.22 : 0.08;
   }, [game?.weather, uniforms]);
 
   // Hex overlay opacity: stronger while a unit is selected, softer when the

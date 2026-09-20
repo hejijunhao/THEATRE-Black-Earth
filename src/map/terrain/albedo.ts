@@ -14,7 +14,7 @@ export const ALBEDO_MARGIN = 10; // world units beyond the map rectangle
 
 const TEX_W = 2048;
 
-interface RGB { r: number; g: number; b: number }
+export interface RGB { r: number; g: number; b: number }
 
 function rgb(hex: string): RGB {
   const n = parseInt(hex.slice(1), 16);
@@ -56,20 +56,22 @@ function noise2(x: number, y: number, salt: number): number {
   return vnoise(x, y, salt) * 0.65 + vnoise(x * 2.7, y * 2.7, salt + 1) * 0.35;
 }
 
-// Field palette: the cultivated steppe. Ochre stubble, dull green winter
-// cereal, dark fallow, straw. Luminance kept tight — high variance makes
-// whole strip-regions read as dark bands from map altitude.
-const FIELD_COLORS = ['#b08942', '#8a652e', '#4e3018', '#c4a056', '#9a7438', '#6e4e24'].map(rgb);
-const GRASS = rgb('#7e8648');
-// Forests must stay clearly lighter than water — dark green + blue fog reads
-// as lake at map scale.
-const FOREST_FLOOR = rgb('#5a6c38');
-const FOREST_DEEP = rgb('#46582c');
-const MARSH = rgb('#6a7044');
-const URBAN = rgb('#8a8478');
-const URBAN_DARK = rgb('#6a655c');
+// Field palette: the cultivated steppe. Ochre stubble, winter cereal, straw.
+// Dark fallow (#4e3018) is gone — it read as a charcoal band from altitude,
+// and the northern forest rows piled on top of it into a hole.
+const FIELD_COLORS = ['#c4a056', '#a07838', '#8a6030', '#d4b46a', '#b08a48', '#8e6c34'].map(rgb);
+const GRASS = rgb('#8e9258');
+// Forests stay lighter than water, and light enough that rain + AO cannot
+// drop a woodland hex into a grey hole.
+const FOREST_FLOOR = rgb('#7a864c');
+const FOREST_DEEP = rgb('#667444');
+const MARSH = rgb('#7a8054');
+const URBAN = rgb('#9a9488');
+const URBAN_DARK = rgb('#7a756c');
 const SEA_FLOOR = rgb('#2a3a4a');
-const BEACH = rgb('#a08854');
+const BEACH = rgb('#b09864');
+/** Midground khaki the north must match under rain. */
+export const KHAKI_FIELD = rgb('#c8b06a');
 
 // Strip-field pattern: long bands with a regional orientation, broken into
 // parcels along their length.
@@ -89,8 +91,34 @@ function fieldColor(wx: number, wz: number): RGB {
   let c = FIELD_COLORS[pick];
   // Soft edge darkening between strips (field boundaries / shelter belts).
   const edge = Math.abs(u / stripW - Math.round(u / stripW));
-  if (edge < 0.06) c = mix(c, FOREST_DEEP, 0.45 * (1 - edge / 0.06));
+  if (edge < 0.06) c = mix(c, FOREST_DEEP, 0.22 * (1 - edge / 0.06));
   return c;
+}
+
+/**
+ * North / high-ground lift toward midground khaki. wz=0 is north (camera
+ * looks that way from the scar). Without this the geodata forest rows at
+ * the top of the grid read as a charcoal hole once rain, AO and vignette
+ * pile on. Pure — the painter and the gate test share it.
+ */
+export function northSoilLift(wz: number, heightMetres: number): number {
+  const lat = 1 - Math.min(1, Math.max(0, wz / WORLD_H));
+  // Midground stays a strip-field. Lift concentrates on the far north.
+  const north = 0.04 + 0.34 * smooth(0.42, 0.94, lat);
+  const height = 0.08 * smooth(140, 300, heightMetres);
+  return Math.min(0.46, north + height);
+}
+
+export function applySoilContinuity(c: RGB, wz: number, heightMetres: number): RGB {
+  const lift = northSoilLift(wz, heightMetres);
+  let out = mix(c, KHAKI_FIELD, lift);
+  const luma = 0.2126 * out.r + 0.7152 * out.g + 0.0722 * out.b;
+  const floor = 88 + 28 * (1 - Math.min(1, Math.max(0, wz / WORLD_H)));
+  if (luma < floor) {
+    const k = floor / Math.max(1, luma);
+    out = { r: out.r * k, g: out.g * k, b: out.b * k };
+  }
+  return out;
 }
 
 export function paintAlbedo(): { canvas: HTMLCanvasElement; texW: number; texH: number } {
@@ -126,7 +154,7 @@ export function paintAlbedo(): { canvas: HTMLCanvasElement; texW: number; texH: 
         // tree instances carry that signal instead.
         const tree = fracAtWorld(wx, wz, 0);
         const fnoise = noise2(wx * 0.9, wz * 0.9, 31);
-        const fmask = smooth(0.4, 0.72, tree + (fnoise - 0.5) * 0.3) * 0.8;
+        const fmask = smooth(0.48, 0.82, tree + (fnoise - 0.5) * 0.22) * 0.48;
         if (fmask > 0) {
           const depth = mix(FOREST_FLOOR, FOREST_DEEP, noise2(wx * 2.2, wz * 2.2, 47));
           c = mix(c, depth, fmask);
@@ -134,7 +162,7 @@ export function paintAlbedo(): { canvas: HTMLCanvasElement; texW: number; texH: 
         // Wetland.
         const wet = fracAtWorld(wx, wz, 4);
         const wmask = smooth(0.18, 0.5, wet + (noise2(wx, wz, 53) - 0.5) * 0.2);
-        if (wmask > 0) c = mix(c, MARSH, wmask * 0.85);
+        if (wmask > 0) c = mix(c, MARSH, wmask * 0.55);
         // Urban concrete with speckle.
         const urb = fracAtWorld(wx, wz, 1);
         const umask = smooth(0.12, 0.42, urb + (noise2(wx * 1.6, wz * 1.6, 61) - 0.5) * 0.12);
@@ -142,11 +170,13 @@ export function paintAlbedo(): { canvas: HTMLCanvasElement; texW: number; texH: 
           const speck = noise2(wx * 6, wz * 6, 67);
           c = mix(c, speck > 0.55 ? URBAN_DARK : URBAN, umask);
         }
-        // Macro variation so the plain never reads flat.
-        const macro = (noise2(wx * 0.22, wz * 0.22, 71) - 0.5) * 0.2;
+        // Macro variation so the plain never reads flat — kept tight so
+        // dark lobes cannot become a north hole.
+        const macro = (noise2(wx * 0.22, wz * 0.22, 71) - 0.5) * 0.1;
         c = { r: c.r * (1 + macro), g: c.g * (1 + macro), b: c.b * (1 + macro) };
-        // Subtle valley darkening (moisture in low ground).
-        if (m < 90) c = mix(c, MARSH, 0.12 * (1 - m / 90));
+        // Subtle valley moisture — lift, do not bury.
+        if (m < 90) c = mix(c, MARSH, 0.04 * (1 - m / 90));
+        c = applySoilContinuity(c, wz, m);
       }
 
       const o = (py * TEX_W + px) * 4;

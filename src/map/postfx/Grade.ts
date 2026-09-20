@@ -38,11 +38,11 @@ export interface GradeParams {
 
 // The film stocks.
 export const WEATHER_GRADE: Record<WeatherType, GradeParams> = {
-  clear:    { temp: 0.38,  tintG: 0.05,  sat: 1.14, contrast: 1.1, lift: 0.006 },
-  overcast: { temp: 0.12,  tintG: 0.04,  sat: 1.02, contrast: 1.04, lift: 0.014 },
-  rain:     { temp: 0.08,  tintG: 0.03,  sat: 0.98, contrast: 1.02, lift: 0.02 },
-  mud:      { temp: 0.2,   tintG: 0.08,  sat: 0.98, contrast: 1.03, lift: 0.014 },
-  snow:     { temp: -0.14, tintG: 0.0,   sat: 0.92, contrast: 1.06, lift: 0.022 },
+  clear:    { temp: 0.38,  tintG: 0.05,  sat: 1.14, contrast: 1.1, lift: 0.008 },
+  overcast: { temp: 0.16,  tintG: 0.05,  sat: 1.02, contrast: 1.03, lift: 0.016 },
+  rain:     { temp: 0.2,   tintG: 0.05,  sat: 1.0, contrast: 1.01, lift: 0.022 },
+  mud:      { temp: 0.22,  tintG: 0.08,  sat: 1.0, contrast: 1.02, lift: 0.016 },
+  snow:     { temp: -0.12, tintG: 0.0,   sat: 0.92, contrast: 1.05, lift: 0.022 },
 };
 
 export class GradeEffect extends Effect {
