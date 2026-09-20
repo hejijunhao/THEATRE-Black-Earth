@@ -63,6 +63,15 @@ describe('selectTile issues a march', () => {
     expect(after.game!.units.u3.tile).toBe(origin);
   });
 
+  it('can force counters off so machine gates are not plated', () => {
+    localStorage.setItem('tbe-counters', '1');
+    useStore.getState().setCounterMode(true);
+    expect(useStore.getState().counterMode).toBe(true);
+    useStore.getState().setCounterMode(false);
+    expect(useStore.getState().counterMode).toBe(false);
+    expect(localStorage.getItem('tbe-counters')).toBe('0');
+  });
+
   it('selects another friendly formation instead of moving onto it', () => {
     useStore.getState().selectUnit('u1');
     const other = useStore.getState().game!.units.u2;
