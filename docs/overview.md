@@ -140,7 +140,7 @@ src/
     data/terrainData.ts  generated heightfield + land-cover fractions
 
   ui/                  ── HUD (map-table design system) ──
-    TopBar (Vic3-thin chip strip) · Outliner (sector week-runner) · CommandBar (selected only)
+    TopBar (Vic3-thin chip strip) · Outliner (Next chip at rest; sector list on select/open) · CommandBar (selected only)
     Journal / VictoryClock / SidePanel on demand · TurnCard
     Modals (briefing events) · Notifications · icons.tsx
     AIOverlay · Tutorial · MainMenu (live-map backdrop) · AssetsView (#assets)
@@ -400,7 +400,7 @@ Ukrainian decisive victory at turn 21. Swingy, but plausible by design.
 | Board reach / frontline telegraph | [`map/Overlays.tsx`](../src/map/Overlays.tsx) + [`map/Frontline.tsx`](../src/map/Frontline.tsx) + [`map/boardTelegraph.ts`](../src/map/boardTelegraph.ts) — decorative meshes stay `raycast={() => null}` |
 | Campaign LOD / boot camera / plate caps | [`map/lod.ts`](../src/map/lod.ts) — plates must fit a hex; select is a ring, not a card |
 | Assault briefing / command bench | [`ui/AssaultBriefing.tsx`](../src/ui/AssaultBriefing.tsx) + [`ui/CommandBar.tsx`](../src/ui/CommandBar.tsx) |
-| Formations outliner / ops rail | [`ui/Outliner.tsx`](../src/ui/Outliner.tsx) · sectors in [`ui/boardChrome.ts`](../src/ui/boardChrome.ts) |
+| Formations outliner / ops rail | [`ui/Outliner.tsx`](../src/ui/Outliner.tsx) · rest chip in [`ui/outlinerChrome.ts`](../src/ui/outlinerChrome.ts) · sectors in [`ui/boardChrome.ts`](../src/ui/boardChrome.ts) |
 | Victory clock | [`ui/VictoryClock.tsx`](../src/ui/VictoryClock.tsx) + [`ui/theatreBalance.ts`](../src/ui/theatreBalance.ts) |
 | Bound journal | [`ui/Journal.tsx`](../src/ui/Journal.tsx) + [`ui/journalChronology.ts`](../src/ui/journalChronology.ts) |
 | Encyclopedia copy | [`ui/lexicon.ts`](../src/ui/lexicon.ts) |

@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.26](#0226--2026-09-17--slice-6-hud-outliner) | 2026-09-17 | Slice 6 — HUD outliner | rest-frame Next chip, list on select/open |
 | [0.2.25](#0225--2026-09-17--slice-6-hud-header) | 2026-09-17 | Slice 6 — HUD header | Vic3-thin strip, no wordmark, icon chips |
 | [0.2.24](#0224--2026-09-17--slice-6-hud-dice-strip) | 2026-09-17 | Slice 6 — HUD dice-strip | estimate+AAR numbers only, no die faces |
 | [0.2.23](#0223--2026-09-17--slice-5-reach-polygon) | 2026-09-17 | Slice 5 — reach polygon | tile-union Shape, secondary interior, no disc soup |
@@ -44,6 +45,22 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.26] — 2026-09-17 · Slice 6 — HUD outliner
+
+Presentation only. Rest-frame outliner subtractive. Header (0.2.25), combat paper, reach, ground, atmosphere and units stay locked. No new rules.
+
+Phil: left NEXT / OOB still eats the map at rest. Vic 3 / HOI4 collapse the outliner at peace. Named tip after header CLEAR.
+
+This cut:
+
+- **Rest is a Next chip** — kicker + type glyph + remaining count + a chevron. No full-height sector wall. The map keeps the left third.
+- **Select or open mounts the week-runner.** Map click, `N`, or Next opens the sector list. The chevron opens the same list without selecting; collapse returns to the chip.
+- **Combat paper keeps the thin rail** from 0.2.13. Header strip is untouched.
+
+Notes under `docs/refs/paradox/outliner/` (Vic 3 outliner fold / HOI4 army list at peace). Live Paradox shots are still TODO — did not invent a second icon stack or a multi-category folder tree to fake them.
+
+The campaign, map, AI, supply and combat math are unchanged.
 
 ## [0.2.25] — 2026-09-17 · Slice 6 — HUD header
 
