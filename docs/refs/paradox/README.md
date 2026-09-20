@@ -28,9 +28,9 @@ docs/refs/paradox/
 4. Update `FEATURE-MAP.md` when adding a feature.
 5. These are **reference art**, not shippable assets. Keep under `docs/refs/` so they never hit the runtime bundle.
 
-## Header (seeded)
+## Header (tipped)
 
-Target: thin strip, flag left, icon+number resource chips, week/weather chip, settings right — **no THEATRE wordmark banner** on the play HUD.
+Target: thin strip, flag left, icon+number resource chips, week/weather chip, settings right — **no THEATRE wordmark banner** on the play HUD. 0.2.25 ships that language. Live Vic 3 shots still TODO; notes record the honest delta.
 
 ## Combat paper (seeded)
 

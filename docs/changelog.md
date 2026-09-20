@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.25](#0225--2026-09-17--slice-6-hud-header) | 2026-09-17 | Slice 6 — HUD header | Vic3-thin strip, no wordmark, icon chips |
 | [0.2.24](#0224--2026-09-17--slice-6-hud-dice-strip) | 2026-09-17 | Slice 6 — HUD dice-strip | estimate+AAR numbers only, no die faces |
 | [0.2.23](#0223--2026-09-17--slice-5-reach-polygon) | 2026-09-17 | Slice 5 — reach polygon | tile-union Shape, secondary interior, no disc soup |
 | [docs-combat-paper](#docs-combat-paper--2026-09-20--paradox-combat-paper-pack) | 2026-09-20 | docs | combat-paper NOTES, Vic3/EU5 shots |
@@ -43,6 +44,25 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.25] — 2026-09-17 · Slice 6 — HUD header
+
+Presentation only. Slice 6 play header only. Ground, atmosphere, units, board chrome / reach, and combat paper stay locked. No new rules.
+
+Phil: Paradox-style play header — thin, icon chips, no wordmark. Named tip after dice-strip CLEAR.
+
+This cut:
+
+- **Kills the THEATRE wordmark** on the play strip. Left is a faction mark (`UA` / `RU` + two-band chip) and the decisive-city beads. Menu title is unchanged.
+- **Week + weather is one chip** (weather glyph + `W{n}` + weather word). Phase / month live in the tooltip, not as extra cells.
+- **Resources are icon + number** (manpower, equipment, command). Labels stay in the depot flyout.
+- **Settings / menu sit on the right** as icons. Journal, dossier, ops, reserves are icon-only so they do not become a labeled toolbar. End is a compact chip.
+
+Strip height is 32px. Hanging furniture (clock, journal, rail, flyouts) follows `--play-header-h` so the map keeps the extra pixels.
+
+Notes under `docs/refs/paradox/header/` (Vic 3 flag + resource chips / HOI4 info bar). Live Paradox shots are still TODO — did not invent a second row or a speed cluster to fake them.
+
+The campaign, map, AI, supply and combat math are unchanged.
 
 ## [0.2.24] — 2026-09-17 · Slice 6 — HUD dice-strip
 
