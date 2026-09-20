@@ -237,11 +237,12 @@ export function TerrainMesh() {
             // chernozem lands in that gate and comes back a mustard plate.
             // Park the scar on chromatic umber (sat above the veil, luma
             // below mustard) and leave loft on the far grid.
-            vec3 umber = vec3(0.155, 0.082, 0.034);
-            float litL0 = dot(outgoingLight, vec3(0.2126, 0.7152, 0.0722));
-            vec3 scar = mix(umber, outgoingLight, clamp(litL0 * 3.4, 0.0, 0.45));
+            vec3 soilHue = uSoilGround;
+            float soilL = dot(soilHue, vec3(0.2126, 0.7152, 0.0722));
+            vec3 scar = soilHue * (0.128 / max(soilL, 0.002));
             float scarL = dot(scar, vec3(0.2126, 0.7152, 0.0722));
-            scar = mix(vec3(scarL), scar, 1.85);
+            scar = mix(vec3(scarL), scar, 1.28);
+            scar = mix(scar, vec3(0.125, 0.088, 0.048), 0.18);
             outgoingLight = mix(scar, outgoingLight, keepLit);
             float litL = dot(outgoingLight, vec3(0.2126, 0.7152, 0.0722));
             float floorLit = 0.26 * keepLit;
