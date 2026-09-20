@@ -58,6 +58,10 @@ interface StoreState {
   hoverLexiconId: string | null;
   lastLexiconId: string | null;
   pinnedLexiconId: string | null;
+  /** On-demand chrome. Closed at rest — the map is the hero. */
+  showJournal: boolean;
+  showDossier: boolean;
+  showTheatreClock: boolean;
   aiSpeed: number;
   cameraFocus: { tile: TileId; seq: number } | null;
   endTurnWarningsList: string[] | null;
@@ -94,6 +98,12 @@ interface StoreState {
   dismissCombat: () => void;
   hoverLexicon: (id: string | null) => void;
   pinLexicon: (id: string | null) => void;
+  toggleJournal: () => void;
+  toggleDossier: () => void;
+  toggleTheatreClock: () => void;
+  setShowJournal: (show: boolean) => void;
+  setShowDossier: (show: boolean) => void;
+  setShowTheatreClock: (show: boolean) => void;
 
   // events & turn flow
   chooseEventOption: (index: number) => void;
@@ -153,6 +163,9 @@ export const useStore = create<StoreState>((set, get) => {
     hoverLexiconId: null,
     lastLexiconId: null,
     pinnedLexiconId: null,
+    showJournal: false,
+    showDossier: false,
+    showTheatreClock: false,
     aiSpeed: 900,
     cameraFocus: null,
     endTurnWarningsList: null,
@@ -178,19 +191,47 @@ export const useStore = create<StoreState>((set, get) => {
         lastAILog: null,
         tutorialEnabled: tutorial,
         cameraFocus: null,
+        showJournal: false,
+        showDossier: false,
+        showTheatreClock: false,
+        pinnedLexiconId: null,
       });
     },
 
     continueCampaign: () => {
       const state = loadAutosave();
       if (!state) return;
-      set({ game: state, screen: 'game', selectedUnitId: null, selectedTileId: null, interactionMode: 'idle', lastCombat: null, lastAILog: null });
+      set({
+        game: state,
+        screen: 'game',
+        selectedUnitId: null,
+        selectedTileId: null,
+        interactionMode: 'idle',
+        lastCombat: null,
+        lastAILog: null,
+        showJournal: false,
+        showDossier: false,
+        showTheatreClock: false,
+        pinnedLexiconId: null,
+      });
     },
 
     loadFromSlot: (n) => {
       const state = loadSlot(n);
       if (!state) return;
-      set({ game: state, screen: 'game', selectedUnitId: null, selectedTileId: null, interactionMode: 'idle', lastCombat: null, lastAILog: null });
+      set({
+        game: state,
+        screen: 'game',
+        selectedUnitId: null,
+        selectedTileId: null,
+        interactionMode: 'idle',
+        lastCombat: null,
+        lastAILog: null,
+        showJournal: false,
+        showDossier: false,
+        showTheatreClock: false,
+        pinnedLexiconId: null,
+      });
     },
 
     saveToSlot: (n) => {
@@ -217,7 +258,13 @@ export const useStore = create<StoreState>((set, get) => {
         return;
       }
       if (tile === null) {
-        set({ selectedTileId: null, selectedUnitId: null, interactionMode: 'idle', pendingAttackId: null });
+        set({
+          selectedTileId: null,
+          selectedUnitId: null,
+          interactionMode: 'idle',
+          pendingAttackId: null,
+          showDossier: false,
+        });
         return;
       }
       const unit = unitOnTile(game, tile);
@@ -244,7 +291,13 @@ export const useStore = create<StoreState>((set, get) => {
           return;
         }
       }
-      set({ selectedTileId: tile, selectedUnitId: null, interactionMode: 'idle', pendingAttackId: null });
+      set({
+        selectedTileId: tile,
+        selectedUnitId: null,
+        interactionMode: 'idle',
+        pendingAttackId: null,
+        showDossier: false,
+      });
     },
 
     setPendingAttack: (unitId) => set({ pendingAttackId: unitId }),
@@ -252,7 +305,7 @@ export const useStore = create<StoreState>((set, get) => {
     selectUnit: (unitId) => {
       const game = get().game;
       if (!game || !unitId) {
-        set({ selectedUnitId: null });
+        set({ selectedUnitId: null, showDossier: false });
         return;
       }
       const unit = game.units[unitId];
@@ -377,6 +430,12 @@ export const useStore = create<StoreState>((set, get) => {
       ? { hoverLexiconId: id, lastLexiconId: id }
       : { hoverLexiconId: null }),
     pinLexicon: (id) => set({ pinnedLexiconId: id }),
+    toggleJournal: () => set((s) => ({ showJournal: !s.showJournal })),
+    toggleDossier: () => set((s) => ({ showDossier: !s.showDossier })),
+    toggleTheatreClock: () => set((s) => ({ showTheatreClock: !s.showTheatreClock })),
+    setShowJournal: (show) => set({ showJournal: show }),
+    setShowDossier: (show) => set({ showDossier: show }),
+    setShowTheatreClock: (show) => set({ showTheatreClock: show }),
 
     chooseEventOption: (index) => {
       mutate((draft) => {
@@ -416,6 +475,8 @@ export const useStore = create<StoreState>((set, get) => {
         selectedUnitId: null,
         interactionMode: 'idle',
         lastCombat: null,
+        showDossier: false,
+        showTheatreClock: false,
       });
     },
 
