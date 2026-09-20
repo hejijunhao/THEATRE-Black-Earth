@@ -35,8 +35,9 @@ export function Tip({ title, text, children, block, lexicon, now }: TipProps) {
               top: Math.min(pos.y + 16, window.innerHeight - 200),
             }}
           >
+            {staff && <div className="tt-kicker">Doctrine</div>}
             {title && <div className="tt-title">{title}</div>}
-            {typeof text === 'string' ? <p>{text}</p> : text}
+            {typeof text === 'string' ? <p className="tt-doctrine">{text}</p> : text}
             {now && <p className="tt-now">Now: {now}</p>}
           </div>,
           document.body,

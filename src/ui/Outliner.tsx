@@ -1,10 +1,11 @@
 // Army instrument: CONTACT / MARCH / SPENT, type + strength + assault.
-// Stays dimmed-alive under the briefing. Hover lights the hex.
+// Stays present (thin rail) under the briefing. Hover lights the hex.
 
 import { UNIT_DEFS } from '../game/data/defs';
 import { useStore } from '../game/state/store';
 import { GameState, Unit } from '../game/types';
-import { unitOrders } from './boardChrome';
+import { AgencyKind, agencyKind, boardChrome, unitOrders } from './boardChrome';
+import { Ico } from './icons';
 import { abbreviate } from '../map/textures';
 
 type RowKind = 'contact' | 'march' | 'spent';
@@ -16,14 +17,6 @@ function kindOf(unit: Unit, game: GameState): RowKind {
   return 'spent';
 }
 
-function typeGlyph(type: Unit['type']): string {
-  return type === 'infantry' ? '×'
-    : type === 'mechanized' ? '○×'
-    : type === 'armored' ? '○'
-    : type === 'artillery' ? '●'
-    : '/';
-}
-
 function strengthTone(strength: number): string {
   return strength > 65 ? 'good' : strength > 35 ? 'warn' : 'bad';
 }
@@ -33,6 +26,22 @@ const KIND_LABEL: Record<RowKind, string> = {
   march: 'March',
   spent: 'Spent',
 };
+
+function AgencyMark({ kind }: { kind: AgencyKind }) {
+  if (kind === 'assault') {
+    return <span className="or-mark assault" title="Can assault" aria-hidden><i /></span>;
+  }
+  if (kind === 'contact') {
+    return <span className="or-mark contact" title="In contact" aria-hidden><i /><i /></span>;
+  }
+  if (kind === 'spent') {
+    return <span className="or-mark spent" title="Spent" aria-hidden />;
+  }
+  if (kind === 'selected') {
+    return <span className="or-mark selected" title="Selected" aria-hidden />;
+  }
+  return <span className="or-mark idle" aria-hidden />;
+}
 
 export function Outliner() {
   const game = useStore((s) => s.game);
@@ -48,7 +57,17 @@ export function Outliner() {
 
   const mine = Object.values(game.units).filter((u) => u.faction === game.playerFaction);
   const rows = mine
-    .map((u) => ({ unit: u, kind: kindOf(u, game), orders: unitOrders(game, u) }))
+    .map((u) => {
+      const orders = unitOrders(game, u);
+      const chrome = boardChrome(game, u, false);
+      const selected = u.id === selectedUnitId;
+      return {
+        unit: u,
+        kind: kindOf(u, game),
+        orders,
+        mark: agencyKind(chrome, selected),
+      };
+    })
     .sort((a, b) => {
       const rank = { contact: 0, march: 1, spent: 2 };
       const d = rank[a.kind] - rank[b.kind];
@@ -60,10 +79,11 @@ export function Outliner() {
   const nContact = rows.filter((r) => r.kind === 'contact').length;
   const nMarch = rows.filter((r) => r.kind === 'march').length;
   const nSpent = rows.filter((r) => r.kind === 'spent').length;
+  const briefing = Boolean(pendingAttackId);
 
   return (
     <div
-      className={`outliner panel${pendingAttackId ? ' dimmed' : ''}`}
+      className={`outliner panel${briefing ? ' rail' : ''}`}
       role="navigation"
       aria-label="Formations"
     >
@@ -78,7 +98,7 @@ export function Outliner() {
           return (
             <div key={g} className="outliner-group">
               <div className="outliner-kicker">{KIND_LABEL[g]}</div>
-              {inG.map(({ unit, kind, orders }) => (
+              {inG.map(({ unit, kind, orders, mark }) => (
                 <button
                   key={unit.id}
                   type="button"
@@ -90,7 +110,10 @@ export function Outliner() {
                     focusCamera(unit.tile);
                   }}
                 >
-                  <span className="or-glyph" title={UNIT_DEFS[unit.type].label}>{typeGlyph(unit.type)}</span>
+                  <AgencyMark kind={mark} />
+                  <span className="or-type" title={UNIT_DEFS[unit.type].label}>
+                    <Ico name={unit.type} size={12} />
+                  </span>
                   <span className="or-name">{abbreviate(unit.name, unit.type)}</span>
                   <span className={`or-str ${strengthTone(unit.strength)}`} aria-label={`strength ${Math.round(unit.strength)}`}>
                     <i style={{ width: `${Math.max(8, unit.strength)}%` }} />

@@ -1,0 +1,57 @@
+import { describe, expect, it } from 'vitest';
+import { rankReasons, reasonCopy, reasonWeight } from '../briefingCopy';
+import { bindChronology, parseDice } from '../journalChronology';
+import { CombatFactor, NotificationEntry } from '../../game/types';
+
+function factor(label: string, value: number): CombatFactor {
+  return { label, value, side: value < 0 ? 'attacker' : 'defender' };
+}
+
+describe('staff estimate ranking', () => {
+  it('keeps at most five named reasons and drops noise', () => {
+    const ranked = rankReasons([
+      factor('Terrain (Urban)', 0.4),
+      factor('Entrenchment (2)', 0.24),
+      factor('Weather (Mud)', -0.15),
+      factor('Attacker supply (strained)', -0.12),
+      factor('Artillery support', 0.08),
+      factor('Veterancy', 0.05),
+      factor('Tiny', 0.02),
+    ]);
+    expect(ranked).toHaveLength(5);
+    expect(ranked[0].label).toMatch(/Urban/);
+    expect(ranked.some((f) => f.label === 'Tiny')).toBe(false);
+    expect(ranked.every((f) => Math.abs(f.value) >= 0.04)).toBe(true);
+  });
+
+  it('writes named copy, not a percentage dump', () => {
+    const copy = reasonCopy(factor('Entrenchment (2)', 0.24));
+    expect(copy).toMatch(/dug in/i);
+    expect(copy).not.toMatch(/%/);
+    expect(reasonCopy(factor('River assault', -0.3))).toMatch(/wet bank/i);
+    expect(reasonWeight(factor('Terrain (Urban)', 0.4))).toBe(1);
+    expect(reasonWeight(factor('Weather (Mud)', -0.15))).toBeLessThan(1);
+  });
+});
+
+describe('bound journal chronology', () => {
+  it('parses 2d6 from combat lines', () => {
+    expect(parseDice('57th hits 20th MRD — 2d6 9–5')).toEqual({ atk: 9, def: 5 });
+    expect(parseDice('Fires on the ridge — 2d6 7 vs 4')).toEqual({ atk: 7, def: 4 });
+    expect(parseDice('Melitopol taken')).toEqual({});
+  });
+
+  it('groups newest week first and keeps dice on combat', () => {
+    const notes: NotificationEntry[] = [
+      { id: 1, turn: 1, kind: 'info', text: 'Week opens.' },
+      { id: 2, turn: 1, kind: 'combat', text: '57th against 20th MRD — 2d6 8–6' },
+      { id: 3, turn: 2, kind: 'capture', text: 'Melitopol taken' },
+    ];
+    const weeks = bindChronology(notes, 10);
+    expect(weeks.map((w) => w.turn)).toEqual([2, 1]);
+    expect(weeks[0].lines[0].kind).toBe('capture');
+    const fight = weeks[1].lines.find((l) => l.kind === 'combat');
+    expect(fight?.atk).toBe(8);
+    expect(fight?.def).toBe(6);
+  });
+});

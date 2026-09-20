@@ -15,12 +15,19 @@ export interface ClockNeedle {
   tone: Tone;
 }
 
+export interface DecisiveCity {
+  id: string;
+  name: string;
+  held: boolean;
+}
+
 export interface TheatreBalance {
   headline: ClockHeadline;
   line: string;
   cities: ClockNeedle & { held: number; start: number; delta: number; decisiveHeld: number; decisiveTotal: number };
   support: ClockNeedle & { own: number; foe: number };
   army: ClockNeedle & { ownStrength: number; foeStrength: number; ownCount: number; foeCount: number; fighting: number; spent: number };
+  decisiveCities: DecisiveCity[];
 }
 
 function needleTone(tone: Tone): Tone {
@@ -36,11 +43,16 @@ export function theatreBalance(game: GameState): TheatreBalance {
   const held = heldVP(game, player);
   const start = startVP(game, player);
   const decisiveIds = game.scenario.decisive[player];
-  const decisiveHeld = decisiveIds.filter((id) => {
+  const decisiveCities: DecisiveCity[] = decisiveIds.map((id) => {
     const city = game.cities[id];
-    return city && game.tiles[city.tile].controller === player;
-  }).length;
-  const decisiveTotal = decisiveIds.length;
+    return {
+      id,
+      name: city?.name ?? id,
+      held: Boolean(city && game.tiles[city.tile].controller === player),
+    };
+  });
+  const decisiveHeld = decisiveCities.filter((c) => c.held).length;
+  const decisiveTotal = decisiveCities.length;
   const cityCopy = citiesNow(held, start, decisiveHeld, decisiveTotal);
 
   const ownWS = game.factions[player].warSupport;
@@ -112,5 +124,6 @@ export function theatreBalance(game: GameState): TheatreBalance {
       fighting,
       spent,
     },
+    decisiveCities,
   };
 }
