@@ -131,13 +131,13 @@ src/
     postfx/            SSAO · bloom · per-weather grade · vignette
     Presentation.tsx   supply flow lines · battle wear · combat moment ·
                        city landmarks
-    Units.tsx          miniatures + standards near, v1 counters far (Tab)
+    Units.tsx          mid-zoom machines + standards; counters at theatre height (Tab)
     Frontline/Decorations/Overlays/Weather · CameraRig.tsx
     palette.ts · textures.ts (counters, standards, labels)
     data/terrainData.ts  generated heightfield + land-cover fractions
 
   ui/                  ── HUD (map-table design system) ──
-    TopBar (instrument strip) · Outliner (week-runner rail) · CommandBar (selected only)
+    TopBar (milled instrument strip) · Outliner (sector week-runner) · CommandBar (selected only)
     Journal / VictoryClock / SidePanel on demand · TurnCard
     Modals (briefing events) · Notifications · icons.tsx
     AIOverlay · Tutorial · MainMenu (live-map backdrop) · AssetsView (#assets)
@@ -394,7 +394,7 @@ Ukrainian decisive victory at turn 21. Swingy, but plausible by design.
 | HUD layout / styling | [`ui/styles.css`](../src/ui/styles.css) + component |
 | Board selection chrome (MP / spent / contact) | [`map/Units.tsx`](../src/map/Units.tsx) + [`map/textures.ts`](../src/map/textures.ts) + [`ui/boardChrome.ts`](../src/ui/boardChrome.ts) |
 | Assault briefing / command bench | [`ui/AssaultBriefing.tsx`](../src/ui/AssaultBriefing.tsx) + [`ui/CommandBar.tsx`](../src/ui/CommandBar.tsx) |
-| Formations outliner / ops rail | [`ui/Outliner.tsx`](../src/ui/Outliner.tsx) |
+| Formations outliner / ops rail | [`ui/Outliner.tsx`](../src/ui/Outliner.tsx) · sectors in [`ui/boardChrome.ts`](../src/ui/boardChrome.ts) |
 | Victory clock | [`ui/VictoryClock.tsx`](../src/ui/VictoryClock.tsx) + [`ui/theatreBalance.ts`](../src/ui/theatreBalance.ts) |
 | Bound journal | [`ui/Journal.tsx`](../src/ui/Journal.tsx) + [`ui/journalChronology.ts`](../src/ui/journalChronology.ts) |
 | Encyclopedia copy | [`ui/lexicon.ts`](../src/ui/lexicon.ts) |

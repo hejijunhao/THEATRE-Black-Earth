@@ -11,9 +11,9 @@ import { LEXICON } from './lexicon';
 import { LexiconTip, Tip } from './Tip';
 
 const MAP_MODES: Array<{ id: MapMode; label: string; lexicon?: keyof typeof LEXICON; tip?: string }> = [
+  { id: 'terrain', label: 'Terrain', lexicon: 'terrain' },
   { id: 'political', label: 'Political', tip: 'Territorial control and the frontline.' },
   { id: 'supply', label: 'Supply', lexicon: 'supply' },
-  { id: 'terrain', label: 'Terrain', lexicon: 'terrain' },
   { id: 'objectives', label: 'Objectives', lexicon: 'cities' },
   { id: 'intel', label: 'Intelligence', tip: 'Observed sectors are bright; dark areas rely on stale or absent intelligence.' },
 ];

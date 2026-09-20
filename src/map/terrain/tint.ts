@@ -15,7 +15,7 @@ const UA = new THREE.Color(FACTION_TINT.UA);
 const RU = new THREE.Color(FACTION_TINT.RU);
 // Off-map fade colour: LIGHT haze (mist over the unmodeled beyond), never
 // dark — darkness reads as ocean at map scale.
-const FOG_FAR = new THREE.Color('#9a9d94');
+const FOG_FAR = new THREE.Color('#b4ae94');
 const SUPPLY_CUT = new THREE.Color('#7d2f2f');
 const SUPPLY_LOW = new THREE.Color('#274a33');
 const SUPPLY_GOOD = new THREE.Color('#7fae7a');

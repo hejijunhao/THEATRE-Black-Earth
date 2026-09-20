@@ -16,7 +16,7 @@ const FRAG = /* glsl */ `
 
   void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
     vec3 c = inputColor.rgb;
-    c *= 1.18; // gain: reclaim what the composer chain takes
+    c *= 1.12; // gain: reclaim what the composer chain takes
     c.r *= 1.0 + uTemp * 0.085;
     c.b *= 1.0 - uTemp * 0.085;
     c.g *= 1.0 + uTintG * 0.05;
@@ -38,11 +38,11 @@ export interface GradeParams {
 
 // The film stocks.
 export const WEATHER_GRADE: Record<WeatherType, GradeParams> = {
-  clear:    { temp: 0.34,  tintG: 0.03,  sat: 1.1, contrast: 1.07, lift: 0.004 },
-  overcast: { temp: -0.05, tintG: 0.0,   sat: 0.93, contrast: 1.0,  lift: 0.02 },
-  rain:     { temp: -0.16, tintG: -0.02, sat: 0.86, contrast: 0.98, lift: 0.03 },
-  mud:      { temp: 0.14,  tintG: 0.09,  sat: 0.86, contrast: 0.97, lift: 0.02 },
-  snow:     { temp: -0.3,  tintG: -0.04, sat: 0.84, contrast: 1.03, lift: 0.05 },
+  clear:    { temp: 0.42,  tintG: 0.06,  sat: 1.18, contrast: 1.14, lift: 0.0 },
+  overcast: { temp: 0.04,  tintG: 0.02,  sat: 1.02, contrast: 1.06, lift: 0.008 },
+  rain:     { temp: -0.08, tintG: 0.0,   sat: 0.94, contrast: 1.04, lift: 0.014 },
+  mud:      { temp: 0.22,  tintG: 0.1,   sat: 0.96, contrast: 1.05, lift: 0.008 },
+  snow:     { temp: -0.22, tintG: -0.02, sat: 0.9,  contrast: 1.08, lift: 0.02 },
 };
 
 export class GradeEffect extends Effect {

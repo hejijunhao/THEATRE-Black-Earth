@@ -55,10 +55,10 @@ const FACTION_RAIL: Record<'UA' | 'RU', string> = {
   UA: '#3d5a82',
   RU: '#6e3c34',
 };
-const PAPER = '#3c3930';
-const PAPER_SPENT = '#26241e';
-const INK = '#efe6d0';
-const INK_DIM = '#8a8474';
+const PAPER = '#35322a';
+const PAPER_SPENT = '#221f1a';
+const INK = '#f6eed6';
+const INK_DIM = '#8e8776';
 
 function paperGrain(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): void {
   const img = ctx.getImageData(x, y, w, h);
@@ -69,7 +69,7 @@ function paperGrain(ctx: CanvasRenderingContext2D, x: number, y: number, w: numb
     const py = (p / w) | 0;
     let n = Math.imul(px * 374761393 + py * 668265263, 1274126177);
     n = ((n ^ (n >>> 13)) >>> 0) / 4294967296;
-    const k = (n - 0.5) * 18;
+    const k = (n - 0.5) * 26;
     d[i] = Math.max(0, Math.min(255, d[i] + k));
     d[i + 1] = Math.max(0, Math.min(255, d[i + 1] + k * 0.92));
     d[i + 2] = Math.max(0, Math.min(255, d[i + 2] + k * 0.8));
@@ -82,8 +82,8 @@ function plateBevel(ctx: CanvasRenderingContext2D, x: number, y: number, w: numb
   ctx.beginPath();
   ctx.roundRect(x, y, w, h, r);
   ctx.clip();
-  ctx.strokeStyle = 'rgba(255, 245, 220, 0.16)';
-  ctx.lineWidth = 3;
+  ctx.strokeStyle = 'rgba(255, 245, 220, 0.28)';
+  ctx.lineWidth = 4;
   ctx.beginPath();
   ctx.moveTo(x + 2, y + h - 4);
   ctx.lineTo(x + 2, y + 2);
@@ -165,18 +165,23 @@ function drawMpStamp(
 ): void {
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = spent ? '#1a1814' : '#3a3018';
+  ctx.fillStyle = spent ? '#1a1814' : '#3c3014';
   ctx.fill();
-  ctx.strokeStyle = spent ? '#5a5648' : '#d4b05a';
-  ctx.lineWidth = Math.max(2, r * 0.12);
+  ctx.strokeStyle = spent ? '#5a5648' : '#e0c46a';
+  ctx.lineWidth = Math.max(3, r * 0.16);
   ctx.stroke();
-  ctx.fillStyle = spent ? '#7a7464' : '#f3ead0';
-  ctx.font = font(MONO, Math.round(r * 0.95), 700);
+  ctx.beginPath();
+  ctx.arc(cx - r * 0.18, cy - r * 0.22, r * 0.55, Math.PI * 1.1, Math.PI * 1.85);
+  ctx.strokeStyle = spent ? 'rgba(255,245,220,0.08)' : 'rgba(255,236,180,0.45)';
+  ctx.lineWidth = Math.max(2, r * 0.1);
+  ctx.stroke();
+  ctx.fillStyle = spent ? '#7a7464' : '#f8efd4';
+  ctx.font = font(MONO, Math.round(r * 1.02), 700);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(mpLabel(mp), cx, cy - r * 0.06);
-  ctx.fillStyle = spent ? '#6d6858' : attacked ? '#d4b05a' : '#c9a352';
-  ctx.font = font(MONO, Math.max(8, Math.round(r * 0.32)), 700);
+  ctx.fillStyle = spent ? '#6d6858' : attacked ? '#d4b05a' : '#d8b45a';
+  ctx.font = font(MONO, Math.max(8, Math.round(r * 0.34)), 700);
   ctx.fillText(spent ? '—' : attacked ? 'ATK' : 'MP', cx, cy + r * 0.52);
 }
 
@@ -226,38 +231,48 @@ export function makeCounterTexture(spec: CounterSpec): THREE.CanvasTexture {
 
   ctx.fillStyle = paper;
   ctx.strokeStyle = edge;
-  ctx.lineWidth = spec.threatened ? 14 : 6;
+  ctx.lineWidth = spec.threatened ? 16 : 8;
   ctx.beginPath();
-  ctx.roundRect(8, 8, w - 16, h - 16, 10);
+  ctx.roundRect(6, 6, w - 12, h - 12, 8);
   ctx.fill();
   ctx.stroke();
-  paperGrain(ctx, 8, 8, w - 16, h - 16);
-  plateBevel(ctx, 8, 8, w - 16, h - 16, 10);
+  paperGrain(ctx, 6, 6, w - 12, h - 12);
+  plateBevel(ctx, 6, 6, w - 12, h - 12, 8);
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.45)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(14, 14, w - 28, h - 28);
   if (spec.spent) {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.32)';
     ctx.beginPath();
-    ctx.roundRect(8, 8, w - 16, h - 16, 10);
+    ctx.roundRect(6, 6, w - 12, h - 12, 8);
     ctx.fill();
   }
 
   // Faction identity is a rail, not a flood — thick enough to read at campaign zoom.
   ctx.fillStyle = spec.spent ? (spec.faction === 'UA' ? '#1c2838' : '#3a201c') : FACTION_RAIL[spec.faction];
-  ctx.fillRect(14, 16, 36, h - 32);
+  ctx.fillRect(12, 14, 42, h - 28);
+  ctx.fillStyle = 'rgba(255, 236, 200, 0.16)';
+  ctx.fillRect(12, 14, 6, h - 28);
   ctx.fillStyle = FACTION_EDGE[spec.faction];
-  ctx.fillRect(48, 16, 4, h - 32);
+  ctx.fillRect(50, 14, 5, h - 28);
 
   if (!spec.ghost && spec.inContact && !spec.selected && !spec.canAttack && !spec.threatened) {
     drawContactTicks(ctx, w, h);
   }
 
   const hasStamp = !spec.ghost && spec.movementMax != null && spec.movement != null;
-  const fx = 68;
-  const fy = 28;
-  const fw = 292;
-  const fh = 168;
+  const fx = 70;
+  const fy = 24;
+  const fw = 288;
+  const fh = 164;
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+  ctx.fillRect(fx + 4, fy + 4, fw, fh);
   ctx.strokeStyle = ink;
-  ctx.lineWidth = 7;
+  ctx.lineWidth = 10;
   ctx.strokeRect(fx, fy, fw, fh);
+  ctx.strokeStyle = 'rgba(20, 16, 10, 0.55)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(fx + 8, fy + 8, fw - 16, fh - 16);
 
   if (spec.ghost && (spec.intelLevel ?? 0) < 2) {
     ctx.fillStyle = ink;
@@ -266,14 +281,14 @@ export function makeCounterTexture(spec: CounterSpec): THREE.CanvasTexture {
     ctx.textBaseline = 'middle';
     ctx.fillText('?', fx + fw / 2, fy + fh / 2 + 4);
   } else {
-    drawSymbol(ctx, spec.type, fx + 28, fy + 18, fw - 56, fh - 36, ink, 10);
+    drawSymbol(ctx, spec.type, fx + 24, fy + 16, fw - 48, fh - 32, ink, 12);
   }
 
   ctx.fillStyle = ink;
-  ctx.font = font(MONO, 28, 700);
+  ctx.font = font(MONO, 32, 700);
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
-  ctx.fillText(abbreviate(spec.name, spec.type), fx, 230);
+  ctx.fillText(abbreviate(spec.name, spec.type), fx, 226);
 
   if (!spec.ghost || (spec.intelLevel ?? 0) >= 3) {
     const bw = 292;
@@ -317,7 +332,7 @@ export function makeCounterTexture(spec: CounterSpec): THREE.CanvasTexture {
       ctx.fillText('!', 23, spec.reinforcing ? 140 : 118);
     }
     if (hasStamp) {
-      drawMpStamp(ctx, 448, 70, 36, spec.movement!, Boolean(spec.spent), Boolean(spec.hasAttacked));
+      drawMpStamp(ctx, 450, 72, 40, spec.movement!, Boolean(spec.spent), Boolean(spec.hasAttacked));
     }
   }
 
