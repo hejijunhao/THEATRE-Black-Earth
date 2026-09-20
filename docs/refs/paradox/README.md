@@ -32,10 +32,8 @@ docs/refs/paradox/
 
 Target: thin strip, flag left, icon+number resource chips, week/weather chip, settings right — **no THEATRE wordmark banner** on the play HUD. 0.2.25 ships that language. Live Vic 3 shots still TODO; notes record the honest delta.
 
-## Outliner (tipped)
+## Combat paper (seeded)
 
-Target: Vic 3 / HOI4 peacetime collapse — **map-primary at rest**. Next-unspent is a chip; the sector week-runner mounts on select or explicit open. Combat paper keeps the thin rail. Live Paradox screenshots still TODO; notes record the honest delta.
+Target: thin left sheet, map still owns the frame. Ranked read is **odds → strength delta → one verdict line**. No die faces, no pip grid, no busy unit ledger. Steal Vic 3 *Battle for L'Aquila* (`combat-paper/vic3-battle-1.jpg`); reject EU5 Gandia ledger chrome. HOI4 land-battle window was not on the public Steam store CDN — steal its forecast / casualty language from the notes, do not invent a shot.
 
-## Combat paper (seeded, notes)
-
-Target: HOI4 land-battle / Vic 3 battle language — **odds, strength before→after, one-line verdict**. No die-face glyphs. Confirm / dismiss only. EU pip-dice theater is the reject. Live Paradox screenshots still TODO; do not invent a fortune row to replace the faces.
+See [`combat-paper/NOTES.md`](combat-paper/NOTES.md).
