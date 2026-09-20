@@ -1,8 +1,10 @@
 // Hero-grade modern German-pattern MBT (Leopard-family idiom, class-level —
 // no insignia, no catalogued marks). Inspector/showcase asset: authored in
-// metres, ~20k triangles, one merged draw call, finished by the procedural
-// weathering material in heroParts.ts. The map keeps vehicles.ts `panzer()`
-// as its LOD; this model is for close inspection (#assets review column).
+// metres, ~20k triangles, one merged draw call. Mid-zoom uses the INF-path
+// unlit stamp (MeshBasic + authored vertex paint) so the hull / turret /
+// gun read as a silhouette, not a weathered pale-plastic wash. Geometry is
+// unchanged; paint assignment is the stamp. vehicles.ts `panzer()` stays
+// the superseded LOD; #assets reviews this factory.
 //
 // Layout: +x forward, +y up, z lateral, ground at y = 0. Scaled by
 // HERO_SCALE at the end so it drops onto the same base plates as the
@@ -11,13 +13,16 @@
 import * as THREE from 'three';
 import { FactionId } from '../game/types';
 import {
-  HERO_SCALE, getHeroMaterial, hbox, hcyl, heroMats, hsphere, htorus, htrap, mergeHero,
+  HERO_SCALE, getStampHeroMaterial, hbox, hcyl, hsphere, htorus, htrap, mergeHero,
+  stampMats,
 } from './heroParts';
 
 export function makePanzerHeroGeometry(faction: FactionId): THREE.BufferGeometry {
+  // Dark hull / light turret / dark gun — same stamp language as MECH.
+  // Hull roofs stay SHADE so the turret owns the top-down read.
   const {
     BODY, TOP, SHADE, TRACKM, RUBBER, STEEL, DARKSTEEL, MUZZLE, CANVAS, CANVAS2, OPTIC,
-  } = heroMats(faction);
+  } = stampMats(faction);
   const parts: THREE.BufferGeometry[] = [];
 
   // ---- Running gear -------------------------------------------------------
@@ -94,10 +99,11 @@ export function makePanzerHeroGeometry(faction: FactionId): THREE.BufferGeometry
   // ---- Hull ---------------------------------------------------------------
   parts.push(hbox(7.5, 0.6, 2.1, SHADE, { x: 0, y: 0.65, z: 0 })); // belly tub
   parts.push(htrap(5.6, 3.4, 5.5, 3.4, 0.6, BODY, { x: -1.05, y: 0.95 }, 0.05, 0)); // sponson body
-  // Raked glacis and the nose plate beneath it.
-  parts.push(htrap(2.25, 3.32, 0.12, 3.4, 0.71, TOP, { x: 2.725, y: 0.85 }, -1.06, 0));
+  // Raked glacis and the nose plate beneath it. Glacis stays BODY so the
+  // hull does not light-plate into the turret at boot height.
+  parts.push(htrap(2.25, 3.32, 0.12, 3.4, 0.71, BODY, { x: 2.725, y: 0.85 }, -1.06, 0));
   parts.push(htrap(0.4, 3.1, 0.4, 3.32, 0.4, BODY, { x: 3.65, y: 0.45 }, 0.1, 0));
-  parts.push(hbox(5.5, 0.04, 3.36, TOP, { x: -1.09, y: 1.555 })); // roof skin
+  parts.push(hbox(5.5, 0.04, 3.36, SHADE, { x: -1.09, y: 1.555 })); // roof skin
   parts.push(hcyl(1.02, 1.02, 0.07, 24, BODY, 'y', { x: -0.1, y: 1.585 })); // turret ring collar
   parts.push(hcyl(1.16, 1.16, 0.015, 24, SHADE, 'y', { x: -0.1, y: 1.578 })); // baked ring shadow
   // Driver: hatch disc and three periscopes at the glacis top edge.
@@ -133,7 +139,8 @@ export function makePanzerHeroGeometry(faction: FactionId): THREE.BufferGeometry
   // Infantry telephone box on the right rear plate.
   parts.push(hbox(0.1, 0.24, 0.18, SHADE, { x: -3.84, y: 1.1, z: 0.8 }));
   // Engine deck: proud frame, two louvred radiator fields, engine hatch.
-  parts.push(hbox(2.7, 0.035, 3.0, TOP, { x: -2.5, y: 1.575 }));
+  // SHADE so the deck is hull, not a second light plate under the turret.
+  parts.push(hbox(2.7, 0.035, 3.0, SHADE, { x: -2.5, y: 1.575 }));
   for (const s of [1, -1] as const) {
     parts.push(hbox(1.34, 0.03, 1.16, SHADE, { x: -2.55, y: 1.59, z: s * 0.72 }));
     for (let i = 0; i < 7; i++) {
@@ -167,7 +174,8 @@ export function makePanzerHeroGeometry(faction: FactionId): THREE.BufferGeometry
   }
 
   // ---- Turret -------------------------------------------------------------
-  parts.push(htrap(3.8, 3.0, 3.66, 2.7, 0.82, BODY, { x: -0.45, y: 1.6 }, -0.06, 0));
+  // Light turret owns the stamp. Hull stayed BODY/SHADE; this is TOP.
+  parts.push(htrap(3.8, 3.0, 3.66, 2.7, 0.82, TOP, { x: -0.45, y: 1.6 }, -0.06, 0));
   parts.push(hbox(3.5, 0.028, 2.52, TOP, { x: -0.5, y: 2.43 })); // roof skin
   // Recessed panel seams so the big flat walls read as built-up plate.
   for (const s of [1, -1] as const) {
@@ -180,8 +188,8 @@ export function makePanzerHeroGeometry(faction: FactionId): THREE.BufferGeometry
   }
   // The signature spaced wedge: two big inclined slabs meeting at the apex,
   // hollow behind them left open — the shadow gap IS the spaced armour.
-  parts.push(hbox(1.95, 0.88, 0.14, BODY, { rx: 0.28, ry: 0.75, x: 2.15, y: 1.97, z: 0.785 }));
-  parts.push(hbox(1.95, 0.88, 0.14, BODY, { rx: -0.28, ry: -0.75, x: 2.15, y: 1.97, z: -0.785 }));
+  parts.push(hbox(1.95, 0.88, 0.14, TOP, { rx: 0.28, ry: 0.75, x: 2.15, y: 1.97, z: 0.785 }));
+  parts.push(hbox(1.95, 0.88, 0.14, TOP, { rx: -0.28, ry: -0.75, x: 2.15, y: 1.97, z: -0.785 }));
   // Two rows of module bolts on each wedge face, transformed with the slab.
   for (const s of [1, -1] as const) {
     const slabM = new THREE.Matrix4()
@@ -203,10 +211,10 @@ export function makePanzerHeroGeometry(faction: FactionId): THREE.BufferGeometry
   // L55-class smoothbore: collar, thermal sleeves either side of the bore
   // evacuator with a clamp ring, bare muzzle, MRS block at the tip.
   parts.push(hcyl(0.165, 0.175, 0.5, 16, DARKSTEEL, 'x', { x: 2.3, y: 1.95 }));
-  parts.push(hcyl(0.122, 0.114, 1.7, 16, BODY, 'x', { x: 3.4, y: 1.95 }));
+  parts.push(hcyl(0.122, 0.114, 1.7, 16, DARKSTEEL, 'x', { x: 3.4, y: 1.95 }));
   parts.push(hcyl(0.132, 0.132, 0.16, 16, DARKSTEEL, 'x', { x: 4.33, y: 1.95 }));
-  parts.push(hcyl(0.15, 0.144, 0.75, 16, BODY, 'x', { x: 4.78, y: 1.95 }));
-  parts.push(hcyl(0.114, 0.106, 1.75, 16, BODY, 'x', { x: 6.03, y: 1.95 }));
+  parts.push(hcyl(0.15, 0.144, 0.75, 16, DARKSTEEL, 'x', { x: 4.78, y: 1.95 }));
+  parts.push(hcyl(0.114, 0.106, 1.75, 16, DARKSTEEL, 'x', { x: 6.03, y: 1.95 }));
   // Sleeve retaining straps — the periodic clamp rings on the real sleeve.
   for (const cx of [2.95, 3.85, 5.5, 6.55]) {
     parts.push(hcyl(0.127, 0.127, 0.07, 16, DARKSTEEL, 'x', { x: cx, y: 1.95 }));
@@ -307,12 +315,12 @@ const geoCache = new Map<FactionId, THREE.BufferGeometry>();
 
 export function makePanzerHero(faction: FactionId): {
   geometry: THREE.BufferGeometry;
-  material: THREE.MeshStandardMaterial;
+  material: THREE.Material;
 } {
   let geometry = geoCache.get(faction);
   if (!geometry) {
     geometry = makePanzerHeroGeometry(faction);
     geoCache.set(faction, geometry);
   }
-  return { geometry, material: getHeroMaterial() };
+  return { geometry, material: getStampHeroMaterial() };
 }

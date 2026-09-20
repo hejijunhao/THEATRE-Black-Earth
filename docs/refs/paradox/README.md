@@ -18,6 +18,7 @@ docs/refs/paradox/
   board-chrome/             ← frontline / ZOC telegraph (HOI4 scar)
   reach-telegraph/          ← Vic 3 territory fill + Civ 6 movement blob
   ground/                   ← Vic 3 / HOI4 terrain albedo (not political)
+  armor/                    ← HOI4 mid-zoom tank stamp (not Vic diorama)
   (add a folder per feature as we go)
 ```
 
@@ -43,6 +44,14 @@ Target: Vic 3 / HOI4 **terrain** soil — cadastral quiet earth, not
 political-map colour and not a mustard ochre plate. Strip/parcel language
 from 0.2.18 stays. 0.2.28 darkens midground and warms the far-north keep.
 Live Paradox shots still TODO; notes record the honest delta.
+
+## Armor stamp (seeded, notes)
+
+Target: HOI4 gameplay-zoom unit authority — an authored tank silhouette
+(dark hull / light turret / gun), not a weathered plastic wash and not
+a NATO plate. Vic 3 has no tank class; do not steal Vic diorama soil or
+political colour. Live HOI4 shots still TODO; notes record the honest
+delta.
 
 ## Combat paper (seeded, notes)
 

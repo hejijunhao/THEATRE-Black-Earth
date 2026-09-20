@@ -36,7 +36,7 @@ export function heroGeometry(type: HeroUnitType, faction: FactionId): THREE.Buff
 }
 
 export function usesStampHero(type: HeroUnitType): boolean {
-  return type === 'mechanized' || type === 'artillery';
+  return type === 'armored' || type === 'mechanized' || type === 'artillery';
 }
 
 export function heroMaterial(type: HeroUnitType): THREE.Material {
