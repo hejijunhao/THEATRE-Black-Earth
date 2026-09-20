@@ -69,6 +69,13 @@ This cut:
 - **Luma floor is far-north only.** A constant midground floor (and the
   leftover shader/emissive keep-alive) was lifting crushed chernozem
   back to one ochre wash. The scar stays crushed; loft is the far grid.
+- **Decode the canvas in-shader.** The custom albedo sampler was lighting
+  sRGB bytes as linear, so rain lights replated the scar khaki. The
+  canvas is `NoColorSpace`; the terrain shader decodes once.
+- **Park the scar above the rain veil, below mustard.** Decoded
+  chernozem is dark+grey enough that Grade's veil-break (untouched)
+  mixed it back to khaki. Lit midground keeps painted soil hue in a
+  soil luma band. Fog and grade stay locked.
 
 Notes under `docs/refs/paradox/ground/`. Still a painted canvas — not Vic
 plough, not a province terrain renderer.

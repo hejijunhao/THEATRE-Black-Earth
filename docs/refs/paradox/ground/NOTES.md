@@ -47,11 +47,18 @@ zoom — without destroying the strip/parcel language from 0.2.18.
 **Rejects held:** political recolour as the rest frame; fog / grade /
 unit / HUD / reach retunes; inventing a second field grid; Vic plough.
 
-**Honest craft verdict:** the leftover mustard plate was not only
-paint — a midground luma floor (albedo 48 + shader keep-alive) was
-lifting crushed chernozem toward khaki loft. Floor is far-north only
-now; midground stays crushed; north loft is warmer umber. Live
-rest+rain + midzoom shots still decide whether the plate and cool-grey
-lobe actually died. This is still a painted albedo + strip
-displacement — **not** Vic cadastral GIS and **not** the diorama
-field cap.
+**Honest craft verdict (live rest+rain / midzoom):** mustard / khaki
+plate is dead on the gate (highlighter khaki 0.000; ochre 0.05–0.08;
+mid luma 98.7 rest / 98.3 midzoom, rgb 111,99,61). North keep is
+warmer and lofted (luma 110.9, not cool grey). Painted scar texels
+are crushed chernozem (≈50,35,18); the leftover live plate was the
+custom sampler treating those sRGB bytes as linear, then Grade's rain
+veil-break khaking dark+grey samples. Floor is far-north only.
+
+Still a painted albedo + strip displacement parked in a soil luma
+band so the veil cannot replate khaki — **not** Vic cadastral GIS and
+**not** the diorama plough (`#1c1713`). District families split in
+the painter and in contrast numbers (strip 4.9 rest / 3.9 mid); at
+campaign zoom they still read as one earth wash, not surveyed
+parcels. Craft vs Vic terrain mode: soil hue yes, cadastral no.
+Vs Vic diorama: fail, parked.
