@@ -13,8 +13,9 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useStore } from '../game/state/store';
-import { FactionId, IntelRecord, Unit } from '../game/types';
+import { IntelRecord, Unit } from '../game/types';
 import { tileWorldById } from '../game/hex';
+import { BoardChrome, boardChrome, threatenedIds } from '../ui/boardChrome';
 import {
   counterKey, CounterSpec, makeCounterTexture,
   makeStandardTexture, standardKey, StandardSpec,
@@ -33,6 +34,45 @@ import { FACTION_STRONG } from './palette';
 const fadeState = { value: 0 };
 const COUNTER_ZOOM_IN = 24;  // camera.y where counters start fading in
 const COUNTER_ZOOM_FULL = 34;
+
+/** Glanceable agency at campaign camera. Five reads: selected / spent /
+ *  contact / can-attack / (MP lives on the plate). */
+function AgencyRings({ chrome, selected }: { chrome: BoardChrome; selected: boolean }) {
+  return (
+    <group>
+      {selected && (
+        <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.90, 1.10, 32]} />
+          <meshBasicMaterial color="#e8dfc8" transparent opacity={0.78} depthWrite={false} />
+        </mesh>
+      )}
+      {chrome.canAttack && (
+        <mesh position={[0, 0.038, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.58, 0.86, 32]} />
+          <meshBasicMaterial color="#c9a352" transparent opacity={0.7} depthWrite={false} />
+        </mesh>
+      )}
+      {chrome.inContact && !chrome.canAttack && (
+        <mesh position={[0, 0.036, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.58, 0.80, 28]} />
+          <meshBasicMaterial color="#c9a352" transparent opacity={0.28} depthWrite={false} />
+        </mesh>
+      )}
+      {chrome.threatened && (
+        <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.58, 0.88, 32]} />
+          <meshBasicMaterial color="#e8dfc8" transparent opacity={0.55} depthWrite={false} />
+        </mesh>
+      )}
+      {chrome.spent && (
+        <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.48, 0.70, 28]} />
+          <meshBasicMaterial color="#2a2a28" transparent opacity={0.55} depthWrite={false} />
+        </mesh>
+      )}
+    </group>
+  );
+}
 
 // Peak-to-peak heading spread of a formation on its base plate, in radians.
 const UNIT_FACING_JITTER = 0.2;
@@ -57,7 +97,7 @@ const MINI_MATERIAL = new THREE.MeshStandardMaterial({
   transparent: true,
 });
 
-function UnitMiniature({ unit, selected }: { unit: Unit; selected: boolean }) {
+function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boolean; chrome: BoardChrome }) {
   const game = useStore((s) => s.game)!;
   const selectUnit = useStore((s) => s.selectUnit);
   const selectTile = useStore((s) => s.selectTile);
@@ -95,6 +135,12 @@ function UnitMiniature({ unit, selected }: { unit: Unit; selected: boolean }) {
     supply: unit.supply,
     experience: unit.experience,
     selected,
+    movement: chrome.showMp ? chrome.mp : undefined,
+    movementMax: chrome.showMp ? chrome.mpMax : undefined,
+    spent: chrome.spent,
+    hasAttacked: chrome.hasAttacked,
+    inContact: chrome.canAttack,
+    threatened: chrome.threatened,
   };
   const stdTexture = useMemo(() => makeStandardTexture(stdSpec), [standardKey(stdSpec)]);
   useEffect(() => () => stdTexture.dispose(), [stdTexture]);
@@ -122,7 +168,7 @@ function UnitMiniature({ unit, selected }: { unit: Unit; selected: boolean }) {
       g.position.lerp(target.current, Math.min(1, delta * 7));
     }
     // Crossfade against the counters.
-    const vis = 1 - fadeState.value;
+    const vis = (1 - fadeState.value) * (chrome.spent ? 0.48 : 1);
     g.visible = vis > 0.02;
     if (baseMatRef.current) baseMatRef.current.opacity = vis;
     if (stdMatRef.current) stdMatRef.current.opacity = vis;
@@ -150,11 +196,19 @@ function UnitMiniature({ unit, selected }: { unit: Unit; selected: boolean }) {
         <boxGeometry args={[0.74, 0.032, 0.52]} />
         <meshStandardMaterial
           ref={baseMatRef}
-          color={unit.faction === 'UA' ? '#33507a' : '#67352c'}
+          color={chrome.spent
+            ? (unit.faction === 'UA' ? '#1c2838' : '#3a201c')
+            : (unit.faction === 'UA' ? '#33507a' : '#67352c')}
           roughness={0.6}
           transparent
-          emissive={selected ? FACTION_STRONG[unit.faction] : '#000000'}
-          emissiveIntensity={selected ? 0.55 : 0}
+          emissive={
+            selected
+              ? FACTION_STRONG[unit.faction]
+              : chrome.canAttack || chrome.threatened
+                ? '#c9a352'
+                : '#000000'
+          }
+          emissiveIntensity={selected ? 0.55 : chrome.threatened ? 0.4 : chrome.canAttack ? 0.32 : 0}
         />
       </mesh>
       {/* The machines: hero vehicles as instances, everything else — foot
@@ -174,6 +228,7 @@ function UnitMiniature({ unit, selected }: { unit: Unit; selected: boolean }) {
           <meshBasicMaterial color="#b04a3a" transparent opacity={0.4} depthWrite={false} />
         </mesh>
       )}
+      <AgencyRings chrome={chrome} selected={selected} />
       {/* The standard. */}
       <Billboard position={[0, 0.5, 0]} follow>
         <mesh>
@@ -186,7 +241,7 @@ function UnitMiniature({ unit, selected }: { unit: Unit; selected: boolean }) {
 }
 
 // v1 counter plate — the far LOD and the Tab override.
-function UnitCounter({ unit, selected }: { unit: Unit; selected: boolean }) {
+function UnitCounter({ unit, selected, chrome }: { unit: Unit; selected: boolean; chrome: BoardChrome }) {
   const game = useStore((s) => s.game)!;
   const selectUnit = useStore((s) => s.selectUnit);
   const selectTile = useStore((s) => s.selectTile);
@@ -206,6 +261,12 @@ function UnitCounter({ unit, selected }: { unit: Unit; selected: boolean }) {
     disorganized: unit.disorganized > 0,
     selected,
     ghost: false,
+    movement: chrome.showMp ? chrome.mp : undefined,
+    movementMax: chrome.showMp ? chrome.mpMax : undefined,
+    spent: chrome.spent,
+    hasAttacked: chrome.hasAttacked,
+    inContact: chrome.canAttack,
+    threatened: chrome.threatened,
   };
   const key = counterKey(spec);
   const texture = useMemo(() => makeCounterTexture(spec), [key]);
@@ -227,7 +288,7 @@ function UnitCounter({ unit, selected }: { unit: Unit; selected: boolean }) {
     if (g.position.distanceTo(target.current) > 0.002) {
       g.position.lerp(target.current, Math.min(1, delta * 7));
     }
-    const vis = fadeState.value;
+    const vis = fadeState.value * (chrome.spent ? 0.48 : 1);
     g.visible = vis > 0.02;
     if (plateMatRef.current) plateMatRef.current.opacity = vis;
     if (baseMatRef.current) baseMatRef.current.opacity = vis;
@@ -249,16 +310,25 @@ function UnitCounter({ unit, selected }: { unit: Unit; selected: boolean }) {
         <boxGeometry args={[0.66, 0.16, 0.46]} />
         <meshStandardMaterial
           ref={baseMatRef}
-          color={unit.faction === 'UA' ? '#33507a' : '#67352c'}
+          color={chrome.spent
+            ? (unit.faction === 'UA' ? '#1c2838' : '#3a201c')
+            : (unit.faction === 'UA' ? '#33507a' : '#67352c')}
           roughness={0.6}
           transparent
-          emissive={selected ? FACTION_STRONG[unit.faction] : '#000000'}
-          emissiveIntensity={selected ? 0.5 : 0}
+          emissive={
+            selected
+              ? FACTION_STRONG[unit.faction]
+              : chrome.canAttack || chrome.threatened
+                ? '#c9a352'
+                : '#000000'
+          }
+          emissiveIntensity={selected ? 0.5 : chrome.threatened ? 0.38 : chrome.canAttack ? 0.3 : 0}
         />
       </mesh>
+      <AgencyRings chrome={chrome} selected={selected} />
       <Billboard position={[0, 0.78, 0]} follow>
         <mesh>
-          <planeGeometry args={[1.06, 0.66]} />
+          <planeGeometry args={[1.18, 0.74]} />
           <meshBasicMaterial ref={plateMatRef} map={texture} transparent depthWrite={false} />
         </mesh>
       </Billboard>
@@ -327,14 +397,18 @@ export function Units() {
     if (!visible.has(unit.tile)) ghosts.push(rec);
   }
 
+  const threatened = threatenedIds(game, selectedUnitId);
+
   return (
     <group>
-      {shown.map((u) => (
-        <UnitMiniature key={`m-${u.id}`} unit={u} selected={u.id === selectedUnitId} />
-      ))}
-      {shown.map((u) => (
-        <UnitCounter key={`c-${u.id}`} unit={u} selected={u.id === selectedUnitId} />
-      ))}
+      {shown.map((u) => {
+        const chrome = boardChrome(game, u, threatened.has(u.id));
+        return <UnitMiniature key={`m-${u.id}`} unit={u} selected={u.id === selectedUnitId} chrome={chrome} />;
+      })}
+      {shown.map((u) => {
+        const chrome = boardChrome(game, u, threatened.has(u.id));
+        return <UnitCounter key={`c-${u.id}`} unit={u} selected={u.id === selectedUnitId} chrome={chrome} />;
+      })}
       {ghosts.map((r) => (
         <GhostMarker key={`ghost-${r.unitId}`} rec={r} />
       ))}

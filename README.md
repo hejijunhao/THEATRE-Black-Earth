@@ -37,9 +37,9 @@ No backend, accounts or external services. Saves live in `localStorage`.
 
 1. **New campaign** as Ukraine (tutorial on). Skip guidance if you already know the board.
 2. Click a friendly formation — movement range highlights.
-3. Click a highlighted hex to **move**, or an adjacent enemy to **preview** an attack.
-4. Confirm the attack. Each side rolls **2d6**. Read the after-action **dispatch** (Esc to dismiss). The line under the command bench tells you the next order.
-5. **End turn** (`Shift+Enter` or the command bar). Watch the enemy act, then the week resolves.
+3. Click a highlighted hex to **move**, or an adjacent enemy (or the Assault plate) to open the **briefing**.
+4. Confirm the roll. Each side rolls **2d6**. Read the after-action **dispatch** (Esc to dismiss). Counters show remaining movement; spent plates dim.
+5. **End week** (`Shift+Enter` or the command bench). Watch the enemy act, then the week resolves.
 6. The campaign ends on decisive objectives, war-support collapse, army destruction, or turn 36.
 
 Browser smokes (need a local Chrome/Chromium; playtest/golden hardcode port **5199**):
@@ -60,7 +60,7 @@ BALANCE=1 npx vitest run src/game/__tests__/balance.test.ts   # AI-vs-AI campaig
 | Right-drag | Tilt / rotate (limited) |
 | Click own formation | Select it (movement range appears) |
 | Click highlighted hex | Move there (capturing ground you pass through) |
-| Click adjacent enemy | Open the combat preview; confirm to attack (2d6 each) |
+| Click adjacent enemy | Open the assault briefing; confirm to attack (2d6 each) |
 | After-action report | Dice, damage given/taken, strength before → after |
 | `Esc` | Dismiss report / cancel targeting / deselect |
 | `Shift+Enter` | End turn |

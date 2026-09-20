@@ -98,7 +98,7 @@ export function CombatResultPanel() {
   return (
     <div className="modal-backdrop aar-backdrop" onClick={dismissCombat}>
       <div
-        className="modal panel panel-framed aar"
+        className="modal panel panel-framed aar dispatch"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-labelledby="aar-title"
