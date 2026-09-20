@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.29](#0229--2026-09-20--slice-3-armor-stamp) | 2026-09-20 | Slice 3 — armor stamp | unlit MeshBasic, dark hull / light turret, no wash |
 | [0.2.28](#0228--2026-09-17--slice-1-ground-retip) | 2026-09-17 | Slice 1 — ground retip | chernozem midground, district chroma, north umber keep |
 | [0.2.27](#0227--2026-09-17--slice-1-ground-albedo) | 2026-09-17 | Slice 1 — ground albedo | cadastral soil, chernozem/loess, no khaki slab |
 | [0.2.26](#0226--2026-09-17--slice-6-hud-outliner) | 2026-09-17 | Slice 6 — HUD outliner | rest-frame Next chip, list on select/open |
@@ -47,6 +48,35 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.29] — 2026-09-20 · Slice 3 — armor stamp
+
+Presentation only. Armor class (`armored` / `panzerHero`) mid-zoom stamp.
+INF / MECH / ARTY meshes, materials and LOD stay locked. Ground, rain,
+reach, HUD, combat paper, outliner and atmosphere stay locked. No new
+rules. No workflows.
+
+Slice 4 already escaped infantry, mechanized and artillery through an
+unlit field-green Basic stamp. Armor stayed on the shared hero wash —
+MeshStandard keep-alive, khaki dust, and a hull/top remap whose
+saturation sits inside the rain veil-break. Mid-zoom tanks read as
+weathered pale plate, not an authored silhouette.
+
+This cut gives armor the same INF-path:
+
+- **Unlit `MeshBasic`.** `usesStampHero('armored')` now shares
+  `getStampHeroMaterial()` with MECH / ARTY. The weathering shader and
+  its up-face khaki remap no longer own the tank.
+- **Authored vertex paint.** Dark hull (BODY / SHADE), light turret
+  (TOP), dark gun (DARKSTEEL). Hull roof, glacis and engine deck stay
+  dark so the turret owns the top-down read. Geometry is unchanged.
+- **Recon stays on the wash.** Out of scope. Judge with `tbe-counters`
+  OFF — earlier tips failed when NATO plates stayed on.
+
+Notes under `docs/refs/paradox/armor/`. Still a type-read stamp, not a
+Vic diorama tank or a political-map recolour.
+
+The campaign, map, AI, supply and combat math are unchanged.
 
 ## [0.2.28] — 2026-09-17 · Slice 1 — ground retip
 

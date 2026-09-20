@@ -181,7 +181,7 @@ export function mergeHero(geos: THREE.BufferGeometry[]): THREE.BufferGeometry {
 // restrained — a field vehicle, not a wreck (asset-ledger §1.4).
 let sharedHeroMaterial: THREE.MeshStandardMaterial | null = null;
 
-// Armor / recon keep this shared weathered wash. MECH / ARTY leave it —
+// Recon keeps this shared weathered wash. Armor / MECH / ARTY leave it —
 // rain's veil-break lifts the grey-olive mix to pale plastic.
 export function getHeroMaterial(): THREE.MeshStandardMaterial {
   if (!sharedHeroMaterial) sharedHeroMaterial = makeHeroMaterial();

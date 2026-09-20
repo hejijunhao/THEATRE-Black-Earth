@@ -6,10 +6,11 @@ import { makeMiniatureBuild } from '../units';
 import { commandTruck, figure } from '../vehicles';
 import { makeArtilleryHero, makeArtilleryHeroGeometry } from '../heroArtillery';
 import { makeMechHero, makeMechHeroGeometry } from '../heroMech';
-import { makePanzerHero } from '../panzerHero';
+import { makePanzerHero, makePanzerHeroGeometry } from '../panzerHero';
 import {
   getHeroMaterial,
   getStampHeroMaterial,
+  HERO_SCALE,
   stampMats,
   STAMP_PAINT,
 } from '../heroParts';
@@ -122,14 +123,14 @@ function srgb(hex: string): { r: number; g: number; b: number } {
 }
 
 describe('MECH/ARTY veil-proof stamp', () => {
-  it('routes only mechanized and artillery off the shared hero wash', () => {
+  it('routes armored, mechanized and artillery off the shared hero wash', () => {
     expect(usesStampHero('mechanized')).toBe(true);
     expect(usesStampHero('artillery')).toBe(true);
-    expect(usesStampHero('armored')).toBe(false);
+    expect(usesStampHero('armored')).toBe(true);
     expect(usesStampHero('recon')).toBe(false);
   });
 
-  it('keeps the stamp unlit and the armor wash lit', () => {
+  it('keeps the stamp unlit and the recon wash lit', () => {
     const stamp = getStampHeroMaterial();
     const hero = getHeroMaterial();
     expect(stamp).toBeInstanceOf(MeshBasicMaterial);
@@ -137,7 +138,7 @@ describe('MECH/ARTY veil-proof stamp', () => {
     expect(stamp).not.toBe(hero);
     expect(makeMechHero('UA').material).toBe(stamp);
     expect(makeArtilleryHero('UA').material).toBe(stamp);
-    expect(makePanzerHero('UA').material).toBe(hero);
+    expect(makePanzerHero('UA').material).toBe(stamp);
     expect(hero.emissive.getHexString()).toBe('1c1810');
   });
 
@@ -158,5 +159,46 @@ describe('MECH/ARTY veil-proof stamp', () => {
     expect(mats.BODY.c).toBe(STAMP_PAINT.UA.base);
     expect(mats.TOP.c).toBe(STAMP_PAINT.UA.light);
     expect(mats.DARKSTEEL.c).toBe(STAMP_PAINT.UA.steel);
+  });
+});
+
+function sampleWhere(
+  geo: { getAttribute: (name: string) => { count: number; getX: (i: number) => number; getY: (i: number) => number; getZ: (i: number) => number } },
+  keep: (x: number, y: number) => boolean,
+) {
+  const pos = geo.getAttribute('position');
+  const col = geo.getAttribute('color');
+  let r = 0, g = 0, b = 0, n = 0;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    if (!keep(x, y)) continue;
+    r += col.getX(i); g += col.getY(i); b += col.getZ(i); n += 1;
+  }
+  const avg = { r: r / n, g: g / n, b: b / n };
+  return { ...avg, n, luma: luma(avg) };
+}
+
+describe('armor veil-proof stamp', () => {
+  it('authors a dark hull and a light turret, not one wash', () => {
+    const geo = makePanzerHeroGeometry('UA');
+    const hull = sampleWhere(geo, (_x, y) => y >= 0.85 * HERO_SCALE && y <= 1.55 * HERO_SCALE);
+    const turret = sampleWhere(geo, (_x, y) => y >= 2.35 * HERO_SCALE && y <= 2.55 * HERO_SCALE);
+    expect(hull.n).toBeGreaterThan(80);
+    expect(turret.n).toBeGreaterThan(20);
+    expect(turret.luma).toBeGreaterThan(hull.luma * 1.35);
+    expect(hull.g).toBeGreaterThan(hull.r * 1.5);
+    expect(turret.g).toBeGreaterThan(turret.r * 1.5);
+  });
+
+  it('keeps the gun a dark finger ahead of the turret', () => {
+    const geo = makePanzerHeroGeometry('UA');
+    const size = sizeOf(geo);
+    expect(size.x).toBeGreaterThan(size.z * 1.3);
+    expect(size.x).toBeGreaterThan(0.22);
+    const gun = sampleWhere(geo, (x, y) => x > 3.2 * HERO_SCALE && y > 1.7 * HERO_SCALE);
+    const turret = sampleWhere(geo, (_x, y) => y >= 2.35 * HERO_SCALE && y <= 2.55 * HERO_SCALE);
+    expect(gun.n).toBeGreaterThan(20);
+    expect(gun.luma).toBeLessThan(turret.luma * 0.85);
   });
 });
