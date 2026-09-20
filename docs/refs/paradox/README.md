@@ -30,3 +30,9 @@ docs/refs/paradox/
 ## Header (seeded)
 
 Target: thin strip, flag left, icon+number resource chips, week/weather chip, settings right — **no THEATRE wordmark banner** on the play HUD.
+
+## Combat paper (seeded)
+
+Target: thin left sheet, map still owns the frame. Ranked read is **odds → strength delta → one verdict line**. No die faces, no pip grid, no busy unit ledger. Steal Vic 3 *Battle for L'Aquila* (`combat-paper/vic3-battle-1.jpg`); reject EU5 Gandia ledger chrome. HOI4 land-battle window was not on the public Steam store CDN — steal its forecast / casualty language from the notes, do not invent a shot.
+
+See [`combat-paper/NOTES.md`](combat-paper/NOTES.md).
