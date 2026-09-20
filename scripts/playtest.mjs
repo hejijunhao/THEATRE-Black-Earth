@@ -114,7 +114,7 @@ if (hasHook) {
     await page.evaluate((id) => window.__TBE_DEBUG__.pendingAttack(id), targets[0]);
     await sleep(500);
     await page.screenshot({ path: `${OUT}/11-attack-preview.png` });
-    const previewOdds = await page.$eval('.assault-brief', (el) => el.innerText).catch(() => '');
+    const previewOdds = await page.$eval('.brief-sheet', (el) => el.innerText).catch(() => '');
     console.log('assault briefing:\n', previewOdds.slice(0, 400));
     if (!previewOdds) {
       console.error('FAIL: assault briefing not in the DOM');

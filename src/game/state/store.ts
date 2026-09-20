@@ -54,6 +54,10 @@ interface StoreState {
   pendingAttackId: string | null; // enemy unit id awaiting attack confirmation
   lastCombat: CombatResult | null;
   lastAILog: AIActionLog | null;
+  /** Encyclopedia: last hovered term; pinned term on the side ledger. */
+  hoverLexiconId: string | null;
+  lastLexiconId: string | null;
+  pinnedLexiconId: string | null;
   aiSpeed: number;
   cameraFocus: { tile: TileId; seq: number } | null;
   endTurnWarningsList: string[] | null;
@@ -88,6 +92,8 @@ interface StoreState {
   applyDeployAt: (tile: TileId) => void;
   cancelInteraction: () => void;
   dismissCombat: () => void;
+  hoverLexicon: (id: string | null) => void;
+  pinLexicon: (id: string | null) => void;
 
   // events & turn flow
   chooseEventOption: (index: number) => void;
@@ -144,6 +150,9 @@ export const useStore = create<StoreState>((set, get) => {
     pendingAttackId: null,
     lastCombat: null,
     lastAILog: null,
+    hoverLexiconId: null,
+    lastLexiconId: null,
+    pinnedLexiconId: null,
     aiSpeed: 900,
     cameraFocus: null,
     endTurnWarningsList: null,
@@ -355,6 +364,10 @@ export const useStore = create<StoreState>((set, get) => {
 
     cancelInteraction: () => set({ interactionMode: 'idle', pendingOp: null, pendingReserveId: null, pendingAttackId: null }),
     dismissCombat: () => set({ lastCombat: null }),
+    hoverLexicon: (id) => set(id
+      ? { hoverLexiconId: id, lastLexiconId: id }
+      : { hoverLexiconId: null }),
+    pinLexicon: (id) => set({ pinnedLexiconId: id }),
 
     chooseEventOption: (index) => {
       mutate((draft) => {

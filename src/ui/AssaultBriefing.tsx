@@ -1,12 +1,12 @@
-// Staff estimate on the map — half-sheet paper, theatre stays dimmed-alive.
-// Strength strips before the roll. ≤5 named reasons, not a % dump.
+// Staff estimate on the map — same paper family as the after-action.
+// Strength strips are the one loss language. Wash, not curtain.
 
 import { TERRAIN_DEFS, UNIT_DEFS } from '../game/data/defs';
 import { computePreview } from '../game/rules/combat';
 import { useStore } from '../game/state/store';
 import { rankReasons, reasonCopy, reasonWeight } from './briefingCopy';
+import { CombatPaper } from './CombatPaper';
 import { StrengthStrip, VERDICT_LABEL } from './combatChrome';
-import { LEXICON } from './lexicon';
 import { LexiconTip } from './Tip';
 
 export function AssaultBriefing() {
@@ -37,156 +37,126 @@ export function AssaultBriefing() {
   const defAfter = Math.max(0, defender.strength - preview.expectedDefenderLoss);
 
   return (
-    <div className="brief-over">
-      <div
-        className="panel panel-framed aar assault-brief dispatch brief-sheet"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-labelledby="brief-title"
-      >
-        <div className="brief-holes" aria-hidden>
-          <i /><i /><i />
-        </div>
-        <div className="stamp">{isArtillery ? 'Fires' : 'Assault'}</div>
-        <div className="aar-head">
-          <div className="aar-kicker">Staff estimate · week {game.turn}</div>
-          <h2 className="aar-headline" id="brief-title">
-            {isArtillery ? 'Fires mission' : VERDICT_LABEL[preview.verdict]}
-          </h2>
-          <p className="aar-detail">
-            {isArtillery
-              ? 'The battery will roll 2d6 for effect. Bombardment degrades the position; it does not take the hex.'
-              : 'Odds from relative combat power, before dice. Confirm to roll 2d6 each. A 7 is average.'}
-          </p>
-        </div>
-        <div className="body">
-          <div className="aar-matchup">
-            <div className="aar-side">
-              <div className="type">Attacker</div>
-              <div className="name">{attacker.name}</div>
-              <div className="pd-pow">atk {preview.attackPower.toFixed(1)}</div>
-              {!isArtillery && (
-                <LexiconTip
-                  id="strength"
-                  now={`${Math.round(attacker.strength)} → ${Math.round(atkAfter)} — estimate before dice.`}
-                  block
-                >
-                  <StrengthStrip before={attacker.strength} after={atkAfter} />
-                </LexiconTip>
-              )}
-            </div>
-            <div className="aar-odds">
-              <LexiconTip
-                id="odds"
-                now={`${preview.oddsLabel} — they lose the first number, you lose the second.`}
-                block
-              >
-                <div className="pd-ratio">{preview.oddsLabel}</div>
-                <div className="pd-vs">odds</div>
-              </LexiconTip>
-            </div>
-            <div className="aar-side right">
-              <div className="type">Defender</div>
-              <div className="name">{defender.name}</div>
-              <div className="pd-pow">def {defPower}</div>
-              <LexiconTip
-                id="strength"
-                now={`${Math.round(defender.strength)} → ${Math.round(defAfter)} — estimate before dice.`}
-                block
-              >
-                <StrengthStrip
-                  before={defender.strength}
-                  after={defAfter}
-                  align="right"
-                />
-              </LexiconTip>
-            </div>
-          </div>
-
-          <div className="brief-chips">
-            {terrain && (
-              <LexiconTip
-                id="terrain"
-                now={`${terrain.label} — defence ×${terrain.defense.toFixed(1)}${defTile?.road ? ' · road' : ''}.`}
-              >
-                <span className="brief-chip">{terrain.label}{defTile?.road ? ' · road' : ''}</span>
-              </LexiconTip>
-            )}
-            {defender.entrenchment > 0 && (
-              <LexiconTip id="entrench" now={`Dug in ${defender.entrenchment} on this hex.`}>
-                <span className="brief-chip">dug in {defender.entrenchment}</span>
-              </LexiconTip>
-            )}
-            <LexiconTip id="supply" now={`Defender ${defender.supply}.`}>
-              <span className={`brief-chip ${defender.supply}`}>{defender.supply}</span>
-            </LexiconTip>
-            {attacker.supply !== 'full' && attacker.supply !== 'supplied' && (
-              <LexiconTip id="supply" now={`Attacker ${attacker.supply}.`}>
-                <span className={`brief-chip ${attacker.supply}`}>our {attacker.supply}</span>
-              </LexiconTip>
-            )}
-          </div>
-
+    <CombatPaper
+      tile={defender.tile}
+      stamp={isArtillery ? 'Fires' : 'Assault'}
+      kicker={`Staff estimate · week ${game.turn}`}
+      headline={isArtillery ? 'Fires mission' : VERDICT_LABEL[preview.verdict]}
+      detail={
+        isArtillery
+          ? 'The battery will roll 2d6 for effect. Bombardment degrades the position; it does not take the hex.'
+          : 'Odds from relative combat power, before dice. Confirm to roll 2d6 each. A 7 is average.'
+      }
+      titleId="brief-title"
+    >
+      <div className="aar-matchup">
+        <div className="aar-side">
+          <div className="type">Attacker</div>
+          <div className="name">{attacker.name}</div>
+          <div className="pd-pow">atk {preview.attackPower.toFixed(1)}</div>
           {!isArtillery && (
             <LexiconTip
-              id="odds"
-              now={`${preview.oddsLabel} — they lose −${Math.round(preview.expectedDefenderLoss)}, you lose −${Math.round(preview.expectedAttackerLoss)}, before dice.`}
+              id="strength"
+              now={`${Math.round(attacker.strength)} → ${Math.round(atkAfter)} — estimate before dice.`}
               block
             >
-              <div className="preview-bill brief-bill">
-                <div className="kv-line">
-                  <span className="k">{LEXICON.odds.title}</span>
-                  <span className="v">
-                    −{Math.round(preview.expectedDefenderLoss)} / −{Math.round(preview.expectedAttackerLoss)} str
-                  </span>
-                </div>
-              </div>
+              <StrengthStrip before={attacker.strength} after={atkAfter} />
             </LexiconTip>
           )}
-
-          {!observed && (
-            <p className="hint">
-              The defender is not fully observed — estimates may be wrong. A Reconnaissance Sweep would sharpen this briefing.
-            </p>
-          )}
-
-          {reasons.length > 0 && (
-            <div className="factor-ledger named">
-              <div className="factor-kicker">Why this estimate</div>
-              {reasons.map((f, i) => (
-                <div className={`factor-line ${f.value < 0 ? 'hurts' : 'helps'}`} key={i}>
-                  <span className="fk-rank">{i + 1}</span>
-                  <span className="fk">{reasonCopy(f)}</span>
-                  <span className={`fk-tick ${f.value < 0 ? 'hurts' : 'helps'}`} aria-hidden>
-                    <i style={{ width: `${Math.max(12, Math.round(reasonWeight(f) * 100))}%` }} />
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="btn-row aar-actions brief-plates">
-            <button
-              type="button"
-              className="bench-plate contact plate-commit"
-              onClick={() => orderAttack(defenderId)}
-            >
-              <span className="plate-engrave">{isArtillery ? 'Fires' : 'Commit'}</span>
-              <span className="plate-value">2d6</span>
-              <span className="plate-line">{isArtillery ? 'the mission' : 'the roll'}</span>
-            </button>
-            <button
-              type="button"
-              className="bench-plate plate-commit"
-              onClick={() => setPendingAttack(null)}
-            >
-              <span className="plate-engrave">Withdraw</span>
-              <span className="plate-value">Esc</span>
-              <span className="plate-line">stand down</span>
-            </button>
-          </div>
+        </div>
+        <div className="aar-odds">
+          <LexiconTip
+            id="odds"
+            now={`${preview.oddsLabel} — they lose the first number, you lose the second.`}
+            block
+          >
+            <div className="pd-ratio">{preview.oddsLabel}</div>
+            <div className="pd-vs">odds</div>
+          </LexiconTip>
+        </div>
+        <div className="aar-side right">
+          <div className="type">Defender</div>
+          <div className="name">{defender.name}</div>
+          <div className="pd-pow">def {defPower}</div>
+          <LexiconTip
+            id="strength"
+            now={`${Math.round(defender.strength)} → ${Math.round(defAfter)} — estimate before dice.`}
+            block
+          >
+            <StrengthStrip
+              before={defender.strength}
+              after={defAfter}
+              align="right"
+            />
+          </LexiconTip>
         </div>
       </div>
-    </div>
+
+      <div className="brief-chips">
+        {terrain && (
+          <LexiconTip
+            id="terrain"
+            now={`${terrain.label} — defence ×${terrain.defense.toFixed(1)}${defTile?.road ? ' · road' : ''}.`}
+          >
+            <span className="brief-chip">{terrain.label}{defTile?.road ? ' · road' : ''}</span>
+          </LexiconTip>
+        )}
+        {defender.entrenchment > 0 && (
+          <LexiconTip id="entrench" now={`Dug in ${defender.entrenchment} on this hex.`}>
+            <span className="brief-chip">dug in {defender.entrenchment}</span>
+          </LexiconTip>
+        )}
+        <LexiconTip id="supply" now={`Defender ${defender.supply}.`}>
+          <span className={`brief-chip ${defender.supply}`}>{defender.supply}</span>
+        </LexiconTip>
+        {attacker.supply !== 'full' && attacker.supply !== 'supplied' && (
+          <LexiconTip id="supply" now={`Attacker ${attacker.supply}.`}>
+            <span className={`brief-chip ${attacker.supply}`}>our {attacker.supply}</span>
+          </LexiconTip>
+        )}
+      </div>
+
+      {!observed && (
+        <p className="hint">
+          The defender is not fully observed — estimates may be wrong. A Reconnaissance Sweep would sharpen this briefing.
+        </p>
+      )}
+
+      {reasons.length > 0 && (
+        <div className="factor-ledger named">
+          <div className="factor-kicker">Why this estimate</div>
+          {reasons.map((f, i) => (
+            <div className={`factor-line ${f.value < 0 ? 'hurts' : 'helps'}`} key={i}>
+              <span className="fk-rank">{i + 1}</span>
+              <span className="fk">{reasonCopy(f)}</span>
+              <span className={`fk-tick ${f.value < 0 ? 'hurts' : 'helps'}`} aria-hidden>
+                <i style={{ width: `${Math.max(12, Math.round(reasonWeight(f) * 100))}%` }} />
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="btn-row aar-actions brief-plates">
+        <button
+          type="button"
+          className="bench-plate contact plate-commit"
+          onClick={() => orderAttack(defenderId)}
+        >
+          <span className="plate-engrave">{isArtillery ? 'Fires' : 'Commit'}</span>
+          <span className="plate-value">2d6</span>
+          <span className="plate-line">{isArtillery ? 'the mission' : 'the roll'}</span>
+        </button>
+        <button
+          type="button"
+          className="bench-plate plate-commit"
+          onClick={() => setPendingAttack(null)}
+        >
+          <span className="plate-engrave">Withdraw</span>
+          <span className="plate-value">Esc</span>
+          <span className="plate-line">stand down</span>
+        </button>
+      </div>
+    </CombatPaper>
   );
 }

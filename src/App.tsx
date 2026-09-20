@@ -6,6 +6,8 @@ import { audio } from './audio/audio';
 import { attackableTargets as attackableTargetsForDebug } from './game/rules/movement';
 import { tileWorldById } from './game/hex';
 import { useStore } from './game/state/store';
+import { cycleUnspent } from './ui/boardChrome';
+import { LEXICON, LexiconId } from './ui/lexicon';
 import { MapScene } from './map/MapScene';
 import { AIOverlay } from './ui/AIOverlay';
 import { AssaultBriefing } from './ui/AssaultBriefing';
@@ -124,9 +126,29 @@ function useKeyboard() {
         if (s.showSettings) setShowSettings(false);
         else if (s.lastCombat) s.dismissCombat();
         else if (s.interactionMode !== 'idle' || s.pendingAttackId) cancelInteraction();
+        else if (s.pinnedLexiconId) s.pinLexicon(null);
         else selectTile(null);
       } else if (e.key === 'Enter' && e.shiftKey) {
         requestEndTurn();
+      } else if (e.key === 'n' || e.key === 'N') {
+        const s = useStore.getState();
+        if (!s.game || s.game.phase !== 'player' || s.showSettings) return;
+        const next = cycleUnspent(s.game, s.selectedUnitId);
+        if (!next) return;
+        s.selectUnit(next);
+        const unit = s.game.units[next];
+        if (unit) s.focusCamera(unit.tile);
+      } else if (e.key === 'e' || e.key === 'E') {
+        const s = useStore.getState();
+        if (s.showSettings) return;
+        const target = s.hoverLexiconId ?? s.lastLexiconId;
+        if (s.pinnedLexiconId && (!target || target === s.pinnedLexiconId)) {
+          s.pinLexicon(null);
+        } else if (target && target in LEXICON) {
+          s.pinLexicon(target);
+        } else {
+          s.pinLexicon('cities' satisfies LexiconId);
+        }
       } else if (e.key === 'Tab') {
         // Manual counter-mode override (v2-vision §6.3).
         e.preventDefault();
