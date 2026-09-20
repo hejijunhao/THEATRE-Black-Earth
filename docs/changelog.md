@@ -17,6 +17,8 @@ add a row for them here.
 | [0.2.25](#0225--2026-09-17--slice-6-hud-header) | 2026-09-17 | Slice 6 — HUD header | Vic3-thin strip, no wordmark, icon chips |
 | [0.2.24](#0224--2026-09-17--slice-6-hud-dice-strip) | 2026-09-17 | Slice 6 — HUD dice-strip | estimate+AAR numbers only, no die faces |
 | [0.2.23](#0223--2026-09-17--slice-5-reach-polygon) | 2026-09-17 | Slice 5 — reach polygon | tile-union Shape, secondary interior, no disc soup |
+| [docs-combat-paper](#docs-combat-paper--2026-09-20--paradox-combat-paper-pack) | 2026-09-20 | docs | combat-paper NOTES, Vic3/EU5 shots |
+| [docs-paradox-lib](#docs-paradox-lib--2026-09-17--paradox-reference-library) | 2026-09-17 | docs | paradox refs, feature map |
 | [0.2.22](#0222--2026-09-17--slice-5-reach-retip) | 2026-09-17 | Slice 5 — reach retip | soil-stain wash, seam-only silhouette, warm parchment ink |
 | [0.2.21](#0221--2026-09-17--slice-5-board-chrome) | 2026-09-17 | Slice 5 — board chrome | reach silhouette, hatched frontline, click-through overlays |
 | [0.2.20](#0220--2026-09-17--slice-4-mech-arty-stamp) | 2026-09-17 | Slice 4 — MECH / ARTY silhouette punch | unlit field-green stamp, IFV turret/gun, arty tube |
@@ -240,6 +242,52 @@ This cut:
 - **Leaves the warm umber/ochre seam** as a supporting ribbon on the outer perimeter only.
 
 Picks still go through (`raycast={() => null}`). Frontline is untouched. Notes under `docs/refs/paradox/reach-telegraph/` (Vic 3 selected territory / Civ 6 movement range).
+
+## [docs-combat-paper] — 2026-09-20 · Paradox combat-paper pack
+
+Docs only. No game version. No `src/` changes. No new rules. Stacked on the
+paradox library seed (docs-paradox-lib).
+
+Seeds the steal sheet for a later HUD tip: strip die faces on Staff Estimate
+and After Action Report; keep **odds → strength delta → one verdict line**.
+
+- **`combat-paper/NOTES.md`.** Steal vs reject for Vic 3 / HOI4 / EU5
+  combat-paper language — thin dock, odds, strength bill, one verdict.
+  Reject pip-dice and busy unit ledgers.
+- **`vic3-battle-1.jpg`.** Official Steam store shot, Vic 3 *Battle for
+  L'Aquila* (Offense/Defense + start→current + Dead/Wounded/Demoralized; no
+  die faces). Primary steal.
+- **`eu5-battle-1.jpg`.** Official Steam store shot, EU5 *Battle of Gandia*
+  (two-sided dock + dense unit ledger). Reject as chrome.
+- **`FEATURE-MAP.md` / `README.md`.** Combat-paper marked **seeded** and
+  linked, same header-pack style.
+
+HOI4 land-battle window is not in the public store CDN set. NOTES steal its
+forecast / casualty language from the wiki; no invented HOI4 screenshot.
+
+The campaign, map, AI, supply and combat math are unchanged. The no-dice HUD
+tip consumes this pack later.
+
+## [docs-paradox-lib] — 2026-09-17 · Paradox reference library
+
+Docs only. No game version. No `src/` changes. No new rules.
+
+Phil’s standing craft rule: for every BLACK THEATRE feature, find the Paradox
+equivalent (HOI4 / Vic 3 / EU5), screenshot it under `docs/refs/paradox/`, then
+replicate in our own style (Vic 3 language, PC2-simple). This seed is the
+library, not a HUD rewrite.
+
+- **`docs/refs/paradox/README.md`.** Layout and steal / reject rules. Reference
+  art stays under `docs/refs/` so it never hits the runtime bundle.
+- **`docs/refs/paradox/FEATURE-MAP.md`.** Feature → Paradox equivalent → ref
+  folder → status.
+- **`header/` seeded.** Steal / reject notes plus six top-bar shots (HOI4, Vic
+  3, EU5). Target: thin strip, flag left, icon+number chips, week/weather chip
+  — no THEATRE wordmark on the play HUD.
+- **Stubs.** `combat-paper/`, `outliner/`, `map-modes/`, `selection-orders/`,
+  `board-chrome/` each carry a one-line NOTES TODO.
+
+The campaign, map, AI, supply and combat math are unchanged.
 
 ## [0.2.22] — 2026-09-17 · Slice 5 — reach retip
 
