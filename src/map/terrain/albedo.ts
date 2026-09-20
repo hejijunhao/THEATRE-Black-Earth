@@ -55,8 +55,8 @@ export function applySoilContinuity(c: RGB, wz: number, heightMetres: number): R
   // Midground crush toward chernozem/loam — rain lighting still lifts, so
   // the paint has to start dark or campaign zoom stays an ochre plate.
   // Far north keeps loft; the scar is not washed toward khaki.
-  const crush = 0.58 + 0.34 * smooth(0.62, 0.97, lat);
-  let out: RGB = { r: c.r * crush, g: c.g * crush * 0.90, b: c.b * crush * 0.84 };
+  const crush = 0.52 + 0.40 * smooth(0.62, 0.97, lat);
+  let out: RGB = { r: c.r * crush, g: c.g * crush * 0.86, b: c.b * crush * 0.76 };
   const lift = northSoilLift(wz, heightMetres);
   out = mix(out, KHAKI_FIELD, lift);
   const luma = 0.2126 * out.r + 0.7152 * out.g + 0.0722 * out.b;

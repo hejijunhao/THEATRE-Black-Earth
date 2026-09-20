@@ -202,11 +202,13 @@ export function TerrainMesh() {
               float shade = smoothstep(0.52, 0.78, cl) * uCloud * (1.0 - uPaper);
               ground *= 1.0 - shade * 0.10;
             }
-            // Far-north keep only. A midground luma floor was the ochre
-            // plate — it lifted crushed chernozem back to umber wash.
+            // Far-north keep only. Midground is crushed off the khaki-light
+            // mustard plate; a luma floor here was lifting it back.
             float northLat = 1.0 - clamp(wp.y / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
             vec3 soilKeep = vec3(0.48, 0.36, 0.20);
             float keep = smoothstep(0.70, 0.96, northLat);
+            vec3 midGround = vec3(ground.r * 0.78, ground.g * 0.58, ground.b * 0.44);
+            ground = mix(midGround, ground, keep);
             ground = mix(ground, mix(max(ground, soilKeep), soilKeep, 0.50), keep * 0.38);
             float luma = dot(ground, vec3(0.2126, 0.7152, 0.0722));
             float floorL = 0.22 * keep;
@@ -232,6 +234,10 @@ export function TerrainMesh() {
             // scar back to one ochre plate after the albedo crush.
             float northLit = 1.0 - clamp(vWorldPos3.z / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
             float keepLit = smoothstep(0.70, 0.96, northLit);
+            // Khaki lights + exposure wash crushed soil back to one ochre
+            // plate. Crush the scar on the lit path; loft stays far-north.
+            vec3 midLit = vec3(outgoingLight.r * 0.74, outgoingLight.g * 0.54, outgoingLight.b * 0.40);
+            outgoingLight = mix(midLit, outgoingLight, keepLit);
             float litL = dot(outgoingLight, vec3(0.2126, 0.7152, 0.0722));
             float floorLit = 0.26 * keepLit;
             if (keepLit > 0.001 && litL < floorLit) outgoingLight *= floorLit / max(litL, 0.001);

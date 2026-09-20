@@ -146,6 +146,10 @@ function assertNotPaintedKhaki(path, label) {
     console.error(`FAIL: ${label} still reads as mustard ochre plate`);
     process.exitCode = 1;
   }
+  if (mid.luma > 118 && mid.g > mid.r * 0.88) {
+    console.error(`FAIL: ${label} washed khaki plate — luma/green still high`);
+    process.exitCode = 1;
+  }
   // Soil, not cool concrete: mid must stay earth-warm.
   if (mid.r < mid.b || mid.g < mid.b * 0.92) {
     console.error(`FAIL: ${label} midground went cool-grey`);
