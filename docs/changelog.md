@@ -72,7 +72,9 @@ This cut:
 
 Notes under `docs/refs/paradox/combat-stamps/` (Vic 3 thin strip /
 HOI4 window type). Live Paradox shots are still TODO — did not invent
-a wax seal or a chip row to fake them.
+a wax seal or a chip row to fake them. Subtractive stamp authority
+**PASS** on the playtest estimate / AAR; Vic / HOI live-panel match
+stays **FAIL, parked**.
 
 The campaign, map, AI, supply and combat math are unchanged.
 

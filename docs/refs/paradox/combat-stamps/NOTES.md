@@ -63,10 +63,14 @@ the strip; dice theater; armor / ground / reach / atmosphere.
 
 **Honest craft verdict (live paper, select → assault → AAR):**
 
-Vs subtractive stamp authority: judge from the estimate / AAR shots —
-the mark must read as a hairline class, not a busy seal.
+Vs subtractive stamp authority: **PASS**. Playtest DOM + shots show
+`STAFF ESTIMATE · WEEK 1` / `ASSAULT` and `AFTER ACTION · WEEK 1` /
+`DISPATCH` on a hairline rail. No `.brief-sheet .stamp` rubber badge.
+Headline owns the sheet. No chip row on the strip. Paper still docks
+on the map.
 
 Vs Vic 3 / HOI4 live panels: **FAIL, parked**. No GPU shots of those
 windows here. Do not invent replacement chrome.
 
-The Decision event badge is out of scope.
+The Decision event badge is out of scope. Ground / armor mustard in
+these host shots is SwiftShader terrain keep from #28, not this strip.
