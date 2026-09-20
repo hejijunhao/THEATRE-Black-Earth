@@ -55,10 +55,10 @@ const FIELD_COLORS = [
 ].map(rgb);
 /** 14-unit cadastral districts — rest zoom must see soil families, not one ochre. */
 const REGION_SOILS = [
-  rgb('#2c1808'), // chernozem — dark red-brown
-  rgb('#4a3016'), // brown loam
-  rgb('#6a5834'), // loess — tan, less yellow
-  rgb('#3a4420'), // pasture — greener olive
+  rgb('#2a1206'), // chernozem — dark red-brown
+  rgb('#4e3012'), // brown loam
+  rgb('#6e5a30'), // loess — tan, less yellow
+  rgb('#364a1c'), // pasture — greener olive
 ];
 const SHELTER = rgb('#3a2e18');
 const DIRT = rgb('#5a3e20');
@@ -113,7 +113,7 @@ export function fieldColor(wx: number, wz: number): RGB {
   const rz = Math.floor(wz / 14);
   const pick = Math.floor(ihash(rx * 517 + f.strip, rz * 763 + f.parcel, 109) * FIELD_COLORS.length);
   // District soil leads at rest; parcel chroma is the contact-scale read.
-  let c = mix(regionSoil(wx, wz), FIELD_COLORS[pick], 0.34);
+  let c = mix(regionSoil(wx, wz), FIELD_COLORS[pick], 0.32);
 
   // Furrow / drill rows: high-frequency dirt inside the parcel.
   const furrow = 0.5 + 0.5 * Math.sin((f.u / f.stripW) * Math.PI * 2 * (3 + ihash(rx, rz, 111) * 3));

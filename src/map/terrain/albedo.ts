@@ -28,7 +28,7 @@ const URBAN = rgb('#9a9488');
 const URBAN_DARK = rgb('#7a756c');
 const SEA_FLOOR = rgb('#2a3a4a');
 const BEACH = rgb('#b09864');
-/** Warm umber loft the north must match under rain — soil, not mustard khaki. */
+/** Warm umber loft the far north must match under rain — soil, not mustard. */
 export const KHAKI_FIELD = rgb('#c49050');
 export const SOIL_FIELD = KHAKI_FIELD;
 export const CHERNOZEM = rgb('#3e2a16');
@@ -55,15 +55,16 @@ export function applySoilContinuity(c: RGB, wz: number, heightMetres: number): R
   // Midground crush toward chernozem/loam — rain lighting still lifts, so
   // the paint has to start dark or campaign zoom stays an ochre plate.
   // Far north keeps loft; the scar is not washed toward khaki.
-  const crush = 0.62 + 0.30 * smooth(0.62, 0.97, lat);
-  let out: RGB = { r: c.r * crush, g: c.g * crush * 0.93, b: c.b * crush * 0.86 };
+  const crush = 0.58 + 0.34 * smooth(0.62, 0.97, lat);
+  let out: RGB = { r: c.r * crush, g: c.g * crush * 0.90, b: c.b * crush * 0.84 };
   const lift = northSoilLift(wz, heightMetres);
   out = mix(out, KHAKI_FIELD, lift);
   const luma = 0.2126 * out.r + 0.7152 * out.g + 0.0722 * out.b;
-  // Floor is far-north only. A midground floor was the ochre plate —
-  // it lifted crushed chernozem back to khaki.
-  const floor = 48 + 76 * smooth(0.70, 0.97, lat);
-  if (luma < floor) {
+  // Floor is far-north only. A constant 48-luma midground floor was the
+  // ochre plate — it lifted crushed chernozem toward khaki loft.
+  const northKeep = smooth(0.70, 0.97, lat);
+  const floor = 118 * northKeep;
+  if (northKeep > 0.001 && luma < floor) {
     // Lift toward warm soil, not a grey scale-up of cool forest.
     const k = (floor - luma) / Math.max(1, floor);
     out = mix(out, KHAKI_FIELD, Math.min(0.55, k * 0.85));

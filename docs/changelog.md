@@ -66,6 +66,9 @@ This cut:
 - **Warms far-north keep / loft.** Continuity target is umber loess, not
   mustard khaki. Luma floors mix toward warm soil instead of scaling cool
   forest grey. Fog and grade stay locked.
+- **Luma floor is far-north only.** A constant midground floor (and the
+  leftover shader/emissive keep-alive) was lifting crushed chernozem
+  back to one ochre wash. The scar stays crushed; loft is the far grid.
 
 Notes under `docs/refs/paradox/ground/`. Still a painted canvas — not Vic
 plough, not a province terrain renderer.

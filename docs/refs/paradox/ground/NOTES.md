@@ -47,8 +47,11 @@ zoom — without destroying the strip/parcel language from 0.2.18.
 **Rejects held:** political recolour as the rest frame; fog / grade /
 unit / HUD / reach retunes; inventing a second field grid; Vic plough.
 
-**Honest craft verdict (pre-shot):** paint is darker and more split;
-north keep is warmer umber. Live rest+rain + midzoom shots decide
-whether the mustard plate and cool-grey lobe actually died. This is
-still a painted albedo + strip displacement — **not** Vic cadastral
-GIS and **not** the diorama field cap.
+**Honest craft verdict:** the leftover mustard plate was not only
+paint — a midground luma floor (albedo 48 + shader keep-alive) was
+lifting crushed chernozem toward khaki loft. Floor is far-north only
+now; midground stays crushed; north loft is warmer umber. Live
+rest+rain + midzoom shots still decide whether the plate and cool-grey
+lobe actually died. This is still a painted albedo + strip
+displacement — **not** Vic cadastral GIS and **not** the diorama
+field cap.

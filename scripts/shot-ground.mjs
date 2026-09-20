@@ -34,6 +34,7 @@ function sampleRegion(png, x0, y0, x1, y1) {
   let bSum = 0;
   let veil = 0;
   let khaki = 0;
+  let ochre = 0;
   let n = 0;
   for (let y = y0; y < y1; y++) {
     for (let x = x0; x < x1; x++) {
@@ -50,6 +51,8 @@ function sampleRegion(png, x0, y0, x1, y1) {
       if (l < 72 && sat < 18) veil += 1;
       // Highlighter khaki: bright yellow-beige, the painted-steppe slab.
       if (r > 198 && g > 168 && b < 140 && l > 172) khaki += 1;
+      // Leftover mustard / ochre plate: yellow-dominant mid soil.
+      if (l > 96 && g > r * 0.78 && r - b > 40 && r > 110) ochre += 1;
       n += 1;
     }
   }
@@ -60,6 +63,7 @@ function sampleRegion(png, x0, y0, x1, y1) {
     b: bSum / n,
     veil: veil / n,
     khaki: khaki / n,
+    ochre: ochre / n,
   };
 }
 
@@ -122,9 +126,14 @@ function assertNotPaintedKhaki(path, label) {
     `luma=${mid.luma.toFixed(1)}`,
     `rgb=${mid.r.toFixed(0)},${mid.g.toFixed(0)},${mid.b.toFixed(0)}`,
     `khaki=${mid.khaki.toFixed(3)}`,
+    `ochre=${mid.ochre.toFixed(3)}`,
   );
   if (mid.khaki > 0.28) {
     console.error(`FAIL: ${label} painted khaki flood — highlighter fraction too high`);
+    process.exitCode = 1;
+  }
+  if (mid.ochre > 0.22) {
+    console.error(`FAIL: ${label} leftover mustard ochre plate — ochre fraction too high`);
     process.exitCode = 1;
   }
   if (mid.luma > 168 && mid.r > mid.b + 55 && mid.g > mid.b + 40) {

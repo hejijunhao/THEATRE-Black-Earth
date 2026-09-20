@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { WORLD_H } from '../data/terrainData';
 import { BOOT } from '../lod';
 import { CHERNOZEM, KHAKI_FIELD, LOESS, applySoilContinuity } from '../terrain/albedo';
 import { fieldColor, fieldLumaDelta, regionSoil } from '../terrain/strips';
@@ -44,7 +45,7 @@ describe('slice 1 ground albedo — cadastral soil', () => {
     soils.forEach(warm);
     // Chroma families, not one ochre hue: red-brown vs olive must both appear.
     const rg = soils.map((c) => c.r - c.g);
-    expect(Math.max(...rg) - Math.min(...rg)).toBeGreaterThan(22);
+    expect(Math.max(...rg) - Math.min(...rg)).toBeGreaterThan(28);
   });
 
   it('does not flatten scar parcels when sampling neighbour dirt', () => {
@@ -72,9 +73,22 @@ describe('slice 1 ground albedo — cadastral soil', () => {
     avg.r /= colors.length;
     avg.g /= colors.length;
     avg.b /= colors.length;
-    expect(luma(avg)).toBeLessThan(88);
+    expect(luma(avg)).toBeLessThan(72);
     expect(avg.g).toBeLessThan(avg.r * 0.92);
     expect(avg.r - avg.b).toBeGreaterThan(18);
     expect(luma(CHERNOZEM)).toBeLessThan(58);
+  });
+
+  it('does not lift midground crush back to an ochre floor', () => {
+    const mid = applySoilContinuity(CHERNOZEM, WORLD_H * 0.5, 80);
+    const scar = applySoilContinuity(CHERNOZEM, BOOT.wz, 80);
+    const north = applySoilContinuity(CHERNOZEM, WORLD_H * 0.06, 80);
+    expect(luma(mid)).toBeLessThan(40);
+    expect(luma(scar)).toBeLessThan(48);
+    expect(mid.g).toBeLessThan(mid.r * 0.92);
+    expect(scar.g).toBeLessThan(scar.r * 0.92);
+    expect(luma(north)).toBeGreaterThan(100);
+    expect(luma(north)).toBeGreaterThan(luma(mid) * 2);
+    expect(north.r).toBeGreaterThan(north.b);
   });
 });
