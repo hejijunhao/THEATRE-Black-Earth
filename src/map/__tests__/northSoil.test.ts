@@ -42,6 +42,7 @@ describe('north soil continuity gate', () => {
     expect(KHAKI_FIELD.g).toBeGreaterThan(KHAKI_FIELD.b);
     expect(KHAKI_FIELD.r).toBeLessThan(200);
     expect(KHAKI_FIELD.r - KHAKI_FIELD.b).toBeGreaterThan(40);
+    expect(KHAKI_FIELD.g).toBeLessThan(KHAKI_FIELD.r * 0.80);
     expect(l).toBeGreaterThan(130);
     expect(l).toBeLessThan(170);
   });

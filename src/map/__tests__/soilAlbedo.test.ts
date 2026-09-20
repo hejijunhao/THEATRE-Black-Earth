@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { WORLD_H } from '../data/terrainData';
 import { BOOT } from '../lod';
-import { CHERNOZEM, KHAKI_FIELD, LOESS, applySoilContinuity } from '../terrain/albedo';
+import { CHERNOZEM, KHAKI_FIELD, LOESS, albedoAt, applySoilContinuity } from '../terrain/albedo';
 import { fieldColor, fieldLumaDelta, regionSoil } from '../terrain/strips';
 
 function luma(c: { r: number; g: number; b: number }): number {
@@ -27,6 +28,7 @@ describe('slice 1 ground albedo — cadastral soil', () => {
     expect(KHAKI_FIELD.r).toBeLessThan(200);
     expect(luma(KHAKI_FIELD)).toBeLessThan(170);
     warm(KHAKI_FIELD);
+    expect(KHAKI_FIELD.g).toBeLessThan(KHAKI_FIELD.r * 0.80);
     const lifted = applySoilContinuity(CHERNOZEM, BOOT.wz, 80);
     expect(luma(lifted)).toBeLessThan(luma(KHAKI_FIELD) + 8);
   });
@@ -41,6 +43,9 @@ describe('slice 1 ground albedo — cadastral soil', () => {
     const lumas = soils.map(luma);
     expect(Math.max(...lumas) - Math.min(...lumas)).toBeGreaterThan(20);
     soils.forEach(warm);
+    // Chroma families, not one ochre hue: red-brown vs olive must both appear.
+    const rg = soils.map((c) => c.r - c.g);
+    expect(Math.max(...rg) - Math.min(...rg)).toBeGreaterThan(28);
   });
 
   it('does not flatten scar parcels when sampling neighbour dirt', () => {
@@ -53,5 +58,57 @@ describe('slice 1 ground albedo — cadastral soil', () => {
     const c = fieldColor(BOOT.wx, BOOT.wz);
     expect(c.r).toBeLessThan(220);
     warm(c);
+  });
+
+  it('darkens midground field paint off the mustard plate', () => {
+    const colors = [];
+    for (let i = 0; i < 48; i++) {
+      const raw = fieldColor(BOOT.wx + i * 0.37, BOOT.wz + (i % 6) * 0.41);
+      colors.push(applySoilContinuity(raw, BOOT.wz, 80));
+    }
+    const avg = colors.reduce(
+      (a, c) => ({ r: a.r + c.r, g: a.g + c.g, b: a.b + c.b }),
+      { r: 0, g: 0, b: 0 },
+    );
+    avg.r /= colors.length;
+    avg.g /= colors.length;
+    avg.b /= colors.length;
+    expect(luma(avg)).toBeLessThan(72);
+    expect(avg.g).toBeLessThan(avg.r * 0.92);
+    expect(avg.r - avg.b).toBeGreaterThan(18);
+    expect(luma(CHERNOZEM)).toBeLessThan(58);
+  });
+
+  it('paints the scar as crushed soil, not a khaki loft swatch', () => {
+    const colors = [];
+    for (let i = 0; i < 24; i++) {
+      colors.push(albedoAt(BOOT.wx + i * 0.41, BOOT.wz + (i % 5) * 0.37));
+    }
+    const avg = colors.reduce(
+      (a, c) => ({ r: a.r + c.r, g: a.g + c.g, b: a.b + c.b }),
+      { r: 0, g: 0, b: 0 },
+    );
+    avg.r /= colors.length;
+    avg.g /= colors.length;
+    avg.b /= colors.length;
+    expect(luma(avg)).toBeLessThan(78);
+    expect(avg.g).toBeLessThan(avg.r * 0.92);
+    expect(avg.r).toBeGreaterThan(avg.b);
+    const north = albedoAt(BOOT.wx, WORLD_H * 0.06);
+    expect(luma(north)).toBeGreaterThan(luma(avg));
+    expect(north.r).toBeGreaterThan(north.b);
+  });
+
+  it('does not lift midground crush back to an ochre floor', () => {
+    const mid = applySoilContinuity(CHERNOZEM, WORLD_H * 0.5, 80);
+    const scar = applySoilContinuity(CHERNOZEM, BOOT.wz, 80);
+    const north = applySoilContinuity(CHERNOZEM, WORLD_H * 0.06, 80);
+    expect(luma(mid)).toBeLessThan(40);
+    expect(luma(scar)).toBeLessThan(48);
+    expect(mid.g).toBeLessThan(mid.r * 0.92);
+    expect(scar.g).toBeLessThan(scar.r * 0.92);
+    expect(luma(north)).toBeGreaterThan(100);
+    expect(luma(north)).toBeGreaterThan(luma(mid) * 2);
+    expect(north.r).toBeGreaterThan(north.b);
   });
 });

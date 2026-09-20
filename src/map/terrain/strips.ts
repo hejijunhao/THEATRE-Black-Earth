@@ -42,23 +42,23 @@ export function noise2(x: number, y: number, salt: number): number {
 }
 
 // Cadastral soil, not printed khaki. Value-split so rest still reads
-// parcel edges; chroma is chernozem / loess / muted stubble / pasture —
-// the diorama field and steppe caps lifted for campaign zoom, not
-// highlighter straw. Lightest parcel must stay under a beige-flood gate.
+// parcel edges; chroma is chernozem / loam / muted stubble / pasture —
+// darker than the ochre plate that survived highlighter removal.
+// Lightest parcel must stay under a beige-flood gate.
 const FIELD_COLORS = [
-  '#b8a068', // dry stubble
-  '#7a6038', // cereal brown
-  '#4a3420', // chernozem
-  '#948454', // loess fallow
-  '#3e2c18', // wet plough
-  '#5e6040', // pasture olive
+  '#6a4e28', // dry stubble — muted straw, not mustard
+  '#3e2a12', // cereal brown
+  '#2c1a0c', // chernozem
+  '#5a4a2c', // loess fallow
+  '#24140a', // wet plough
+  '#3a3c20', // pasture olive
 ].map(rgb);
-/** 14-unit cadastral districts — rest zoom must see soil families, not one swatch. */
+/** 14-unit cadastral districts — rest zoom must see soil families, not one ochre. */
 const REGION_SOILS = [
-  rgb('#453018'), // chernozem
-  rgb('#6e5838'), // brown loam
-  rgb('#8a744c'), // loess
-  rgb('#5a5c38'), // pasture
+  rgb('#2a1206'), // chernozem — dark red-brown
+  rgb('#4e3012'), // brown loam
+  rgb('#6e5a30'), // loess — tan, less yellow
+  rgb('#364a1c'), // pasture — greener olive
 ];
 const SHELTER = rgb('#3a2e18');
 const DIRT = rgb('#5a3e20');
@@ -113,15 +113,15 @@ export function fieldColor(wx: number, wz: number): RGB {
   const rz = Math.floor(wz / 14);
   const pick = Math.floor(ihash(rx * 517 + f.strip, rz * 763 + f.parcel, 109) * FIELD_COLORS.length);
   // District soil leads at rest; parcel chroma is the contact-scale read.
-  let c = mix(regionSoil(wx, wz), FIELD_COLORS[pick], 0.58);
+  let c = mix(regionSoil(wx, wz), FIELD_COLORS[pick], 0.32);
 
   // Furrow / drill rows: high-frequency dirt inside the parcel.
   const furrow = 0.5 + 0.5 * Math.sin((f.u / f.stripW) * Math.PI * 2 * (3 + ihash(rx, rz, 111) * 3));
-  if (furrow > 0.62) c = mix(c, FURROW, 0.42 * (furrow - 0.62) / 0.38);
+  if (furrow > 0.62) c = mix(c, FURROW, 0.50 * (furrow - 0.62) / 0.38);
 
   // Shelter-belt / headland darkening on both axes.
-  if (f.edgeU < 0.12) c = mix(c, SHELTER, 0.58 * (1 - f.edgeU / 0.12));
-  if (f.edgeV < 0.10) c = mix(c, DIRT, 0.46 * (1 - f.edgeV / 0.10));
+  if (f.edgeU < 0.12) c = mix(c, SHELTER, 0.68 * (1 - f.edgeU / 0.12));
+  if (f.edgeV < 0.10) c = mix(c, DIRT, 0.56 * (1 - f.edgeV / 0.10));
 
   // Soft clod + finer crumb so a parcel is dirt, not a printed swatch.
   const clod = (noise2(wx * 3.4, wz * 3.4, 73) - 0.5) * 0.18;

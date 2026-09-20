@@ -34,6 +34,7 @@ function sampleRegion(png, x0, y0, x1, y1) {
   let bSum = 0;
   let veil = 0;
   let khaki = 0;
+  let ochre = 0;
   let n = 0;
   for (let y = y0; y < y1; y++) {
     for (let x = x0; x < x1; x++) {
@@ -50,6 +51,8 @@ function sampleRegion(png, x0, y0, x1, y1) {
       if (l < 72 && sat < 18) veil += 1;
       // Highlighter khaki: bright yellow-beige, the painted-steppe slab.
       if (r > 198 && g > 168 && b < 140 && l > 172) khaki += 1;
+      // Leftover mustard / ochre plate: yellow-dominant mid soil.
+      if (l > 96 && g > r * 0.78 && r - b > 40 && r > 110) ochre += 1;
       n += 1;
     }
   }
@@ -60,6 +63,7 @@ function sampleRegion(png, x0, y0, x1, y1) {
     b: bSum / n,
     veil: veil / n,
     khaki: khaki / n,
+    ochre: ochre / n,
   };
 }
 
@@ -82,8 +86,12 @@ function assertNorthSoil(path) {
     process.exitCode = 1;
   }
   // Cooler-grey north: blue channel catching the mid, or sat collapsing.
-  if (north.b > north.r * 0.92 && north.luma < mid.luma * 0.92) {
+  if (north.b > north.r * 0.88) {
     console.error('FAIL: north cooler-grey mismatch vs mid soil');
+    process.exitCode = 1;
+  }
+  if (north.r < north.g * 0.92 && north.luma < mid.luma * 0.96) {
+    console.error('FAIL: north still a cool olive lobe vs mid soil');
     process.exitCode = 1;
   }
 }
@@ -118,13 +126,28 @@ function assertNotPaintedKhaki(path, label) {
     `luma=${mid.luma.toFixed(1)}`,
     `rgb=${mid.r.toFixed(0)},${mid.g.toFixed(0)},${mid.b.toFixed(0)}`,
     `khaki=${mid.khaki.toFixed(3)}`,
+    `ochre=${mid.ochre.toFixed(3)}`,
   );
   if (mid.khaki > 0.28) {
     console.error(`FAIL: ${label} painted khaki flood — highlighter fraction too high`);
     process.exitCode = 1;
   }
+  if (mid.ochre > 0.22) {
+    console.error(`FAIL: ${label} leftover mustard ochre plate — ochre fraction too high`);
+    process.exitCode = 1;
+  }
   if (mid.luma > 168 && mid.r > mid.b + 55 && mid.g > mid.b + 40) {
     console.error(`FAIL: ${label} still reads as painted beige steppe`);
+    process.exitCode = 1;
+  }
+  // Mustard / ochre plate: yellow-dominant midground at campaign zoom.
+  // Highlighter straw is already gone; this is the leftover khaki field.
+  if (mid.luma > 100 && mid.g > mid.r * 0.80 && mid.r - mid.b > 48) {
+    console.error(`FAIL: ${label} still reads as mustard ochre plate`);
+    process.exitCode = 1;
+  }
+  if (mid.luma > 118 && mid.g > mid.r * 0.88) {
+    console.error(`FAIL: ${label} washed khaki plate — luma/green still high`);
     process.exitCode = 1;
   }
   // Soil, not cool concrete: mid must stay earth-warm.
