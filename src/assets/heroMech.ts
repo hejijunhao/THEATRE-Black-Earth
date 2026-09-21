@@ -1,17 +1,15 @@
-// Hero-grade tracked IFV (Marder-family idiom, class-level — no insignia,
-// no catalogued marks). Front drive sprocket, long lower glacis, compact
-// autocannon turret, tall troop compartment with rear ramp. Same doctrine
-// as panzerHero: metres, one merged draw call, weathering shader finish.
+// Operational IFV model. Deterministic metre-scale geometry with muted
+// vertex paint and diffuse lighting; hull, turret and gun retain their depth.
 
 import * as THREE from 'three';
 import { FactionId } from '../game/types';
 import {
-  HERO_SCALE, getStampHeroMaterial, hbox, hcyl, stampMats, htorus, htrap, mergeHero,
+  HERO_SCALE, getHeroMaterial, hbox, hcyl, heroMats, htorus, htrap, mergeHero,
 } from './heroParts';
 import { linkRun, trackWheel } from './heroAssemblies';
 
 export function makeMechHeroGeometry(faction: FactionId): THREE.BufferGeometry {
-  const M = stampMats(faction);
+  const M = heroMats(faction);
   const { BODY, TOP, SHADE, RUBBER, STEEL, DARKSTEEL, CANVAS2, OPTIC } = M;
   const parts: THREE.BufferGeometry[] = [];
 
@@ -188,5 +186,5 @@ export function makeMechHero(faction: FactionId): {
     geometry = makeMechHeroGeometry(faction);
     geoCache.set(faction, geometry);
   }
-  return { geometry, material: getStampHeroMaterial() };
+  return { geometry, material: getHeroMaterial() };
 }

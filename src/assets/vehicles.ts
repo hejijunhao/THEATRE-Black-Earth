@@ -17,16 +17,14 @@ const PAINT: Record<FactionId, { hull: string; dark: string; accent: string }> =
 const TRACK = '#2e2c26';
 const TIRE = '#1a1814';
 const CANVAS_TOP = '#2a281e';
-// Punchy field-green. THREE.Color stores linear, and the rain veil-break
-// lifts dark+grey linear pixels to khaki. Grey olive vanished; this sat
-// stays above the gate so a rank stamps.
-const FIGURE = '#0a5816';
-const FIGURE_DARK = '#064010';
-const FIGURE_HELM = '#085014';
-const FIGURE_RIM = '#14701c';
-const RIFLE = '#032008';
-const INF_HULL = '#084812';
-const INF_CANVAS = '#0a4010';
+// Wool, canvas and steel: ranks share the machines' quiet material range.
+const FIGURE = '#626a52';
+const FIGURE_DARK = '#343c30';
+const FIGURE_HELM = '#72795f';
+const FIGURE_RIM = '#899078';
+const RIFLE = '#242923';
+const INF_HULL = '#515b4b';
+const INF_CANVAS = '#655f4d';
 const BARREL = '#3a3d36';
 const GLASS = '#101410';
 

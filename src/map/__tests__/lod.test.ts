@@ -82,7 +82,8 @@ describe('boot camera gate', () => {
     expect(standardOpacityAtHeight(BOOT_CAM.y)).toBe(0);
     expect(standardOpacityAtHeight(10.4)).toBe(0);
     expect(standardOpacityAtHeight(13.2)).toBe(0);
-    expect(standardOpacityAtHeight(24)).toBe(1);
+    expect(standardOpacityAtHeight(24)).toBe(0);
+    expect(standardOpacityAtHeight(34)).toBe(1);
     expect(PLATE_NEAR_OPACITY).toBeLessThan(0.35);
   });
 });

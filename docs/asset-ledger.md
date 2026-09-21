@@ -52,3 +52,11 @@ manufacturer catalogue, no spectacle.
    *not* turn with the vehicles, so check the worst case: full tier, both
    extremes of the per-unit facing jitter. `golden.mjs`'s
    `closeup-formation.png` is the regression guard.
+
+## September 2026 — operational machine material revision
+
+Existing tank / IFV / artillery / recon factories and infantry ranks now share
+matte diffuse lighting and restrained olive/earth paint. Procedural weathering
+and unlit green stamps are removed; geometry remains instanced. Solid display
+plinths give way to contact shadows and invisible picking footprints. Review
+with `scripts/shot-theatre.mjs` at operational height, counters off.

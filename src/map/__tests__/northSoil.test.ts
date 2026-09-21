@@ -67,8 +67,8 @@ describe('rain air is warm khaki, not a charcoal veil', () => {
     expect(ao.r).toBeGreaterThan(ao.b);
     expect(RAIN_VIGNETTE.darkness).toBeLessThan(0.02);
     expect(RAIN_VIGNETTE.offset).toBeGreaterThan(0.75);
-    expect(WEATHER_GRADE.rain.veil).toBe(1);
-    expect(WEATHER_GRADE.rain.lift).toBeGreaterThan(0.035);
+    expect(WEATHER_GRADE.rain.sat).toBeLessThanOrEqual(1);
+    expect(WEATHER_GRADE.rain.lift).toBeLessThan(0.015);
   });
 });
 
@@ -91,9 +91,9 @@ describe('machine paint silhouettes on khaki', () => {
       const p = HERO_PAINT[side];
       const dark = luma(hexRgb(p.dark));
       const light = luma(hexRgb(p.light));
-      expect(dark).toBeLessThan(40);
+      expect(dark).toBeLessThan(45);
       expect(light).toBeGreaterThan(100);
-      expect(light).toBeLessThan(field * 0.85);
+      expect(light).toBeLessThan(field * 0.95);
       expect(light - dark).toBeGreaterThan(70);
     }
   });

@@ -49,7 +49,7 @@ const N8AO = forwardRef<N8AOPostPass, { halfRes?: boolean }>(function N8AO({ hal
 
 // The paper renderer bypasses the weather film stock — a printed map is not
 // subject to the light outside the map room.
-const PAPER_GRADE = { temp: 0.04, tintG: 0.0, sat: 1.0, contrast: 1.02, lift: 0.01, veil: 0 };
+const PAPER_GRADE = { temp: 0.04, tintG: 0.0, sat: 1.0, contrast: 1.02, lift: 0.01 };
 
 function GradePrimitive() {
   const weather = useStore((s) => s.game?.weather ?? 'overcast');

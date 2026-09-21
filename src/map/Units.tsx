@@ -24,6 +24,7 @@ import { tileGroundY } from './terrain/heightfield';
 import {
   makeEarthworksGeometry, makeMiniatureBuild, tierFromStrength,
 } from '../assets/units';
+import { getHeroMaterial } from '../assets/heroParts';
 import { HeroFormation } from './HeroFormation';
 import { hashSeed } from '../game/rng';
 import { FACTION_STRONG } from './palette';
@@ -38,7 +39,6 @@ import {
   MACHINE_SCALE,
   MINI_BASE_D,
   MINI_BASE_W,
-  PLATE_NEAR_OPACITY,
   SELECT_RING_IN,
   SELECT_RING_OUT,
   STANDARD_H,
@@ -57,11 +57,11 @@ function GroundPresence({ radius }: { radius: number }) {
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]} raycast={() => null}>
         <circleGeometry args={[radius * 1.15, 32]} />
-        <meshBasicMaterial color="#0a0907" transparent opacity={0.14} depthWrite={false} />
+        <meshBasicMaterial color="#0a0907" transparent opacity={0.07} depthWrite={false} />
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.014, 0]} raycast={() => null}>
         <circleGeometry args={[radius, 28]} />
-        <meshBasicMaterial color="#0c0b08" transparent opacity={0.32} depthWrite={false} />
+        <meshBasicMaterial color="#0c0b08" transparent opacity={0.12} depthWrite={false} />
       </mesh>
     </group>
   );
@@ -83,7 +83,7 @@ function AgencyMarks({
       {selected && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]} raycast={() => null}>
           <ringGeometry args={[SELECT_RING_IN, SELECT_RING_OUT, 40]} />
-          <meshBasicMaterial color="#d4c28a" transparent opacity={0.92} depthWrite={false} />
+          <meshBasicMaterial color="#d4c28a" transparent opacity={0.72} depthWrite={false} />
         </mesh>
       )}
       {chrome.canAttack && (
@@ -120,23 +120,7 @@ function useCrossfade() {
   });
 }
 
-const MINI_MATERIAL = new THREE.MeshStandardMaterial({
-  vertexColors: true,
-  roughness: 0.68,
-  metalness: 0.1,
-  transparent: true,
-  // Flat flood wash killed the dark-hull / light-top split.
-  emissive: '#2a2418',
-  emissiveIntensity: 0.18,
-});
-
-// Infantry props only. The shared mini wash lifts olive toward khaki and
-// turns a rifle rank into a pale plate. Keep-alive is dim so the authored
-// person + rifle + truck colours stamp.
-const INF_MATERIAL = new THREE.MeshBasicMaterial({
-  vertexColors: true,
-  transparent: true,
-});
+const MINI_MATERIAL = getHeroMaterial();
 
 function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boolean; chrome: BoardChrome }) {
   const game = useStore((s) => s.game)!;
@@ -144,7 +128,6 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
   const selectTile = useStore((s) => s.selectTile);
   const groupRef = useRef<THREE.Group>(null);
   const target = useRef(new THREE.Vector3());
-  const baseMatRef = useRef<THREE.MeshStandardMaterial>(null);
   const stdMatRef = useRef<THREE.MeshBasicMaterial>(null);
   const pulseRef = useRef<THREE.Mesh>(null);
 
@@ -212,10 +195,6 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
     // Crossfade against the counters.
     const vis = (1 - fadeState.value) * (chrome.spent ? 0.78 : 1);
     g.visible = vis > 0.02;
-    if (baseMatRef.current) {
-      const plate = PLATE_NEAR_OPACITY + (1 - PLATE_NEAR_OPACITY) * standardOpacityAtHeight(camera.position.y);
-      baseMatRef.current.opacity = vis * plate;
-    }
     // The NATO standard is a plate. At boot height it sits on the hull
     // and the mid-zoom read collapses to "plates only". Drop it while
     // the machines are the LOD.
@@ -243,26 +222,11 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
       }}
       onPointerOver={(e) => e.stopPropagation()}
     >
-      <GroundPresence radius={0.62} />
-      {/* Base plate: faction identity lives here, not on the vehicles. */}
-      <mesh position={[0, 0.018, 0]} castShadow>
-        <boxGeometry args={[MINI_BASE_W, 0.036, MINI_BASE_D]} />
-        <meshStandardMaterial
-          ref={baseMatRef}
-          color={chrome.spent
-            ? (unit.faction === 'UA' ? '#141820' : '#221614')
-            : (unit.faction === 'UA' ? '#1e2a38' : '#2e1c18')}
-          roughness={0.72}
-          transparent
-          emissive={
-            selected
-              ? FACTION_STRONG[unit.faction]
-              : chrome.threatened
-                ? '#cfc6a8'
-                : FACTION_STRONG[unit.faction]
-          }
-          emissiveIntensity={selected ? 0.22 : chrome.threatened ? 0.14 : 0.06}
-        />
+      <GroundPresence radius={0.43} />
+      {/* A transparent picking footprint keeps small formations easy to select. */}
+      <mesh position={[0, 0.018, 0]}>
+        <boxGeometry args={[MINI_BASE_W, 0.12, MINI_BASE_D]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} colorWrite={false} />
       </mesh>
       {/* The machines: hero vehicles as instances, everything else — foot
           elements, logistics, muzzle smoke — merged into one props mesh. */}
@@ -270,7 +234,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
         {build.props && (
           <mesh
             geometry={build.props}
-            material={unit.type === 'infantry' ? INF_MATERIAL : MINI_MATERIAL}
+            material={MINI_MATERIAL}
             castShadow
           />
         )}

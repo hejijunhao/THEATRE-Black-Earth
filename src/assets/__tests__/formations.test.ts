@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MeshBasicMaterial, MeshStandardMaterial, Vector3 } from 'three';
+import { MeshLambertMaterial, Vector3 } from 'three';
 import { MACHINE_SCALE } from '../../map/lod';
 import { HEX_H, HEX_W } from '../../game/hex';
 import { makeMiniatureBuild } from '../units';
@@ -9,12 +9,10 @@ import { makeMechHero, makeMechHeroGeometry } from '../heroMech';
 import { makePanzerHero, makePanzerHeroGeometry } from '../panzerHero';
 import {
   getHeroMaterial,
-  getStampHeroMaterial,
   HERO_SCALE,
-  stampMats,
-  STAMP_PAINT,
+  HERO_PAINT,
 } from '../heroParts';
-import { usesStampHero } from '../heroFleet';
+import { heroMaterial } from '../heroFleet';
 
 function spec(type: 'infantry' | 'mechanized' | 'artillery', tier: 1 | 2 | 3 | 4 = 3) {
   return {
@@ -49,10 +47,9 @@ describe('non-armor boot silhouettes', () => {
     const parts = figure();
     expect(parts.length).toBeGreaterThan(8);
     const col = parts[0].getAttribute('color');
-    // Linear vertex colour (three ColorManagement). Green channel must
-    // outrun red/blue or the rain veil treats the rank as grey khaki.
+    // Muted olive cloth retains a small green bias in linear vertex colour.
     expect(col.getY(0)).toBeGreaterThan(0.08);
-    expect(col.getY(0)).toBeGreaterThan(col.getX(0) * 2);
+    expect(col.getY(0)).toBeGreaterThan(col.getX(0));
     expect(col.getZ(0)).toBeLessThan(col.getY(0));
 
     const mergedX = parts.reduce((m, g) => {
@@ -112,53 +109,32 @@ function luma(c: { r: number; g: number; b: number }): number {
   return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
 }
 
-function sat(c: { r: number; g: number; b: number }): number {
-  const l = luma(c);
-  return Math.hypot(c.r - l, c.g - l, c.b - l);
-}
-
 function srgb(hex: string): { r: number; g: number; b: number } {
   const n = parseInt(hex.slice(1), 16);
   return { r: ((n >> 16) & 255) / 255, g: ((n >> 8) & 255) / 255, b: (n & 255) / 255 };
 }
 
-describe('MECH/ARTY veil-proof stamp', () => {
-  it('routes armored, mechanized and artillery off the shared hero wash', () => {
-    expect(usesStampHero('mechanized')).toBe(true);
-    expect(usesStampHero('artillery')).toBe(true);
-    expect(usesStampHero('armored')).toBe(true);
-    expect(usesStampHero('recon')).toBe(false);
-  });
-
-  it('keeps the stamp unlit and the recon wash lit', () => {
-    const stamp = getStampHeroMaterial();
-    const hero = getHeroMaterial();
-    expect(stamp).toBeInstanceOf(MeshBasicMaterial);
-    expect(hero).toBeInstanceOf(MeshStandardMaterial);
-    expect(stamp).not.toBe(hero);
-    expect(makeMechHero('UA').material).toBe(stamp);
-    expect(makeArtilleryHero('UA').material).toBe(stamp);
-    expect(makePanzerHero('UA').material).toBe(stamp);
-    expect(hero.emissive.getHexString()).toBe('1c1810');
-  });
-
-  it('punches field-green sat above the rain veil gate', () => {
-    // Grade sees the sRGB framebuffer, not linear storage.
-    for (const side of ['UA', 'RU'] as const) {
-      const p = STAMP_PAINT[side];
-      for (const hex of [p.base, p.dark, p.light, p.steel]) {
-        const c = srgb(hex);
-        expect(c.g).toBeGreaterThan(c.r * 2);
-        expect(c.g).toBeGreaterThan(c.b);
-        expect(sat(c)).toBeGreaterThan(0.085);
-      }
-      expect(luma(srgb(p.dark))).toBeLessThan(luma(srgb(p.light)) * 0.7);
-      expect(luma(srgb(p.light)) - luma(srgb(p.dark))).toBeGreaterThan(0.12);
+describe('operational machine materials', () => {
+  it('uses one dimensional, matte paint family for every vehicle class', () => {
+    const material = getHeroMaterial();
+    expect(material).toBeInstanceOf(MeshLambertMaterial);
+    for (const type of ['armored', 'mechanized', 'artillery', 'recon'] as const) {
+      expect(heroMaterial(type)).toBe(material);
     }
-    const mats = stampMats('UA');
-    expect(mats.BODY.c).toBe(STAMP_PAINT.UA.base);
-    expect(mats.TOP.c).toBe(STAMP_PAINT.UA.light);
-    expect(mats.DARKSTEEL.c).toBe(STAMP_PAINT.UA.steel);
+    expect(makeMechHero('UA').material).toBe(material);
+    expect(makeArtilleryHero('UA').material).toBe(material);
+    expect(makePanzerHero('UA').material).toBe(material);
+  });
+
+  it('separates hull and turret without saturated green paint', () => {
+    for (const side of ['UA', 'RU'] as const) {
+      const p = HERO_PAINT[side];
+      for (const hex of [p.base, p.dark, p.light]) {
+        const c = srgb(hex);
+        expect(Math.max(c.r, c.g, c.b) - Math.min(c.r, c.g, c.b)).toBeLessThan(0.18);
+      }
+      expect(luma(srgb(p.light)) - luma(srgb(p.base))).toBeGreaterThan(0.15);
+    }
   });
 });
 
@@ -179,16 +155,16 @@ function sampleWhere(
   return { ...avg, n, luma: luma(avg) };
 }
 
-describe('armor veil-proof stamp', () => {
+describe('armor class silhouette', () => {
   it('authors a dark hull and a light turret, not one wash', () => {
     const geo = makePanzerHeroGeometry('UA');
     const hull = sampleWhere(geo, (_x, y) => y >= 0.85 * HERO_SCALE && y <= 1.55 * HERO_SCALE);
     const turret = sampleWhere(geo, (_x, y) => y >= 2.35 * HERO_SCALE && y <= 2.55 * HERO_SCALE);
     expect(hull.n).toBeGreaterThan(80);
     expect(turret.n).toBeGreaterThan(20);
-    expect(turret.luma).toBeGreaterThan(hull.luma * 1.35);
-    expect(hull.g).toBeGreaterThan(hull.r * 1.5);
-    expect(turret.g).toBeGreaterThan(turret.r * 1.5);
+    expect(turret.luma).toBeGreaterThan(hull.luma * 1.15);
+    expect(hull.g).toBeGreaterThan(hull.b);
+    expect(turret.g).toBeGreaterThan(turret.b);
   });
 
   it('keeps the gun a dark finger ahead of the turret', () => {
