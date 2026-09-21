@@ -2794,3 +2794,108 @@ button.bj-fight.locatable:hover {
 .victory-screen .scores { display: flex; justify-content: center; gap: 40px; margin: 22px 0; font-family: var(--font-mono); }
 .victory-screen .scores .n { font-size: 26px; color: var(--ink-bright); }
 .victory-screen .scores .l { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-dim); }
+
+/* Operational theatre: restrained brass rules, matte field case, staff paper. */
+.top-bar.vic3-thin {
+  background: linear-gradient(180deg, #30332d, #20251f);
+  border-bottom-color: #857657;
+  box-shadow: 0 1px 3px #15150f55;
+}
+.vic3-thin .hdr-chip {
+  background: transparent;
+  border-color: transparent;
+  border-right-color: #b3a27c33;
+  box-shadow: none;
+  color: #e1d8c4;
+}
+.vic3-thin .week-chip { background: #10191155; }
+.vic3-thin .end-chip { border: 1px solid #a18c5f77; }
+.vic3-thin .hdr-chip:hover { background: #b8a27616; }
+.vic3-thin .hdr-chip svg { color: #bba67b; }
+.outliner { background: #252a23f5; box-shadow: 0 3px 10px #13140f30; }
+.outliner.rail { bottom: auto; width: auto; }
+.outliner.open { bottom: auto; max-height: calc(100vh - 150px); }
+.outliner-list { overflow-y: auto; }
+.command-bench {
+  min-height: 0;
+  max-width: calc(100vw - 32px);
+  bottom: 14px;
+  border: 1px solid #a28d625e;
+  border-radius: 0;
+  background: #222820f5;
+  box-shadow: 0 3px 12px #11150f40;
+}
+.command-bench .bench-formation { padding: 7px 10px; gap: 5px; }
+.command-bench .bench-nameplate {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+  border-bottom: 1px solid #b3a27c33;
+  padding: 0 0 5px;
+}
+.command-bench .bench-nameplate::before,
+.command-bench .bench-nameplate::after { display: none; }
+.command-bench .np-name { font-size: 14px; letter-spacing: 0; }
+.movement-readout { margin-left: auto; color: #bfb69f; font: 10px var(--font-mono); white-space: nowrap; }
+.command-bench .bench-plate {
+  min-width: 82px;
+  max-width: none;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 10px;
+  padding: 4px 8px;
+  background: transparent;
+  box-shadow: none;
+  border: 1px solid #b3a27c30;
+}
+.command-bench .bench-plate:hover:not(.inert) { background: #b3a27c16; border-color: #b3a27c88; }
+.command-bench .plate-engrave { font-size: 9px; align-self: center; letter-spacing: 0.08em; }
+.command-bench .plate-value { font: 14px var(--font-mono); }
+.command-bench .plate-line { grid-column: 1 / -1; font-size: 9px; }
+.brief-sheet.dispatch {
+  padding-left: 0;
+  background: linear-gradient(105deg, #e0d3b7f7, #d4c5a7fa), var(--tex-field);
+  box-shadow: 1px 2px 0 #eee4ca70, 0 5px 18px #15140e38;
+}
+.brief-sheet::after { display: none; }
+.brief-sheet .stamp-strip { min-height: 0; padding: 9px 18px 8px; }
+.brief-sheet .stamp-kicker { font-size: 9px; letter-spacing: 0.12em; }
+.brief-sheet .stamp-mark { color: #754936; }
+.paper-numbers { padding: 14px 18px 0; }
+.brief-sheet .aar-matchup { gap: 12px; margin: 0; grid-template-columns: 1fr 100px 1fr; }
+.brief-sheet .aar-odds { min-width: 0; padding-top: 12px; text-align: center; }
+.brief-sheet .pd-ratio { font: 38px/1.1 var(--font-display); color: #302d23; }
+.brief-sheet .pd-vs { font: 9px var(--font-mono); color: #675f4e; letter-spacing: 0.06em; }
+.brief-sheet .aar-side .name { font-size: 15px; min-height: 38px; }
+.brief-sheet .aar-head { margin: 14px 18px 0; padding: 12px 0 0; border-top: 1px solid #79684b44; }
+.brief-sheet .aar-headline { font-size: 20px; text-transform: none; letter-spacing: 0; text-shadow: none; margin-bottom: 4px; }
+.brief-sheet .aar-detail { font-size: 13px; }
+.brief-sheet .body { padding: 8px 18px 16px; }
+.brief-sheet .str-bar { height: 4px; background: #5b50352a; border: 0; box-shadow: none; }
+.brief-sheet .str-bar .now { background: #777b58; }
+.brief-sheet .str-bar .ghost { background: #965b4155; }
+.brief-sheet .str-n { font-size: 11px; }
+.brief-sheet .factor-kicker { color: #71654e; }
+.paper-actions { display: flex; gap: 8px; padding-top: 12px; margin-top: 10px; border-top: 1px solid #79684b44; }
+.paper-actions button {
+  padding: 7px 12px;
+  border: 1px solid #77684f70;
+  background: transparent;
+  color: #453e2e;
+  font: 12px var(--font-ui);
+  cursor: pointer;
+}
+.paper-actions button:hover { background: #77684f18; border-color: #77684f; }
+.paper-actions .paper-confirm { background: #414b37; border-color: #414b37; color: #f0e5cc; }
+.paper-actions .paper-confirm:hover { background: #515e44; }
+.paper-actions kbd { font: 9px var(--font-mono); margin-left: 14px; opacity: 0.7; }
+button:focus-visible { outline: 2px solid #c2aa76; outline-offset: 2px; }
+@media (max-width: 700px) {
+  .vic3-thin .week-wx, .vic3-thin .pulse-beads { display: none; }
+  .top-bar.vic3-thin { gap: 1px; padding: 0 4px; }
+  .vic3-thin .hdr-chip { padding: 0 4px; }
+  .command-bench .bench-plates { flex-wrap: wrap; }
+  .command-bench .np-type { display: none; }
+  .brief-sheet .aar-matchup { grid-template-columns: 1fr 80px 1fr; gap: 8px; }
+  .brief-sheet .pd-ratio { font-size: 30px; }
+}

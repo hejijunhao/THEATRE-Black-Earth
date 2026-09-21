@@ -1,5 +1,5 @@
 // Rest-state HUD gate. Chrome is hierarchical: map first, then the strip,
-// then a Next chip. The formations list waits for a selection or an explicit
+// then a Next chip. The formations list waits for an explicit
 // open. No rules live here — only what the shell is allowed to mount.
 
 export interface HudInspect {
@@ -17,7 +17,7 @@ export function paperUp(s: Pick<HudInspect, 'pendingAttackId' | 'lastCombat'>): 
   return Boolean(s.pendingAttackId || s.lastCombat);
 }
 
-/** Command bench mounts only for a selected formation (and stays through AAR). */
+/** Command bench mounts only for a selected formation (combat paper replaces it). */
 export function showCommandBench(s: Pick<HudInspect, 'selectedUnitId'>): boolean {
   return Boolean(s.selectedUnitId);
 }

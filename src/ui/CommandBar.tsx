@@ -65,16 +65,10 @@ export function MapModes() {
   );
 }
 
-function MpPips({ mp, max }: { mp: number; max: number }) {
-  const n = Math.max(1, Math.round(max));
-  const filled = Math.max(0, Math.round(mp));
-  return (
-    <span className="mp-pips" aria-label={`${mp.toFixed(1)} of ${max} movement`}>
-      {Array.from({ length: n }, (_, i) => (
-        <i key={i} className={i < filled ? 'on' : ''} />
-      ))}
-    </span>
-  );
+function MovementReadout({ mp, max }: { mp: number; max: number }) {
+  return <span className="movement-readout" aria-label={`${mp.toFixed(1)} of ${max} movement`}>
+    {mp.toFixed(1)} / {max} MP
+  </span>;
 }
 
 function Plate({
@@ -133,10 +127,10 @@ export function CommandBar() {
   if (!unit) return null;
   const orders = unitOrders(game, unit);
   const def = UNIT_DEFS[unit.type];
-  const paperMounted = Boolean(pendingAttackId || lastCombat);
+  if (pendingAttackId || lastCombat) return null;
 
   return (
-    <div className={`command-bench panel panel-framed${paperMounted ? ' dimmed thin' : ''}`}>
+    <div className="command-bench panel">
       <div className="bench-formation">
         <button
           type="button"
@@ -146,7 +140,7 @@ export function CommandBar() {
         >
           <span className="np-type">{def.label}</span>
           <span className="np-name">{unit.name}</span>
-          <MpPips mp={orders.mp} max={orders.mpMax} />
+          <MovementReadout mp={orders.mp} max={orders.mpMax} />
         </button>
         <div className="bench-plates">
           <Plate

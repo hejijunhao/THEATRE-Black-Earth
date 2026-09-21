@@ -190,7 +190,7 @@ if (hasHook) {
         console.error('FAIL: estimate missing odds or strength delta');
         process.exitCode = 1;
       }
-      if (!/Commit|Fires/i.test(previewOdds) || !/Withdraw/i.test(previewOdds)) {
+      if (!/Confirm assault|Confirm fires/i.test(previewOdds) || !/Dismiss/i.test(previewOdds)) {
         console.error('FAIL: estimate missing confirm or dismiss');
         process.exitCode = 1;
       }
@@ -239,7 +239,7 @@ if (hasHook) {
           console.error('FAIL: AAR missing odds or strength delta');
           process.exitCode = 1;
         }
-        if (!/Continue/i.test(aarText)) {
+        if (!/Dismiss/i.test(aarText)) {
           console.error('FAIL: AAR missing dismiss');
           process.exitCode = 1;
         }

@@ -142,7 +142,7 @@ export function Outliner() {
             onClick={() => setShowOutliner(true)}
           />
         )}
-        {chrome === 'open' && !selected && (
+        {chrome === 'open' && (
           <button
             type="button"
             className="or-toggle"

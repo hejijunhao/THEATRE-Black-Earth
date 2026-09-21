@@ -44,50 +44,51 @@ export function AssaultBriefing() {
       headline={isArtillery ? 'Fires mission' : VERDICT_LABEL[preview.verdict]}
       detail={estimateDetail(isArtillery)}
       titleId="brief-title"
-    >
-      <div className="aar-matchup">
-        <div className="aar-side">
-          <div className="type">Attacker</div>
-          <div className="name">{attacker.name}</div>
-          <div className="pd-pow">atk {preview.attackPower.toFixed(1)}</div>
-          {!isArtillery && (
+      summary={
+        <div className="aar-matchup">
+          <div className="aar-side">
+            <div className="type">Attacker</div>
+            <div className="name">{attacker.name}</div>
+            <div className="pd-pow">atk {preview.attackPower.toFixed(1)}</div>
+            {!isArtillery && (
+              <LexiconTip
+                id="strength"
+                now={strengthNowLine(attacker.strength, atkAfter, 'estimate')}
+                block
+              >
+                <StrengthStrip before={attacker.strength} after={atkAfter} />
+              </LexiconTip>
+            )}
+          </div>
+          <div className="aar-odds">
             <LexiconTip
-              id="strength"
-              now={strengthNowLine(attacker.strength, atkAfter, 'estimate')}
+              id="odds"
+              now={`${preview.oddsLabel} — they lose the first number, you lose the second.`}
               block
             >
-              <StrengthStrip before={attacker.strength} after={atkAfter} />
+              <div className="pd-ratio">{preview.oddsLabel}</div>
+              <div className="pd-vs">odds</div>
             </LexiconTip>
-          )}
+          </div>
+          <div className="aar-side right">
+            <div className="type">Defender</div>
+            <div className="name">{defender.name}</div>
+            <div className="pd-pow">def {defPower}</div>
+            <LexiconTip
+              id="strength"
+              now={strengthNowLine(defender.strength, defAfter, 'estimate')}
+              block
+            >
+              <StrengthStrip
+                before={defender.strength}
+                after={defAfter}
+                align="right"
+              />
+            </LexiconTip>
+          </div>
         </div>
-        <div className="aar-odds">
-          <LexiconTip
-            id="odds"
-            now={`${preview.oddsLabel} — they lose the first number, you lose the second.`}
-            block
-          >
-            <div className="pd-ratio">{preview.oddsLabel}</div>
-            <div className="pd-vs">odds</div>
-          </LexiconTip>
-        </div>
-        <div className="aar-side right">
-          <div className="type">Defender</div>
-          <div className="name">{defender.name}</div>
-          <div className="pd-pow">def {defPower}</div>
-          <LexiconTip
-            id="strength"
-            now={strengthNowLine(defender.strength, defAfter, 'estimate')}
-            block
-          >
-            <StrengthStrip
-              before={defender.strength}
-              after={defAfter}
-              align="right"
-            />
-          </LexiconTip>
-        </div>
-      </div>
-
+      }
+    >
       <div className="brief-chips">
         {terrain && (
           <LexiconTip
@@ -133,25 +134,11 @@ export function AssaultBriefing() {
         </div>
       )}
 
-      <div className="btn-row aar-actions brief-plates">
-        <button
-          type="button"
-          className="bench-plate contact plate-commit"
-          onClick={() => orderAttack(defenderId)}
-        >
-          <span className="plate-engrave">{isArtillery ? 'Fires' : 'Commit'}</span>
-          <span className="plate-value">{preview.oddsLabel}</span>
-          <span className="plate-line">{isArtillery ? 'the mission' : 'the assault'}</span>
+      <div className="paper-actions">
+        <button type="button" className="paper-confirm" onClick={() => orderAttack(defenderId)}>
+          {isArtillery ? 'Confirm fires' : 'Confirm assault'}
         </button>
-        <button
-          type="button"
-          className="bench-plate plate-commit"
-          onClick={() => setPendingAttack(null)}
-        >
-          <span className="plate-engrave">Withdraw</span>
-          <span className="plate-value">Esc</span>
-          <span className="plate-line">stand down</span>
-        </button>
+        <button type="button" onClick={() => setPendingAttack(null)}>Dismiss <kbd>Esc</kbd></button>
       </div>
     </CombatPaper>
   );

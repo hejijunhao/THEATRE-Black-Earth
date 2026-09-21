@@ -1350,3 +1350,17 @@ empty repository.
 
 See [README — Known limitations](../README.md#known-limitations): the AI does
 not honour fog of war, one scenario, five unit types, desktop WebGL only.
+
+## September 2026 — Paradox theatre redesign
+
+- Operational units use matte diffuse lighting, class-readable geometry and
+  muted faction paint. No solid miniature bases or green stamp materials.
+- Corrected the soil canvas orientation; cadastral values survive lighting.
+  Quiet relief, smaller ranks and crowns, thin contact/selection markings.
+- The 32px field-green header and Next chip leave the map open. Formation
+  lists open on request and can collapse while a unit remains selected.
+- Combat paper ranks odds and the strength bill above the verdict. Simple
+  confirm/dismiss controls replace engraved action blocks; the order bench
+  leaves while paper is open.
+- `node scripts/shot-theatre.mjs` verifies these states in native Chrome with
+  full postprocessing, including a compact desktop viewport and weather.

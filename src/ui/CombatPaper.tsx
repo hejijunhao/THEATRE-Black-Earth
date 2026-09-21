@@ -16,6 +16,7 @@ export function CombatPaper({
   headlineClass,
   detail,
   titleId,
+  summary,
   children,
 }: {
   tile: TileId;
@@ -25,6 +26,7 @@ export function CombatPaper({
   headlineClass?: string;
   detail: string;
   titleId: string;
+  summary: ReactNode;
   children: ReactNode;
 }) {
   const strip = stampStrip(stamp, kicker);
@@ -93,13 +95,11 @@ export function CombatPaper({
         style={layout ? { left: layout.left, top: layout.top, width: layout.width } : undefined}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="brief-holes" aria-hidden>
-          <i /><i /><i />
-        </div>
         <div className="stamp-strip">
           <span className="stamp-kicker">{strip.kicker}</span>
           <span className="stamp-mark">{strip.mark}</span>
         </div>
+        <div className="paper-numbers">{summary}</div>
         <header className="aar-head">
           <h2 className={`aar-headline${headlineClass ? ` ${headlineClass}` : ''}`} id={titleId}>
             {headline}

@@ -8,7 +8,7 @@ const MONO = '600 __px "IBM Plex Mono", ui-monospace, Menlo, monospace';
 const SANS = '__wt __px "Inter", system-ui, sans-serif';
 
 function font(template: string, px: number, weight = 600): string {
-  return template.replace('__wt', String(weight)).replace('__px', String(px));
+  return template.replace('__wt', String(weight)).replace('__px', `${px}px`);
 }
 
 export interface CounterSpec {
@@ -475,13 +475,13 @@ export function makeLabelTexture(name: string, size: CitySize, faction: 'UA' | '
   const weight = size === 'town' ? 500 : 600;
   const canvas = document.createElement('canvas');
   const ctx0 = canvas.getContext('2d')!;
-  ctx0.font = font('Spectral, Georgia, serif', px, weight);
+  ctx0.font = font('__wt __px Spectral, Georgia, serif', px, weight);
   const textW = ctx0.measureText(name).width;
   canvas.width = Math.ceil(textW + 40);
   canvas.height = px + 26;
   const ctx = canvas.getContext('2d')!;
 
-  ctx.font = font('Spectral, Georgia, serif', px, weight);
+  ctx.font = font('__wt __px Spectral, Georgia, serif', px, weight);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   const cx = canvas.width / 2;

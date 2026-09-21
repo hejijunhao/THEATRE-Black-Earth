@@ -6,7 +6,7 @@ import { useStore } from '../game/state/store';
 import { opposing } from '../game/types';
 import { formatOdds } from '../game/rules/combat';
 import { CombatPaper } from './CombatPaper';
-import { aarOddsCaption, aarVerdictShift, paperStamp, StrengthStrip, VERDICT_LABEL } from './combatChrome';
+import { aarOddsCaption, aarVerdictShift, paperStamp, StrengthStrip } from './combatChrome';
 
 export function EventModal() {
   const game = useStore((s) => s.game);
@@ -109,29 +109,25 @@ export function CombatResultPanel() {
       headlineClass={outcomeCls}
       detail={detail}
       titleId="aar-title"
+      summary={
+        <div className="aar-matchup">
+          <div className="aar-side">
+            <div className="type">Attacker</div>
+            <div className="name">{result.attackerName}</div>
+            <StrengthStrip before={result.attackerStrengthBefore} after={result.attackerStrengthAfter} />
+          </div>
+          <div className="aar-odds">
+            <div className="pd-ratio">{formatOdds(result.baseRatio)}</div>
+            <div className="pd-vs">{aarOddsCaption()}</div>
+          </div>
+          <div className="aar-side right">
+            <div className="type">Defender</div>
+            <div className="name">{result.defenderName}</div>
+            <StrengthStrip before={result.defenderStrengthBefore} after={result.defenderStrengthAfter} align="right" />
+          </div>
+        </div>
+      }
     >
-      <div className="aar-matchup">
-        <div className="aar-side">
-          <div className="type">Attacker</div>
-          <div className="name">{result.attackerName}</div>
-          <StrengthStrip before={result.attackerStrengthBefore} after={result.attackerStrengthAfter} />
-        </div>
-        <div className="aar-odds">
-          <div className={`verdict ${result.resolvedVerdict}`}>
-            {VERDICT_LABEL[result.resolvedVerdict]}
-          </div>
-          <div className="aar-odds-n">
-            {formatOdds(result.baseRatio)}
-            <span className="k"> {aarOddsCaption()}</span>
-          </div>
-        </div>
-        <div className="aar-side right">
-          <div className="type">Defender</div>
-          <div className="name">{result.defenderName}</div>
-          <StrengthStrip before={result.defenderStrengthBefore} after={result.defenderStrengthAfter} align="right" />
-        </div>
-      </div>
-
       {isFire && (
         <p className="hint">The battery is not exposed. No return fire.</p>
       )}
@@ -143,12 +139,8 @@ export function CombatResultPanel() {
         <p className="hint">{verdictShift}</p>
       )}
 
-      <div className="btn-row aar-actions brief-plates">
-        <button type="button" className="bench-plate contact plate-commit" onClick={dismissCombat}>
-          <span className="plate-engrave">Continue</span>
-          <span className="plate-value">Esc</span>
-          <span className="plate-line">the week</span>
-        </button>
+      <div className="paper-actions">
+        <button type="button" onClick={dismissCombat}>Dismiss <kbd>Esc</kbd></button>
       </div>
     </CombatPaper>
   );
