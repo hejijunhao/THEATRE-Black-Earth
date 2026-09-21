@@ -100,8 +100,8 @@ if (!bench || !/Assault|Fires|Entrench|March/i.test(bench)) {
 }
 const outliner = await page.$eval('.outliner', (el) => el.innerText).catch(() => '');
 console.log('outliner:\n', outliner.slice(0, 220));
-if (!outliner || !/next/i.test(outliner) || !/(INF|MECH|ARTY|TK|RECON)/.test(outliner)) {
-  console.error('FAIL: outliner missing or empty');
+if (!outliner || !/next/i.test(outliner) || await page.$('.outliner-list')) {
+  console.error('FAIL: Next chip missing or formation list opened without request');
   process.exitCode = 1;
 }
 

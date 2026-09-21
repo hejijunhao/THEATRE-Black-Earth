@@ -212,8 +212,7 @@ export function TerrainMesh() {
           `#include <emissivemap_fragment>
           float northEmit = 1.0 - clamp(vWorldPos3.z / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
           totalEmissiveRadiance += uSoilGround * (0.10 + 0.08 * smoothstep(0.70, 0.96, northEmit));`,
-        )
-;
+        );
     };
     return mat;
   }, [uniforms]);

@@ -1,12 +1,6 @@
-// Formations as machines (v2-vision §6): miniatures on faction base plates
-// with state legible from silhouette — element count from strength, supply
-// truck present or absent, off-formation scatter when disorganized, a
-// replacement column when reinforcing, earthworks growing with entrenchment,
-// lingering muzzle smoke after an attack — plus a compact standard overhead.
-//
-// The v1 counter plates are kept as the far LOD *and* as a manual override
-// (Tab): near camera shows miniatures + slim standards; past the zoom
-// breakpoint the counters crossfade back in. Wargamers read counters faster.
+// Operational formations: instanced machines and ranked infantry on soil.
+// Strength controls element count; trucks, scatter and earthworks carry state.
+// Tab and distant zoom retain counter plates as an alternate presentation.
 
 import { Billboard } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
@@ -104,7 +98,7 @@ function AgencyMarks({
   );
 }
 
-// Peak-to-peak heading spread of a formation on its base plate, in radians.
+// Peak-to-peak heading spread around each faction’s facing, in radians.
 const UNIT_FACING_JITTER = 0.2;
 
 function useCrossfade() {

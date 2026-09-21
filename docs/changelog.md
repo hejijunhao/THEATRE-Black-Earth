@@ -1364,3 +1364,8 @@ not honour fog of war, one scenario, five unit types, desktop WebGL only.
   leaves while paper is open.
 - `node scripts/shot-theatre.mjs` verifies these states in native Chrome with
   full postprocessing, including a compact desktop viewport and weather.
+
+Final integration also corrects river-ribbon face winding and samples long
+segments against both banks so rivers remain visible across relief. The
+existing canvas font helper now supplies CSS pixel units, restoring intended
+label typography instead of relying on the canvas fallback font.

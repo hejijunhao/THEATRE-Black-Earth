@@ -13,6 +13,7 @@ import { WEATHER_ENV } from '../palette';
 import { ALBEDO_MARGIN } from './albedo';
 import { SEA_LEVEL_Y, getShoreField, groundY } from './heightfield';
 import { mergeGeometries } from '../geomUtils';
+import { riverRibbon } from '../riverRibbon';
 
 function makeShoreTexture(): THREE.DataTexture {
   const { data, w, h } = getShoreField();
@@ -197,8 +198,8 @@ export function RiverRibbons() {
     for (const course of RIVER_COURSES) {
       const pts = course.points;
       if (pts.length < 2) continue;
-      // The Dnipro is the map's central strategic feature — widen it.
-      const widthScale = course.name === 'Dnipro' ? 1.35 : 1.15;
+      // Keep the Dnipro broader while tributaries remain fine map lines.
+      const widthScale = course.name === 'Dnipro' ? 0.55 : 0.35;
       // Chaikin smoothing pass for gentler meanders.
       const sm: Array<[number, number]> = [pts[0]];
       for (let i = 0; i < pts.length - 1; i++) {
@@ -209,32 +210,7 @@ export function RiverRibbons() {
       }
       sm.push(pts[pts.length - 1]);
 
-      const positions: number[] = [];
-      const indices: number[] = [];
-      for (let i = 0; i < sm.length; i++) {
-        const [x, z] = sm[i];
-        const prev = sm[Math.max(0, i - 1)];
-        const next = sm[Math.min(sm.length - 1, i + 1)];
-        let dx = next[0] - prev[0];
-        let dz = next[1] - prev[1];
-        const len = Math.hypot(dx, dz) || 1;
-        dx /= len;
-        dz /= len;
-        const nx = -dz;
-        const nz = dx;
-        const w = (course.width * widthScale) / 2;
-        const y = Math.max(groundY(x, z) + 0.03, SEA_LEVEL_Y - 0.01);
-        positions.push(x + nx * w, y, z + nz * w, x - nx * w, y, z - nz * w);
-        if (i > 0) {
-          const b = i * 2;
-          indices.push(b - 2, b - 1, b, b - 1, b + 1, b);
-        }
-      }
-      const g = new THREE.BufferGeometry();
-      g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
-      g.setIndex(indices);
-      g.computeVertexNormals();
-      strips.push(g);
+      strips.push(riverRibbon(sm, course.width * widthScale, groundY));
     }
 
     // Bridge decks at the rules' bridge edges (contested crossings must read).
@@ -257,8 +233,8 @@ export function RiverRibbons() {
   if (!riverGeo) return null;
   return (
     <group>
-      <mesh geometry={riverGeo} renderOrder={2}>
-        <meshStandardMaterial color="#48627c" roughness={0.28} metalness={0.1} />
+      <mesh geometry={riverGeo} renderOrder={2} raycast={() => null}>
+        <meshBasicMaterial color="#435457" />
       </mesh>
       {bridgeGeo && (
         <mesh geometry={bridgeGeo}>

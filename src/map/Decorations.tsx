@@ -149,7 +149,7 @@ function CityLabel({ cityId }: { cityId: string }) {
   const scale = city.size === 'capital' ? 3.1 : city.size === 'major' ? 2.5 : 1.75;
 
   return (
-    <sprite position={[wx, top + 1.2, wz]} scale={[scale * aspect * 0.32, scale * 0.32, 1]}>
+    <sprite position={[wx, top + 1.2, wz]} scale={[scale * aspect * 0.16, scale * 0.16, 1]}>
       <spriteMaterial map={texture} transparent depthWrite={false} />
     </sprite>
   );

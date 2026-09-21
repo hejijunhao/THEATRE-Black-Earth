@@ -12,8 +12,7 @@ export const HERO_SCALE = 0.026;
 // step richer. Every hero factory draws from this so the tier reads as one
 // production line, not four art styles.
 export const HERO_PAINT: Record<'UA' | 'RU', { base: string; dark: string; light: string }> = {
-  // Value split against khaki soil: dark hull, lighter top plates.
-  // Tops must stay under field luma — cream tops vanished on khaki at boot.
+  // Quiet faction tint; hull and turret values separate under diffuse light.
   UA: { base: '#465147', dark: '#202620', light: '#7b8771' },
   RU: { base: '#544c3f', dark: '#28231e', light: '#91806a' },
 };
