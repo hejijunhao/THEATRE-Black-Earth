@@ -26,11 +26,11 @@ describe('north soil continuity gate', () => {
     expect(northSoilLift(WORLD_H * 0.4, 240)).toBeGreaterThan(northSoilLift(WORLD_H * 0.4, 40));
   });
 
-  it('will not let charcoal survive on far-north soil', () => {
+  it('warms northern soil without forcing a pale brightness floor', () => {
     const charcoal = { r: 40, g: 36, b: 30 };
     const north = applySoilContinuity(charcoal, WORLD_H * 0.06, 70);
     const mid = applySoilContinuity(charcoal, WORLD_H * 0.5, 70);
-    expect(luma(north)).toBeGreaterThan(108);
+    expect(luma(north)).toBeGreaterThan(luma(charcoal) + 15);
     expect(luma(north)).toBeGreaterThan(luma(mid));
     expect(north.r).toBeGreaterThan(north.b);
     expect(north.g).toBeGreaterThan(north.b);
@@ -42,7 +42,7 @@ describe('north soil continuity gate', () => {
     expect(KHAKI_FIELD.g).toBeGreaterThan(KHAKI_FIELD.b);
     expect(KHAKI_FIELD.r).toBeLessThan(200);
     expect(KHAKI_FIELD.r - KHAKI_FIELD.b).toBeGreaterThan(40);
-    expect(KHAKI_FIELD.g).toBeLessThan(KHAKI_FIELD.r * 0.80);
+    expect(KHAKI_FIELD.g).toBeLessThan(KHAKI_FIELD.r * 0.9);
     expect(l).toBeGreaterThan(130);
     expect(l).toBeLessThan(170);
   });

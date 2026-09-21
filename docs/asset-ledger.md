@@ -60,3 +60,9 @@ matte diffuse lighting and restrained olive/earth paint. Procedural weathering
 and unlit green stamps are removed; geometry remains instanced. Solid display
 plinths give way to contact shadows and invisible picking footprints. Review
 with `scripts/shot-theatre.mjs` at operational height, counters off.
+
+The soil checkpoint corrects the world-UV canvas flip, removes the constant
+midground shader value, and keeps cadastral parcel variation through lighting.
+Relief and close vegetation are subordinate to the painted map. Infantry ranks
+are reduced to human proportions beside the vehicles; trees use small crowns
+instead of bright cones. Contact and selection become fine surveyed lines.

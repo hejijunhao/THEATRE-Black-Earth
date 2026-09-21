@@ -46,19 +46,19 @@ export function noise2(x: number, y: number, salt: number): number {
 // darker than the ochre plate that survived highlighter removal.
 // Lightest parcel must stay under a beige-flood gate.
 const FIELD_COLORS = [
-  '#6a4e28', // dry stubble — muted straw, not mustard
-  '#3e2a12', // cereal brown
-  '#2c1a0c', // chernozem
-  '#5a4a2c', // loess fallow
-  '#24140a', // wet plough
-  '#3a3c20', // pasture olive
+  '#807055', // dry stubble — muted straw, not mustard
+  '#594536', // cereal brown
+  '#3f3028', // chernozem
+  '#75634e', // loess fallow
+  '#30251f', // wet plough
+  '#50503b', // pasture olive
 ].map(rgb);
 /** 14-unit cadastral districts — rest zoom must see soil families, not one ochre. */
 const REGION_SOILS = [
-  rgb('#2a1206'), // chernozem — dark red-brown
-  rgb('#4e3012'), // brown loam
-  rgb('#6e5a30'), // loess — tan, less yellow
-  rgb('#364a1c'), // pasture — greener olive
+  rgb('#3d2d24'), // chernozem — dark red-brown
+  rgb('#604a38'), // brown loam
+  rgb('#7a6950'), // loess — tan, less yellow
+  rgb('#50563c'), // pasture — greener olive
 ];
 const SHELTER = rgb('#3a2e18');
 const DIRT = rgb('#5a3e20');
@@ -113,15 +113,15 @@ export function fieldColor(wx: number, wz: number): RGB {
   const rz = Math.floor(wz / 14);
   const pick = Math.floor(ihash(rx * 517 + f.strip, rz * 763 + f.parcel, 109) * FIELD_COLORS.length);
   // District soil leads at rest; parcel chroma is the contact-scale read.
-  let c = mix(regionSoil(wx, wz), FIELD_COLORS[pick], 0.32);
+  let c = mix(regionSoil(wx, wz), FIELD_COLORS[pick], 0.62);
 
   // Furrow / drill rows: high-frequency dirt inside the parcel.
   const furrow = 0.5 + 0.5 * Math.sin((f.u / f.stripW) * Math.PI * 2 * (3 + ihash(rx, rz, 111) * 3));
-  if (furrow > 0.62) c = mix(c, FURROW, 0.50 * (furrow - 0.62) / 0.38);
+  if (furrow > 0.62) c = mix(c, FURROW, 0.16 * (furrow - 0.62) / 0.38);
 
   // Shelter-belt / headland darkening on both axes.
-  if (f.edgeU < 0.12) c = mix(c, SHELTER, 0.68 * (1 - f.edgeU / 0.12));
-  if (f.edgeV < 0.10) c = mix(c, DIRT, 0.56 * (1 - f.edgeV / 0.10));
+  if (f.edgeU < 0.12) c = mix(c, SHELTER, 0.34 * (1 - f.edgeU / 0.12));
+  if (f.edgeV < 0.10) c = mix(c, DIRT, 0.32 * (1 - f.edgeV / 0.10));
 
   // Soft clod + finer crumb so a parcel is dirt, not a printed swatch.
   const clod = (noise2(wx * 3.4, wz * 3.4, 73) - 0.5) * 0.18;
@@ -143,7 +143,7 @@ export function parcelRelief(wx: number, wz: number): number {
   const terrace = (ihash(rx * 517 + f.strip, rz, 113) - 0.5) * 0.048;
   const lip = Math.max(0, 0.08 - f.edgeU) * 0.32 + Math.max(0, 0.07 - f.edgeV) * 0.22;
   const wave = Math.sin((f.u / f.stripW) * Math.PI * 2) * 0.012;
-  return terrace + lip + wave;
+  return (terrace + lip + wave) * 0.25;
 }
 
 /** Neighbour-parcel luma gap used by the strip-volume unit gate. */

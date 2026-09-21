@@ -177,7 +177,7 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
   // swing before its outer elements hang off the plate — see the step
   // constants in assets/units.ts. It was ±0.25 when the vehicles were
   // 84-triangle wedges a third the size.
-  const facing = ((hashSeed(unit.id) % 100) / 100 - 0.5) * UNIT_FACING_JITTER;
+  const facing = (unit.faction === 'RU' ? Math.PI : 0) + ((hashSeed(unit.id) % 100) / 100 - 0.5) * UNIT_FACING_JITTER;
 
   useEffect(() => {
     target.current.set(wx, y, wz);

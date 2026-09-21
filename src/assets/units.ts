@@ -54,11 +54,12 @@ export function miniatureKey(s: MiniatureSpec): string {
 // Infantry ranks on the plate. Authored figures (person + rifle) plus a
 // command truck are the boot-height silhouette — a pale plate must not win.
 const INF_RANKS: Array<[number, number]> = [
-  [-0.14, -0.18], [0.00, -0.19], [0.14, -0.18],
-  [-0.14, -0.04], [0.00, -0.05], [0.14, -0.04],
+  [-0.15, -0.19], [0, -0.19], [0.15, -0.19],
+  [-0.15, -0.08], [0, -0.08], [0.15, -0.08],
+  [-0.15, 0.03], [0, 0.03], [0.15, 0.03],
 ];
-const INF_FIGURE_SCALE = 2.7;
-const INF_TRUCK_SCALE = 1.18;
+const INF_FIGURE_SCALE = 1.25;
+const INF_TRUCK_SCALE = 0.85;
 
 // Hero formations are echelons. Vehicles are authored +x forward, and a hero
 // hull with its gun reaches ~0.32 across a 0.74 base plate, so a file abreast
@@ -122,7 +123,7 @@ export function makeMiniatureBuild(spec: MiniatureSpec): MiniatureBuild {
   if (heroType === null) {
     // Infantry — no hero factory for this class yet. Rank of rifle figures
     // plus a command truck so the boot read is people, not a ghost plate.
-    const figures = Math.min(INF_RANKS.length, 2 + spec.tier); // 3..6
+    const figures = Math.min(INF_RANKS.length, 1 + spec.tier * 2); // 3..9
     for (let i = 0; i < figures; i++) {
       const [fx, fz] = INF_RANKS[i];
       const sx = spec.disorganized ? fx * 1.45 : fx;

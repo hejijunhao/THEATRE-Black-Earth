@@ -32,20 +32,20 @@ export const REACH_EDGE_OPACITY = {
   zoc: 0.66,
 } as const;
 export const REACH_EDGE_LEN = 1.1;
-export const REACH_EDGE_W = 0.052;
+export const REACH_EDGE_W = 0.028;
 export const REACH_EDGE_H = 0.018;
 export const REACH_EDGE_LIFT = 0.058;
 
 export const FRONT_SCAR_LEN = 1.14;
-export const FRONT_SCAR_W = 0.072;
-export const FRONT_SCAR_H = 0.042;
+export const FRONT_SCAR_W = 0.026;
+export const FRONT_SCAR_H = 0.010;
 export const FRONT_SCAR_LIFT = 0.058;
-export const FRONT_GLOW_W = 0.16;
+export const FRONT_GLOW_W = 0.09;
 export const FRONT_GLOW_H = 0.016;
 export const FRONT_GLOW_LIFT = 0.04;
 export const FRONT_HATCH_LEN = 0.1;
-export const FRONT_HATCH_W = 0.02;
-export const FRONT_HATCH_H = 0.024;
+export const FRONT_HATCH_W = 0.014;
+export const FRONT_HATCH_H = 0.008;
 export const FRONT_HATCH_LIFT = 0.068;
 export const FRONT_QUIET_HATCH = [-0.22, 0.22] as const;
 export const FRONT_CONTACT_HATCH = [-0.36, -0.12, 0.12, 0.36] as const;

@@ -25,7 +25,7 @@ export function Forests() {
 
   const { geometry, count, matrices } = useMemo(() => {
     if (!game) return { geometry: null, count: 0, matrices: [] as THREE.Matrix4[] };
-    const geometry = new THREE.ConeGeometry(0.16, 0.42, 6);
+    const geometry = new THREE.IcosahedronGeometry(0.14, 1);
     const matrices: THREE.Matrix4[] = [];
     for (const tile of Object.values(game.tiles)) {
       const frac = hexFracs(tile.x, tile.y).forest;
@@ -43,8 +43,8 @@ export function Forests() {
         const s = forestStemScale(0.75 + (jitter(tile.x, tile.y, k * 3 + 3) + 0.5) * 0.6, wz, WORLD_H);
         const gy = groundY(wx + dx, wz + dz);
         const m = new THREE.Matrix4()
-          .makeScale(s, s, s)
-          .setPosition(wx + dx, gy + 0.2 * s, wz + dz);
+          .makeScale(s * 1.1, s * 0.85, s)
+          .setPosition(wx + dx, gy + 0.11 * s, wz + dz);
         matrices.push(m);
       }
     }
@@ -80,7 +80,7 @@ export function Forests() {
         roughness={0.9}
         flatShading
         emissive={snow ? FOREST_SNOW : FOREST_EMIT_SOUTH}
-        emissiveIntensity={snow ? 0.18 : 0.34}
+        emissiveIntensity={snow ? 0.12 : 0.03}
       />
     </instancedMesh>
   );
@@ -91,7 +91,7 @@ export function UrbanBlocks() {
 
   const { geometry, count, matrices } = useMemo(() => {
     if (!game) return { geometry: null, count: 0, matrices: [] as THREE.Matrix4[] };
-    const geometry = new THREE.BoxGeometry(0.2, 0.22, 0.2);
+    const geometry = new THREE.BoxGeometry(0.14, 0.11, 0.16);
     const matrices: THREE.Matrix4[] = [];
     for (const tile of Object.values(game.tiles)) {
       const isUrban = tile.terrain === 'urban';
@@ -107,7 +107,7 @@ export function UrbanBlocks() {
         const gy = groundY(wx + dx, wz + dz);
         const m = new THREE.Matrix4()
           .makeScale(sxz, sy, sxz)
-          .setPosition(wx + dx, gy + 0.11 * sy, wz + dz);
+          .setPosition(wx + dx, gy + 0.055 * sy, wz + dz);
         matrices.push(m);
       }
     }

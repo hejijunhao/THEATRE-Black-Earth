@@ -6,7 +6,8 @@
 // (hashSeed, no Math.random()); hidden in the paper political mode with the
 // rest of the 3D clutter; snow retints the whole layer like the forests.
 
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { hashSeed } from '../game/rng';
 import { useStore } from '../game/state/store';
@@ -169,6 +170,8 @@ export function buildVegetation(tiles: {
 
 export function Vegetation() {
   const game = useStore((s) => s.game);
+  const mesh = useRef<THREE.Mesh>(null);
+  useFrame(({ camera }) => { if (mesh.current) mesh.current.visible = camera.position.y < 7; });
   const snow = game?.weather === 'snow';
 
   const geometry = useMemo(() => {
@@ -178,7 +181,7 @@ export function Vegetation() {
 
   if (!geometry) return null;
   return (
-    <mesh geometry={geometry} receiveShadow>
+    <mesh ref={mesh} geometry={geometry} receiveShadow raycast={() => null}>
       <meshStandardMaterial
         vertexColors
         roughness={0.92}

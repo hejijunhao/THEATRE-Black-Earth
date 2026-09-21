@@ -203,19 +203,6 @@ export function TerrainMesh() {
               float shade = smoothstep(0.52, 0.78, cl) * uCloud * (1.0 - uPaper);
               ground *= 1.0 - shade * 0.10;
             }
-            // Far-north keep only. A midground luma floor was the ochre
-            // plate — it lifted crushed chernozem back to umber wash.
-            float northLat = 1.0 - clamp(wp.y / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
-            vec3 soilKeep = vec3(0.48, 0.36, 0.20);
-            float keep = smoothstep(0.70, 0.96, northLat);
-            ground = mix(ground, mix(max(ground, soilKeep), soilKeep, 0.50), keep * 0.38);
-            float luma = dot(ground, vec3(0.2126, 0.7152, 0.0722));
-            float floorL = 0.22 * keep;
-            if (keep > 0.001 && luma < floorL) {
-              vec3 lifted = mix(ground, soilKeep, 0.40);
-              float luma2 = dot(lifted, vec3(0.2126, 0.7152, 0.0722));
-              ground = luma2 < floorL ? lifted * (floorL / max(luma2, 0.001)) : lifted;
-            }
             uSoilGround = ground;
             diffuseColor.rgb = ground;
           }`,
@@ -224,34 +211,9 @@ export function TerrainMesh() {
           '#include <emissivemap_fragment>',
           `#include <emissivemap_fragment>
           float northEmit = 1.0 - clamp(vWorldPos3.z / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
-          totalEmissiveRadiance += uSoilGround * (0.28 * smoothstep(0.70, 0.96, northEmit));`,
+          totalEmissiveRadiance += uSoilGround * (0.10 + 0.08 * smoothstep(0.70, 0.96, northEmit));`,
         )
-        .replace(
-          '#include <opaque_fragment>',
-          `{
-            // Lit-path floor — far-north only. A valley floor lifted the
-            // scar back to one ochre plate after the albedo crush.
-            float northLit = 1.0 - clamp(vWorldPos3.z / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
-            float keepLit = smoothstep(0.70, 0.96, northLit);
-            // Rain grade veil-breaks dark+grey toward khaki. Decoded
-            // chernozem lands in that gate and comes back a mustard plate.
-            // Park the scar on chromatic umber (sat above the veil, luma
-            // below mustard) and leave loft on the far grid.
-            vec3 soilHue = uSoilGround;
-            float soilL = dot(soilHue, vec3(0.2126, 0.7152, 0.0722));
-            vec3 scar = soilHue * (0.128 / max(soilL, 0.002));
-            float scarL = dot(scar, vec3(0.2126, 0.7152, 0.0722));
-            scar = mix(vec3(scarL), scar, 1.28);
-            scar = mix(scar, vec3(0.125, 0.088, 0.048), 0.18);
-            outgoingLight = mix(scar, outgoingLight, keepLit);
-            float litL = dot(outgoingLight, vec3(0.2126, 0.7152, 0.0722));
-            float floorLit = 0.26 * keepLit;
-            if (keepLit > 0.001 && litL < floorLit) outgoingLight *= floorLit / max(litL, 0.001);
-            vec3 soilLit = vec3(0.46, 0.34, 0.18);
-            outgoingLight = mix(outgoingLight, max(outgoingLight, soilLit), keepLit * 0.14);
-          }
-          #include <opaque_fragment>`,
-        );
+;
     };
     return mat;
   }, [uniforms]);

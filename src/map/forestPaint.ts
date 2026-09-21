@@ -2,8 +2,8 @@
 // half of the rain veil — AO has more geometry to crush, and the instances
 // themselves read as a charcoal band along the far edge.
 
-export const FOREST_SOUTH = '#7c804c';
-export const FOREST_NORTH = '#b0a45e';
+export const FOREST_SOUTH = '#505440';
+export const FOREST_NORTH = '#8a886b';
 export const FOREST_SNOW = '#8a9078';
 export const FOREST_EMIT_SOUTH = '#5a6040';
 export const FOREST_EMIT_NORTH = '#8a8048';
