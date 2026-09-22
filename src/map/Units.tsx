@@ -14,7 +14,7 @@ import {
   counterKey, CounterSpec, makeCounterTexture,
   makeStandardTexture, standardKey, StandardSpec,
 } from './textures';
-import { tileGroundY } from './terrain/heightfield';
+import { groundY, tileGroundY } from './terrain/heightfield';
 import {
   makeEarthworksGeometry, makeMiniatureBuild, tierFromStrength,
 } from '../assets/units';
@@ -173,6 +173,29 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
   // 84-triangle wedges a third the size.
   const facing = (unit.faction === 'RU' ? Math.PI : 0) + ((hashSeed(unit.id) % 100) / 100 - 0.5) * UNIT_FACING_JITTER;
 
+  // Each soldier / truck stays rigid, but sits on its own patch of ground.
+  const groundedProps = useMemo(() => {
+    if (!build.props) return null;
+    const geo = build.props.clone();
+    const pos = geo.getAttribute('position'), anchor = geo.getAttribute('aAnchor');
+    if (anchor) {
+      const offsets = new Map<string, number>();
+      const c = Math.cos(facing), sn = Math.sin(facing);
+      for (let i = 0; i < pos.count; i++) {
+        const ax = anchor.getX(i), az = anchor.getY(i), key = `${ax}:${az}`;
+        let offset = offsets.get(key);
+        if (offset === undefined) {
+          offset = (groundY(wx + (ax*c+az*sn)*MACHINE_SCALE, wz + (-ax*sn+az*c)*MACHINE_SCALE) - y) / MACHINE_SCALE;
+          offsets.set(key, offset);
+        }
+        pos.setY(i, pos.getY(i) + offset);
+      }
+    }
+    geo.computeBoundingSphere();
+    return geo;
+  }, [build.props, wx, wz, y, facing]);
+  useEffect(() => () => groundedProps?.dispose(), [groundedProps]);
+
   useEffect(() => {
     target.current.set(wx, y, wz);
     if (groupRef.current && groupRef.current.position.lengthSq() === 0) {
@@ -224,16 +247,17 @@ function UnitMiniature({ unit, selected, chrome }: { unit: Unit; selected: boole
       </mesh>
       {/* The machines: hero vehicles as instances, everything else — foot
           elements, logistics, muzzle smoke — merged into one props mesh. */}
-      <group rotation={[0, facing, 0]} position={[0, 0.055, 0]} scale={MACHINE_SCALE}>
-        {build.props && (
+      <group rotation={[0, facing, 0]} position={[0, 0.012, 0]} scale={MACHINE_SCALE}>
+        {groundedProps && (
           <mesh
-            geometry={build.props}
+            geometry={groundedProps}
             material={MINI_MATERIAL}
             castShadow
           />
         )}
         {build.heroType && (
-          <HeroFormation type={build.heroType} faction={unit.faction} slots={build.heroSlots} />
+          <HeroFormation type={build.heroType} faction={unit.faction} slots={build.heroSlots}
+            ground={{ x: wx, z: wz, y, heading: facing, scale: MACHINE_SCALE }} />
         )}
       </group>
       {/* Earthworks grow with entrenchment. */}

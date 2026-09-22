@@ -1,10 +1,11 @@
 // The 3D theatre. Owns the Canvas, lighting, atmosphere and all map layers.
 // Consumes game state only — no rules live here.
 
-import { Canvas } from '@react-three/fiber';
-import { useMemo } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useStore } from '../game/state/store';
+import { SurfaceLighting } from './SurfaceLighting';
 import { CameraRig } from './CameraRig';
 import { CityMarkers, Forests, Fortifications, UrbanBlocks, RoadStrips } from './Decorations';
 import { Frontline } from './Frontline';
@@ -58,6 +59,26 @@ function Atmosphere() {
     return { sunPos, sunColor };
   }, [turn, maxTurns]);
 
+  const sun = useRef<THREE.DirectionalLight>(null);
+  const view = useMemo(() => new THREE.Vector3(), []);
+  useFrame(({ camera, size }) => {
+    if (!sun.current) return;
+    // Spend shadow texels on the visible ground, with a stable texel grid.
+    camera.getWorldDirection(view);
+    const t = Math.max(0, (camera.position.y - 0.5) / Math.max(0.15, -view.y));
+    view.multiplyScalar(t).add(camera.position);
+    const radius = THREE.MathUtils.clamp(camera.position.y * Math.max(1.1, size.width / size.height * .85), 9, 64);
+    const texel = radius * 2 / 4096;
+    const x = Math.round(view.x / texel) * texel;
+    const z = Math.round(view.z / texel) * texel;
+    sunTarget.position.set(x, 0, z);
+    sunTarget.updateMatrixWorld();
+    sun.current.position.set(x + sunPos[0] - WORLD_W / 2, sunPos[1], z + sunPos[2] - WORLD_H / 2);
+    const c = sun.current.shadow.camera;
+    c.left = c.bottom = -radius; c.right = c.top = radius;
+    c.updateProjectionMatrix();
+  });
+
   return (
     <>
       <primitive attach="fog" object={fog} />
@@ -66,6 +87,7 @@ function Atmosphere() {
       <hemisphereLight args={['#dadbd4', '#55463b', env.ambient]} />
       <primitive object={sunTarget} />
       <directionalLight
+        ref={sun}
         position={sunPos}
         target={sunTarget}
         intensity={env.sun * 1.08}
@@ -78,7 +100,8 @@ function Atmosphere() {
         shadow-camera-top={44}
         shadow-camera-bottom={-44}
         shadow-camera-far={200}
-        shadow-bias={-0.0004}
+        shadow-bias={-0.00008}
+        shadow-normalBias={0.006}
       />
       {/* North fill: the far soil is the same place, not a grey hole. */}
       <directionalLight
@@ -121,6 +144,7 @@ export function MapScene() {
       style={{ position: 'absolute', inset: 0 }}
     >
       <Atmosphere />
+      <SurfaceLighting />
       <TerrainMesh />
       <Sea />
       <RiverRibbons />

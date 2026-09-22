@@ -18,7 +18,7 @@ import { makeTintTexture, updateTintTexture } from './tint';
 const HEXW = Math.sqrt(3);
 
 // Geometry resolution (one draw call; Low preset can decimate later).
-const SEG_X = 512;
+const SEG_X = 640;
 
 function buildGeometry(): THREE.PlaneGeometry {
   const spanX = WORLD_W + ALBEDO_MARGIN * 2;
@@ -168,20 +168,27 @@ export function TerrainMesh() {
             // as the campaign bake; fine clods resolve only as the camera drops.
             vec3 survey = texture2D(uSurvey, auv).rgb;
             vec2 direction = normalize(survey.rg * 2.0 - 1.0);
-            float nearSoil = 1.0 - smoothstep(13.0, 27.0, distance(cameraPosition, vWorldPos3));
+            float nearSoil = 1.0 - smoothstep(16.0, 38.0, distance(cameraPosition, vWorldPos3));
             nearSoil *= (1.0 - uPaper) * (1.0 - uSnow);
             float across = dot(wp, direction);
             float along = dot(wp, vec2(-direction.y, direction.x));
-            float phase = across * 310.0 + cnoise(wp * 9.0) * 0.7;
+            float phase = across * 310.0 + cnoise(wp * 9.0) * 0.35;
             float resolved = 1.0 - smoothstep(0.7, 2.8, fwidth(phase));
             float rows = sin(phase) * resolved * survey.b;
             float clods = cnoise(wp * 48.0) - 0.5;
             float crumb = (cnoise(wp * 135.0) - 0.5) * (1.0 - smoothstep(0.015, 0.06, length(fwidth(wp))));
             float stubble = smoothstep(0.72, 0.88, cnoise(vec2(across * 100.0, along * 180.0))) * survey.b;
-            ground *= 1.0 + nearSoil * (clods * 0.28 + crumb * 0.15 + rows * 0.075);
+            // Broad soil breakup supports the finer tilth. Paired tractor runs
+            // and stubble use the survey direction, so scale remains coherent.
+            float mottling = cnoise(wp * 6.5) * 0.6 + cnoise(wp * 17.0) * 0.4 - 0.5;
+            float tramPhase = across * 22.0;
+            float tramAA = max(fwidth(tramPhase), 0.025);
+            float tramDistance = abs(abs(fract(tramPhase) - 0.5) - 0.085);
+            float tram = (1.0 - smoothstep(0.015, 0.015 + tramAA, tramDistance)) * survey.b;
+            ground *= 1.0 + nearSoil * (mottling * 0.26 + clods * 0.25 + crumb * 0.10 + rows * 0.14 - tram * 0.09);
             ground += vec3(0.055, 0.046, 0.027) * stubble * nearSoil;
             ground *= 1.0 - uWet * 0.09 * nearSoil;
-            soilHeight = nearSoil * (clods * 0.0018 + rows * 0.0006);
+            soilHeight = nearSoil * (mottling * 0.005 + clods * 0.0025 + rows * 0.0008);
 
             // Snow cover (uniform-driven; water plane handles the sea).
             ground = mix(ground, vec3(0.72, 0.74, 0.76), uSnow * 0.5 * (1.0 - uPaper));
@@ -243,6 +250,12 @@ export function TerrainMesh() {
           float soilDet = dot(soilDx, soilR1);
           vec3 soilGrad = sign(soilDet) * (dFdx(soilHeight) * soilR1 + dFdy(soilHeight) * soilR2);
           normal = normalize(abs(soilDet) * normal - soilGrad);`,
+        )
+        .replace(
+          '#include <roughnessmap_fragment>',
+          `#include <roughnessmap_fragment>
+          float dampPatch = smoothstep(0.45, 0.74, cnoise(vWorldPos3.xz * 5.0));
+          roughnessFactor = mix(0.94, 0.58, uWet * dampPatch * (1.0 - uPaper) * (1.0 - uSnow));`,
         )
         .replace(
           '#include <emissivemap_fragment>',

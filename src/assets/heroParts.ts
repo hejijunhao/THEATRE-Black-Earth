@@ -83,7 +83,15 @@ function finish(g: THREE.BufferGeometry, mat: HeroMat, t?: HeroXF): THREE.Buffer
 }
 
 export function hbox(w: number, h: number, d: number, mat: HeroMat, t?: HeroXF): THREE.BufferGeometry {
-  return finish(new THREE.BoxGeometry(w, h, d), mat, t);
+  // Small edge chamfers catch light; broad armour faces stay planar.
+  const bevel = Math.min(0.045, w * 0.12, h * 0.12, d * 0.12);
+  if (Math.min(w, h, d) < 0.10) return finish(new THREE.BoxGeometry(w, h, d), mat, t);
+  return hplate([
+    { y: -h / 2, w: w - bevel * 2, d: d - bevel * 2, cut: bevel },
+    { y: -h / 2 + bevel, w, d, cut: bevel },
+    { y: h / 2 - bevel, w, d, cut: bevel },
+    { y: h / 2, w: w - bevel * 2, d: d - bevel * 2, cut: bevel },
+  ], mat, t);
 }
 
 export function hcyl(
@@ -132,6 +140,36 @@ export function htrap(
   return finish(g, mat, t);
 }
 
+/** Convex eight-sided armour sections: real cheek slopes and clipped corners. */
+export function hplate(
+  rings: Array<{ y: number; w: number; d: number; cut: number; x?: number }>,
+  mat: HeroMat, t?: HeroXF,
+): THREE.BufferGeometry {
+  const loops = rings.map(r => {
+    const w = r.w / 2, d = r.d / 2, c = Math.min(r.cut, w * 0.8, d * 0.8);
+    return [[-w+c,-d],[-w,-d+c],[-w,d-c],[-w+c,d],
+      [w-c,d],[w,d-c],[w,-d+c],[w-c,-d]]
+      .map(([x,z]) => [x + (r.x ?? 0), r.y, z]);
+  });
+  const p: number[] = [], idx: number[] = [];
+  const face = (vs: number[][]) => {
+    const start = p.length / 3;
+    vs.forEach(v => p.push(...v));
+    for (let i = 1; i < vs.length - 1; i++) idx.push(start, start+i, start+i+1);
+  };
+  face([...loops[0]].reverse());
+  for (let r = 0; r < loops.length-1; r++) for (let i = 0; i < 8; i++) {
+    const j = (i+1)%8;
+    face([loops[r][i],loops[r][j],loops[r+1][j],loops[r+1][i]]);
+  }
+  face(loops[loops.length-1]);
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return finish(g, mat, t);
+}
+
 // Merge that carries the aMat attribute (geomUtils' merger would drop it).
 // Every three.js primitive we use is indexed; htrap is indexed by design.
 export function mergeHero(geos: THREE.BufferGeometry[]): THREE.BufferGeometry {
@@ -168,35 +206,49 @@ export function mergeHero(geos: THREE.BufferGeometry[]): THREE.BufferGeometry {
   return merged;
 }
 
-// Matte diffuse paint keeps real geometry, light direction and cast shadows.
-// No screen-space recolouring or procedural weathering: the turret, running
-// gear and gun carry the class read, including under overcast campaign light.
-let sharedHeroMaterial: THREE.MeshLambertMaterial | null = null;
-
-export function getHeroMaterial(): THREE.MeshLambertMaterial {
+// Shared PBR material. aMat carries roughness / metalness / wear per part;
+// legacy props have a deliberately matte default attribute.
+let sharedHeroMaterial: THREE.MeshStandardMaterial | null = null;
+export function getHeroMaterial(): THREE.MeshStandardMaterial {
   if (!sharedHeroMaterial) sharedHeroMaterial = makeHeroMaterial();
   return sharedHeroMaterial;
 }
 
-export function makeHeroMaterial(): THREE.MeshLambertMaterial {
-  const material = new THREE.MeshLambertMaterial({ vertexColors: true });
+export function makeHeroMaterial(): THREE.MeshStandardMaterial {
+  const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.78, metalness: 0.12, envMapIntensity: 0.65 });
+  Object.assign(material, { defaultAttributeValues: { color: [1, 1, 1], uv: [0, 0], aMat: [0.88, 0.02, 0] } });
   material.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vPaintPos;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvPaintPos = position;');
+      .replace('#include <common>', '#include <common>\nattribute vec3 aMat; varying vec3 vPartMat; varying vec3 vPaintPos;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvPaintPos = position; vPartMat = aMat;');
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
         varying vec3 vPaintPos;
+        varying vec3 vPartMat;
+        float paintHash(vec3 p) { return fract(sin(dot(p, vec3(127.1,311.7,74.7))) * 43758.5453); }
         float paintNoise(vec3 p) {
-          return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453);
+          vec3 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
+          return mix(mix(mix(paintHash(i),paintHash(i+vec3(1,0,0)),f.x),
+                         mix(paintHash(i+vec3(0,1,0)),paintHash(i+vec3(1,1,0)),f.x),f.y),
+                     mix(mix(paintHash(i+vec3(0,0,1)),paintHash(i+vec3(1,0,1)),f.x),
+                         mix(paintHash(i+vec3(0,1,1)),paintHash(i+vec3(1,1,1)),f.x),f.y),f.z);
         }`)
       .replace('#include <color_fragment>', `#include <color_fragment>
-        // Small-scale mottled paint, dust on the lower hull; no glossy wash.
         vec3 metre = vPaintPos / ${HERO_SCALE.toFixed(4)};
-        float wear = paintNoise(floor(metre * 19.0));
-        float dust = (1.0 - smoothstep(0.2, 1.1, metre.y)) * 0.14;
-        diffuseColor.rgb *= 0.94 + wear * 0.12;
-        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.12, 0.104, 0.076), dust);`);
+        float paintPatch = paintNoise(metre * vec3(1.8, 2.8, 2.2));
+        float paintMask = smoothstep(0.40, 0.62, paintPatch) * (1.0 - smoothstep(0.25,0.6,vPartMat.y));
+        diffuseColor.rgb *= 1.0 - paintMask * 0.28;
+        float grain = paintNoise(metre * 65.0) - 0.5;
+        float resolved = 1.0 - smoothstep(0.03,0.12,length(fwidth(metre)));
+        diffuseColor.rgb *= 1.0 + grain * 0.10 * resolved;
+        float dust = (1.0 - smoothstep(0.15,1.35,metre.y)) * (0.16 + paintPatch * 0.16);
+        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.19,0.155,0.105), dust);
+      `)
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+        roughnessFactor = clamp(vPartMat.x + grain * 0.10 * resolved + dust * 0.15, 0.24, 1.0);`)
+      .replace('#include <metalnessmap_fragment>', `#include <metalnessmap_fragment>
+        metalnessFactor = vPartMat.y * (1.0 - dust);`);
   };
+  material.customProgramCacheKey = () => 'vehicle-pbr-v2';
   return material;
 }

@@ -79,7 +79,7 @@ describe('slice 1 ground albedo — cadastral soil', () => {
     expect(luma(CHERNOZEM)).toBeLessThan(58);
   });
 
-  it('paints the scar as crushed soil, not a khaki loft swatch', () => {
+  it('keeps the richer crop mosaic within a muted earth palette', () => {
     const colors = [];
     for (let i = 0; i < 24; i++) {
       colors.push(albedoAt(BOOT.wx + i * 0.41, BOOT.wz + (i % 5) * 0.37));
@@ -91,7 +91,7 @@ describe('slice 1 ground albedo — cadastral soil', () => {
     avg.r /= colors.length;
     avg.g /= colors.length;
     avg.b /= colors.length;
-    expect(luma(avg)).toBeLessThan(78);
+    expect(luma(avg)).toBeLessThan(84);
     expect(avg.g).toBeLessThan(avg.r * 0.92);
     expect(avg.r).toBeGreaterThan(avg.b);
     const north = albedoAt(BOOT.wx, WORLD_H * 0.06);

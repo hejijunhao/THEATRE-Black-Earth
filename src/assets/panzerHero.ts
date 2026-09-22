@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { FactionId } from '../game/types';
 import {
-  HERO_SCALE, getHeroMaterial, hbox, hcyl, hsphere, htorus, htrap, mergeHero,
+  HERO_SCALE, getHeroMaterial, hbox, hcyl, hsphere, htorus, htrap, hplate, mergeHero,
   heroMats,
 } from './heroParts';
 
@@ -166,8 +166,12 @@ export function makePanzerHeroGeometry(faction: FactionId): THREE.BufferGeometry
 
   // ---- Turret -------------------------------------------------------------
   // Light turret owns the silhouette. Hull stayed BODY/SHADE; this is TOP.
-  parts.push(htrap(3.8, 3.0, 3.66, 2.7, 0.82, TOP, { x: -0.45, y: 1.6 }, -0.06, 0));
-  parts.push(hbox(3.5, 0.028, 2.52, TOP, { x: -0.5, y: 2.43 })); // roof skin
+  parts.push(hplate([
+    { y: 1.61, w: 3.65, d: 2.45, cut: 0.50, x: -0.45 },
+    { y: 1.86, w: 4.0, d: 3.0, cut: 0.68, x: -0.45 },
+    { y: 2.34, w: 3.45, d: 2.65, cut: 0.52, x: -0.56 },
+    { y: 2.43, w: 3.20, d: 2.40, cut: 0.44, x: -0.56 },
+  ], TOP));
   // Recessed panel seams so the big flat walls read as built-up plate.
   for (const s of [1, -1] as const) {
     for (const sx of [0.4, -1.2]) {
@@ -179,8 +183,13 @@ export function makePanzerHeroGeometry(faction: FactionId): THREE.BufferGeometry
   }
   // The signature spaced wedge: two big inclined slabs meeting at the apex,
   // hollow behind them left open — the shadow gap IS the spaced armour.
-  parts.push(hbox(1.95, 0.88, 0.14, TOP, { rx: 0.28, ry: 0.75, x: 2.15, y: 1.97, z: 0.785 }));
-  parts.push(hbox(1.95, 0.88, 0.14, TOP, { rx: -0.28, ry: -0.75, x: 2.15, y: 1.97, z: -0.785 }));
+  for (const side of [-1, 1]) {
+    parts.push(hplate([
+      { y: 1.66, w: 1.74, d: 0.77, cut: 0.22, x: 0.04 },
+      { y: 1.97, w: 2.02, d: 1.00, cut: 0.30, x: 0.10 },
+      { y: 2.36, w: 1.68, d: 0.74, cut: 0.26, x: -0.12 },
+    ], TOP, { x: 1.65, z: side * 0.83, ry: side * 0.48 }));
+  }
   // Two rows of module bolts on each wedge face, transformed with the slab.
   for (const s of [1, -1] as const) {
     const slabM = new THREE.Matrix4()

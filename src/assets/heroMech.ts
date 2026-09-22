@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { FactionId } from '../game/types';
 import {
-  HERO_SCALE, getHeroMaterial, hbox, hcyl, heroMats, htorus, htrap, mergeHero,
+  HERO_SCALE, getHeroMaterial, hbox, hcyl, heroMats, htorus, htrap, hplate, mergeHero,
 } from './heroParts';
 import { linkRun, trackWheel } from './heroAssemblies';
 
@@ -137,7 +137,11 @@ export function makeMechHeroGeometry(faction: FactionId): THREE.BufferGeometry {
   // ---- Turret: compact, autocannon — oversized for mid-zoom read --------
   // Turret is the light top; hull stays BODY. From boot the read is
   // dark hull / light turret / dark autocannon — not one green slab.
-  parts.push(htrap(1.7, 1.5, 1.45, 1.22, 0.68, TOP, { x: 0.40, y: 1.9 }, -0.05, 0));
+  parts.push(hplate([
+    { y: 1.9, w: 1.45, d: 1.28, cut: 0.34 },
+    { y: 2.13, w: 1.8, d: 1.55, cut: 0.40 },
+    { y: 2.58, w: 1.32, d: 1.13, cut: 0.28, x: -0.08 },
+  ], TOP, { x: 0.4 }));
   parts.push(hbox(1.38, 0.03, 1.16, SHADE, { x: 0.36, y: 2.58 }));
   parts.push(hbox(0.38, 0.48, 0.58, SHADE, { x: 1.18, y: 2.22 })); // mantlet
   // Autocannon: the IFV finger. Thickness is a silhouette lie — a 20 mm

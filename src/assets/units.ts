@@ -127,7 +127,7 @@ export function makeMiniatureBuild(spec: MiniatureSpec): MiniatureBuild {
       const [fx, fz] = INF_RANKS[i];
       const sx = spec.disorganized ? fx * 1.45 : fx;
       const sz = spec.disorganized ? fz * 1.35 + 0.04 : fz;
-      parts.push(...place(figure(), sx, sz, ((i * 37) % 7 - 3) * 0.035, 0, INF_FIGURE_SCALE));
+      parts.push(...place(figure(i), sx, sz, ((i * 37) % 7 - 3) * 0.035, 0, INF_FIGURE_SCALE));
     }
     parts.push(...place(commandTruck(spec.faction), 0.20, 0.06, spec.disorganized ? 0.7 : 0.10, 0, INF_TRUCK_SCALE));
     if (spec.tier >= 3) {

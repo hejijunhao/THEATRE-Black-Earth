@@ -46,12 +46,12 @@ export function noise2(x: number, y: number, salt: number): number {
 // darker than the ochre plate that survived highlighter removal.
 // Lightest parcel must stay under a beige-flood gate.
 const FIELD_COLORS = [
-  '#807055', // dry stubble — muted straw, not mustard
+  '#948168', // dry stubble — muted straw, not mustard
   '#594536', // cereal brown
   '#3f3028', // chernozem
   '#75634e', // loess fallow
   '#30251f', // wet plough
-  '#50503b', // pasture olive
+  '#657050', // pasture olive
 ].map(rgb);
 /** 14-unit cadastral districts — rest zoom must see soil families, not one ochre. */
 const REGION_SOILS = [
@@ -88,7 +88,8 @@ export function stripFrame(wx: number, wz: number): StripFrame {
   const u = wx * cos + wz * sin;
   const v = -wx * sin + wz * cos;
   const stripW = 0.28 + ihash(rx, rz, 103) * 0.26;
-  const parcelL = stripW * (5 + ihash(rx * 517 + Math.floor(u / stripW), rz, 107) * 5);
+  // Short, staggered parcels avoid the continuous ribbon / wood-grain read.
+  const parcelL = stripW * (1.8 + ihash(rx * 517 + Math.floor(u / stripW), rz, 107) * 3.2);
   const strip = Math.floor(u / stripW);
   const parcel = Math.floor(v / parcelL);
   const edgeU = Math.abs(u / stripW - Math.round(u / stripW));
@@ -122,8 +123,8 @@ export function fieldColor(wx: number, wz: number): RGB {
   if (furrow > 0.62) c = mix(c, FURROW, 0.03 * (furrow - 0.62) / 0.38);
 
   // Shelter-belt / headland darkening on both axes.
-  if (f.edgeU < 0.12) c = mix(c, SHELTER, 0.34 * (1 - f.edgeU / 0.12));
-  if (f.edgeV < 0.10) c = mix(c, DIRT, 0.32 * (1 - f.edgeV / 0.10));
+  if (f.edgeU < 0.045) c = mix(c, SHELTER, 0.38 * (1 - f.edgeU / 0.045));
+  if (f.edgeV < 0.055) c = mix(c, DIRT, 0.36 * (1 - f.edgeV / 0.055));
 
   // Soft clod + finer crumb so a parcel is dirt, not a printed swatch.
   const clod = (noise2(wx * 3.4, wz * 3.4, 73) - 0.5) * 0.18;
@@ -144,7 +145,7 @@ export function parcelRelief(wx: number, wz: number): number {
   const rz = Math.floor(wz / 14);
   const terrace = (ihash(rx * 517 + f.strip, rz, 113) - 0.5) * 0.048;
   const lip = Math.max(0, 0.08 - f.edgeU) * 0.32 + Math.max(0, 0.07 - f.edgeV) * 0.22;
-  const wave = Math.sin((f.u / f.stripW) * Math.PI * 2) * 0.012;
+  const wave = (noise2(wx * 1.7, wz * 1.7, 117) - 0.5) * 0.018;
   return (terrace + lip + wave) * 0.25;
 }
 

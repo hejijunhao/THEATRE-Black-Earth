@@ -1,5 +1,7 @@
 # BLACK THEATRE — earth and machines
 
+The latest terrain and unit rebuild is documented in the [22 September fidelity review](fidelity.html) and [implementation notes](fidelity.md). The frames below retain the previous pass for comparison.
+
 21 September 2026 · Implemented presentation pass · Counters OFF
 
 [Open the five-frame review](index.html). These are annotated captures of the running game, not speculative paintovers. Annotation numbers and captions belong to the review sheets only.
