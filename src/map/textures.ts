@@ -8,7 +8,7 @@ const MONO = '600 __px "IBM Plex Mono", ui-monospace, Menlo, monospace';
 const SANS = '__wt __px "Inter", system-ui, sans-serif';
 
 function font(template: string, px: number, weight = 600): string {
-  return template.replace('__wt', String(weight)).replace('__px', String(px));
+  return template.replace('__wt', String(weight)).replace('__px', `${px}px`);
 }
 
 export interface CounterSpec {
@@ -475,25 +475,25 @@ export function makeLabelTexture(name: string, size: CitySize, faction: 'UA' | '
   const weight = size === 'town' ? 500 : 600;
   const canvas = document.createElement('canvas');
   const ctx0 = canvas.getContext('2d')!;
-  ctx0.font = font(SANS, px, weight);
-  const textW = ctx0.measureText(name.toUpperCase()).width;
+  ctx0.font = font('__wt __px Spectral, Georgia, serif', px, weight);
+  const textW = ctx0.measureText(name).width;
   canvas.width = Math.ceil(textW + 40);
   canvas.height = px + 26;
   const ctx = canvas.getContext('2d')!;
 
-  ctx.font = font(SANS, px, weight);
+  ctx.font = font('__wt __px Spectral, Georgia, serif', px, weight);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   const cx = canvas.width / 2;
   const cy = canvas.height / 2;
   // Soft halo for readability against terrain
   ctx.shadowColor = 'rgba(20,20,16,0.9)';
-  ctx.shadowBlur = 8;
-  ctx.lineWidth = 4;
+  ctx.shadowBlur = 3;
+  ctx.lineWidth = 2;
   ctx.strokeStyle = 'rgba(20,20,16,0.75)';
-  ctx.strokeText(name.toUpperCase(), cx, cy);
+  ctx.strokeText(name, cx, cy);
   ctx.fillStyle = size === 'town' ? '#d8d2c0' : '#efe9d8';
-  ctx.fillText(name.toUpperCase(), cx, cy);
+  ctx.fillText(name, cx, cy);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;

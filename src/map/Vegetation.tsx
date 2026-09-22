@@ -6,7 +6,8 @@
 // (hashSeed, no Math.random()); hidden in the paper political mode with the
 // rest of the 3D clutter; snow retints the whole layer like the forests.
 
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { hashSeed } from '../game/rng';
 import { useStore } from '../game/state/store';
@@ -64,11 +65,11 @@ function pushClump(
     const r = rnd(id, salt * 13 + k * 3 + 1) * 0.045;
     const x = cx + Math.cos(a) * r;
     const z = cz + Math.sin(a) * r;
-    const H = hMin + (hMax - hMin) * rnd(id, salt * 13 + k * 3 + 2);
+    const H = (hMin + (hMax - hMin) * rnd(id, salt * 13 + k * 3 + 2)) * 0.28;
     const lean = H * (0.25 + rnd(id, salt * 17 + k) * 0.5);
     const yaw = rnd(id, salt * 19 + k) * Math.PI * 2;
     pushBlade(b, {
-      x, z, ground: gy - 0.012, H, wBase,
+      x, z, ground: gy - 0.003, H, wBase: wBase * 0.45,
       tipX: Math.cos(yaw) * lean, tipZ: Math.sin(yaw) * lean,
       root: rootC, tip: tipC, rough: 0.85, sway: 0,
     });
@@ -130,7 +131,7 @@ export function buildVegetation(tiles: {
         if (gy < SEA_LEVEL_Y + 0.04) continue;
         pushBlade(b, {
           x, z, ground: gy - 0.012,
-          H: 0.18 + rnd(tile.id, 82 + k * 3) * 0.08, wBase: 0.014,
+          H: 0.055 + rnd(tile.id, 82 + k * 3) * 0.025, wBase: 0.005,
           tipX: (rnd(tile.id, 83 + k) - 0.5) * 0.05,
           tipZ: (rnd(tile.id, 84 + k) - 0.5) * 0.05,
           root: rootC, tip: tipC, rough: 0.85, sway: 0,
@@ -169,6 +170,8 @@ export function buildVegetation(tiles: {
 
 export function Vegetation() {
   const game = useStore((s) => s.game);
+  const mesh = useRef<THREE.Mesh>(null);
+  useFrame(({ camera }) => { if (mesh.current) mesh.current.visible = camera.position.y < 7; });
   const snow = game?.weather === 'snow';
 
   const geometry = useMemo(() => {
@@ -178,7 +181,7 @@ export function Vegetation() {
 
   if (!geometry) return null;
   return (
-    <mesh geometry={geometry} receiveShadow>
+    <mesh ref={mesh} geometry={geometry} receiveShadow raycast={() => null}>
       <meshStandardMaterial
         vertexColors
         roughness={0.92}

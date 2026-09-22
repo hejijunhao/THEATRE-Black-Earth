@@ -78,13 +78,41 @@ export function territoryShapes(interior: Iterable<TileId>): THREE.Shape[] {
 
 export function buildTerritoryGeometry(
   interior: Iterable<TileId>,
-  opts?: { lift?: number; drape?: (x: number, z: number) => number },
+  opts?: { lift?: number; maxEdge?: number; drape?: (x: number, z: number) => number },
 ): THREE.BufferGeometry | null {
   const tiles = interior instanceof Set ? interior : new Set(interior);
   if (tiles.size === 0) return null;
   const shapes = territoryShapes(tiles);
   if (shapes.length === 0) return null;
-  const geo = new THREE.ShapeGeometry(shapes, 1);
+  let geo: THREE.BufferGeometry = new THREE.ShapeGeometry(shapes, 1);
+  if (opts?.maxEdge) {
+    // Earcut triangles can span the entire territory. Subdivide before
+    // draping so depth-tested reach does not cut through intervening relief.
+    const source = geo.getAttribute('position'), index = geo.index!;
+    const vertices: number[] = [], indices: number[] = [];
+    const max2 = opts.maxEdge * opts.maxEdge;
+    type P = [number, number];
+    const emit = (a: P, b: P, c: P): void => {
+      const ab = (a[0]-b[0])**2 + (a[1]-b[1])**2;
+      const bc = (b[0]-c[0])**2 + (b[1]-c[1])**2;
+      const ca = (c[0]-a[0])**2 + (c[1]-a[1])**2;
+      if (Math.max(ab, bc, ca) > max2) {
+        if (bc > ab && bc >= ca) { emit(b,c,a); return; }
+        if (ca > ab && ca > bc) { emit(c,a,b); return; }
+        const mid: P = [(a[0]+b[0])/2, (a[1]+b[1])/2];
+        emit(a,mid,c); emit(mid,b,c); return;
+      }
+      const first = vertices.length / 3;
+      vertices.push(a[0],a[1],0,b[0],b[1],0,c[0],c[1],0);
+      indices.push(first,first+1,first+2);
+    };
+    const point = (i: number): P => [source.getX(index.getX(i)), source.getY(index.getX(i))];
+    for (let i = 0; i < index.count; i += 3) emit(point(i),point(i+1),point(i+2));
+    geo.dispose();
+    geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geo.setIndex(indices);
+  }
   // Shape lives in XY; +X east, +Y = world +Z (south). Rx(+90) stands it up.
   geo.rotateX(Math.PI / 2);
   const lift = opts?.lift ?? REACH_FILL_LIFT;

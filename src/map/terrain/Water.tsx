@@ -13,6 +13,7 @@ import { WEATHER_ENV } from '../palette';
 import { ALBEDO_MARGIN } from './albedo';
 import { SEA_LEVEL_Y, getShoreField, groundY } from './heightfield';
 import { mergeGeometries } from '../geomUtils';
+import { bankedRiverRibbon } from '../riverRibbon';
 
 function makeShoreTexture(): THREE.DataTexture {
   const { data, w, h } = getShoreField();
@@ -194,11 +195,12 @@ export function RiverRibbons() {
     if (!game) return { riverGeo: null, bridgeGeo: null };
 
     const strips: THREE.BufferGeometry[] = [];
+    const channels: Array<{ points: Array<[number, number]>; width: number }> = [];
     for (const course of RIVER_COURSES) {
       const pts = course.points;
       if (pts.length < 2) continue;
-      // The Dnipro is the map's central strategic feature — widen it.
-      const widthScale = course.name === 'Dnipro' ? 1.35 : 1.15;
+      // Keep the Dnipro broader while tributaries remain fine map lines.
+      const widthScale = course.name === 'Dnipro' ? 0.55 : 0.35;
       // Chaikin smoothing pass for gentler meanders.
       const sm: Array<[number, number]> = [pts[0]];
       for (let i = 0; i < pts.length - 1; i++) {
@@ -209,32 +211,16 @@ export function RiverRibbons() {
       }
       sm.push(pts[pts.length - 1]);
 
-      const positions: number[] = [];
-      const indices: number[] = [];
-      for (let i = 0; i < sm.length; i++) {
-        const [x, z] = sm[i];
-        const prev = sm[Math.max(0, i - 1)];
-        const next = sm[Math.min(sm.length - 1, i + 1)];
-        let dx = next[0] - prev[0];
-        let dz = next[1] - prev[1];
-        const len = Math.hypot(dx, dz) || 1;
-        dx /= len;
-        dz /= len;
-        const nx = -dz;
-        const nz = dx;
-        const w = (course.width * widthScale) / 2;
-        const y = Math.max(groundY(x, z) + 0.03, SEA_LEVEL_Y - 0.01);
-        positions.push(x + nx * w, y, z + nz * w, x - nx * w, y, z - nz * w);
-        if (i > 0) {
-          const b = i * 2;
-          indices.push(b - 2, b - 1, b, b - 1, b + 1, b);
-        }
+      // A second corner-cut keeps close banks from reading as a hex pipe.
+      const smooth: Array<[number, number]> = [sm[0]];
+      for (let i = 0; i < sm.length - 1; i++) {
+        const a = sm[i], b = sm[i + 1];
+        smooth.push([a[0] * .75 + b[0] * .25, a[1] * .75 + b[1] * .25]);
+        smooth.push([a[0] * .25 + b[0] * .75, a[1] * .25 + b[1] * .75]);
       }
-      const g = new THREE.BufferGeometry();
-      g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
-      g.setIndex(indices);
-      g.computeVertexNormals();
-      strips.push(g);
+      smooth.push(sm[sm.length - 1]);
+      strips.push(bankedRiverRibbon(smooth, course.width * widthScale, groundY));
+      channels.push({ points: smooth, width: course.width * widthScale });
     }
 
     // Bridge decks at the rules' bridge edges (contested crossings must read).
@@ -243,12 +229,30 @@ export function RiverRibbons() {
       const [aId, bId] = key.split('|');
       const edge = sharedEdge(aId, bId);
       if (!edge) continue;
-      const y = groundY(edge.mx, edge.mz) + 0.05;
-      const deck = new THREE.BoxGeometry(0.5, 0.045, 0.14);
-      const angle = Math.atan2(edge.ez, edge.ex);
-      const m = new THREE.Matrix4().makeRotationY(-angle + Math.PI / 2).setPosition(edge.mx, y, edge.mz);
+      // Rules cross hex edges; visible water follows the surveyed course.
+      // Anchor the miniature crossing to its nearest channel, not dry soil.
+      let best = Infinity, bx = edge.mx, bz = edge.mz;
+      let angle = Math.atan2(edge.ez, edge.ex), length = 0.5;
+      for (const channel of channels) for (let i = 0; i < channel.points.length - 1; i++) {
+        const a = channel.points[i], b = channel.points[i + 1];
+        const dx = b[0] - a[0], dz = b[1] - a[1];
+        const t = THREE.MathUtils.clamp(((edge.mx - a[0]) * dx + (edge.mz - a[1]) * dz) / (dx * dx + dz * dz || 1), 0, 1);
+        const x = a[0] + dx * t, z = a[1] + dz * t;
+        const d = Math.hypot(x - edge.mx, z - edge.mz);
+        if (d < best) { best = d; bx = x; bz = z; angle = Math.atan2(dz, dx); length = Math.max(0.30, channel.width + 0.18); }
+      }
+      const nx = -Math.sin(angle) * length / 2, nz = Math.cos(angle) * length / 2;
+      const y = Math.max(groundY(bx, bz), groundY(bx + nx, bz + nz), groundY(bx - nx, bz - nz)) + 0.07;
+      const deck = new THREE.BoxGeometry(length, 0.022, 0.12);
+      const m = new THREE.Matrix4().makeRotationY(-angle + Math.PI / 2).setPosition(bx, y, bz);
       deck.applyMatrix4(m);
       decks.push(deck);
+      for (const side of [-1, 1]) {
+        const curb = new THREE.BoxGeometry(length, 0.018, 0.009);
+        curb.translate(0, 0.018, side * 0.055);
+        curb.applyMatrix4(m);
+        decks.push(curb);
+      }
     }
 
     return { riverGeo: mergeGeometries(strips), bridgeGeo: mergeGeometries(decks) };
@@ -257,8 +261,8 @@ export function RiverRibbons() {
   if (!riverGeo) return null;
   return (
     <group>
-      <mesh geometry={riverGeo} renderOrder={2}>
-        <meshStandardMaterial color="#48627c" roughness={0.28} metalness={0.1} />
+      <mesh geometry={riverGeo} renderOrder={2} raycast={() => null}>
+        <meshStandardMaterial vertexColors roughness={0.91} metalness={0.02} />
       </mesh>
       {bridgeGeo && (
         <mesh geometry={bridgeGeo}>

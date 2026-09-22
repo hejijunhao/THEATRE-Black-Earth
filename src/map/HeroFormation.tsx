@@ -41,8 +41,9 @@ export function HeroFormation({ type, faction, slots }: {
   return (
     <instancedMesh
       ref={ref}
-      args={[geometry, heroMaterial(type), slots.length]} // armor/MECH/ARTY unlit stamp; recon wash
+      args={[geometry, heroMaterial(type), slots.length]}
       castShadow
+      receiveShadow
     />
   );
 }

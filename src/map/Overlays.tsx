@@ -37,10 +37,10 @@ function useHexShapes() {
     const disc = new THREE.CircleGeometry(0.9, 6);
     disc.rotateZ(Math.PI / 6);
     disc.rotateX(-Math.PI / 2);
-    const ring = new THREE.RingGeometry(0.8, 0.91, 6);
+    const ring = new THREE.RingGeometry(0.89, 0.91, 6);
     ring.rotateZ(Math.PI / 6);
     ring.rotateX(-Math.PI / 2);
-    const attack = new THREE.RingGeometry(0.76, 0.88, 6);
+    const attack = new THREE.RingGeometry(0.855, 0.88, 6);
     attack.rotateZ(Math.PI / 6);
     attack.rotateX(-Math.PI / 2);
     return { disc, ring, attack };
@@ -58,7 +58,7 @@ function ReachTerritory({
   color: string;
   opacity: number;
 }) {
-  const geo = useMemo(() => buildTerritoryGeometry(tiles, { lift }), [tiles, lift]);
+  const geo = useMemo(() => buildTerritoryGeometry(tiles, { lift, maxEdge: 0.22 }), [tiles, lift]);
   useEffect(() => () => { geo?.dispose(); }, [geo]);
   if (!geo || opacity <= 0.004) return null;
   return (
@@ -68,7 +68,7 @@ function ReachTerritory({
         transparent
         opacity={opacity}
         depthWrite={false}
-        depthTest={false}
+        depthTest
         side={THREE.DoubleSide}
         polygonOffset
         polygonOffsetFactor={-1}
@@ -187,7 +187,7 @@ export function Overlays() {
       nearTiles,
       seams,
       farOpacity: reachFillOpacity('open', mp, mp),
-      nearOpacity: reachFillOpacity('open', 0, mp),
+      nearOpacity: (reachFillOpacity('open', 0, mp) - reachFillOpacity('open', mp, mp)) / (1 - reachFillOpacity('open', mp, mp)),
     };
   }, [game, selectedUnit]);
 
@@ -269,7 +269,7 @@ export function Overlays() {
         return (
           <mesh key={`target-${t.id}`} geometry={attack} position={[wx, tileY(tiles, t.tile) + 0.012, wz]} raycast={() => null}>
             <meshBasicMaterial
-              color={isPending ? '#e06c4f' : '#a8543f'}
+              color={isPending ? '#bd8060' : '#96553f'}
               transparent
               opacity={isPending ? 0.92 : 0.62}
               depthWrite={false}
@@ -308,7 +308,7 @@ export function Overlays() {
           const { wx, wz } = tileWorldById(selectedTileId);
           return [wx, tileY(tiles, selectedTileId) + 0.02, wz];
         })()} raycast={() => null}>
-          <meshBasicMaterial color="#efe8d4" transparent opacity={0.88} depthWrite={false} />
+          <meshBasicMaterial color="#efe8d4" transparent opacity={0.66} depthWrite={false} />
         </mesh>
       )}
 

@@ -140,7 +140,7 @@ src/
     data/terrainData.ts  generated heightfield + land-cover fractions
 
   ui/                  ── HUD (map-table design system) ──
-    TopBar (Vic3-thin chip strip) · Outliner (Next chip at rest; sector list on select/open) · CommandBar (selected only)
+    TopBar (Vic3-thin chip strip) · Outliner (Next chip at rest; sector list on demand) · CommandBar (selected only)
     Journal / VictoryClock / SidePanel on demand · TurnCard
     Modals (briefing events) · Notifications · icons.tsx
     AIOverlay · Tutorial · MainMenu (live-map backdrop) · AssetsView (#assets)

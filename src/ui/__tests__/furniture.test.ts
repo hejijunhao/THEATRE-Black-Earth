@@ -191,12 +191,12 @@ describe('subtractive HUD gate', () => {
   it('collapses the week-runner to a chip at rest', () => {
     expect(outlinerChrome(rest)).toBe('chip');
     expect(outlinerListMounted('chip')).toBe(false);
-    expect(outlinerChrome({ ...rest, selectedUnitId: 'u3' })).toBe('open');
+    expect(outlinerChrome({ ...rest, selectedUnitId: 'u3' })).toBe('chip');
     expect(outlinerChrome({ ...rest, showOutliner: true })).toBe('open');
     expect(outlinerListMounted('open')).toBe(true);
     expect(outlinerChrome({ ...rest, lastCombat: { kind: 'assault' } })).toBe('rail');
     expect(outlinerChrome({ ...rest, selectedUnitId: 'u3', pendingAttackId: 'r1' })).toBe('rail');
-    expect(outlinerListMounted('rail')).toBe(true);
+    expect(outlinerListMounted('rail')).toBe(false);
   });
 });
 

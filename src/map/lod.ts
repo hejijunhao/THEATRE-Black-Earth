@@ -20,8 +20,8 @@ export const COUNTER_BASE_D = 0.50;
 export const STANDARD_W = 1.06;
 export const STANDARD_H = 0.31;
 /** Standard billboard hides the hull at boot. Fade it in only near campaign zoom. */
-export const STANDARD_HIDE_Y = 15.5;
-export const STANDARD_SHOW_Y = 22;
+export const STANDARD_HIDE_Y = 26;
+export const STANDARD_SHOW_Y = 34;
 
 export const MINI_BASE_W = 0.86;
 export const MINI_BASE_D = 0.60;
@@ -39,12 +39,12 @@ export function standardOpacityAtHeight(cameraY: number): number {
 }
 
 /** Select is a ground annulus, never a camera-facing parchment card. */
-export const SELECT_RING_IN = 0.48;
+export const SELECT_RING_IN = 0.59;
 export const SELECT_RING_OUT = 0.62;
-export const ATTACK_CHEV_R = 0.20;
+export const ATTACK_CHEV_R = 0.10;
 
-export const COUNTER_ZOOM_IN = 24;
-export const COUNTER_ZOOM_FULL = 42;
+export const COUNTER_ZOOM_IN = 34;
+export const COUNTER_ZOOM_FULL = 52;
 
 /** Kupiansk (39,10) – Sloviansk (39,14) midpoint. The scar, not Donbas. */
 export const BOOT_COL = 39;

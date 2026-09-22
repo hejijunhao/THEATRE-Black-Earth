@@ -142,7 +142,7 @@ const geoCache = new Map<FactionId, THREE.BufferGeometry>();
 
 export function makeReconHero(faction: FactionId): {
   geometry: THREE.BufferGeometry;
-  material: THREE.MeshStandardMaterial;
+  material: THREE.Material;
 } {
   let geometry = geoCache.get(faction);
   if (!geometry) {

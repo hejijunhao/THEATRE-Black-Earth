@@ -11,12 +11,12 @@ export const REACH_FILL_LIFT = 0.06;
 /** Near-cost heart of the blob (secondary interior), not a per-hex disc. */
 export const REACH_NEAR_COST_FRAC = 0.5;
 export const REACH_FILL = {
-  open: '#7a5c28',
-  enemy: '#7a4a1c',
+  open: '#81765b',
+  enemy: '#78604a',
 } as const;
 export const REACH_FILL_OPACITY = {
-  open: 0.52,
-  enemy: 0.56,
+  open: 0.18,
+  enemy: 0.20,
   zoc: 0,
 } as const;
 
@@ -32,20 +32,20 @@ export const REACH_EDGE_OPACITY = {
   zoc: 0.66,
 } as const;
 export const REACH_EDGE_LEN = 1.1;
-export const REACH_EDGE_W = 0.052;
+export const REACH_EDGE_W = 0.028;
 export const REACH_EDGE_H = 0.018;
 export const REACH_EDGE_LIFT = 0.058;
 
 export const FRONT_SCAR_LEN = 1.14;
-export const FRONT_SCAR_W = 0.072;
-export const FRONT_SCAR_H = 0.042;
+export const FRONT_SCAR_W = 0.026;
+export const FRONT_SCAR_H = 0.010;
 export const FRONT_SCAR_LIFT = 0.058;
-export const FRONT_GLOW_W = 0.16;
+export const FRONT_GLOW_W = 0.09;
 export const FRONT_GLOW_H = 0.016;
 export const FRONT_GLOW_LIFT = 0.04;
 export const FRONT_HATCH_LEN = 0.1;
-export const FRONT_HATCH_W = 0.02;
-export const FRONT_HATCH_H = 0.024;
+export const FRONT_HATCH_W = 0.014;
+export const FRONT_HATCH_H = 0.008;
 export const FRONT_HATCH_LIFT = 0.068;
 export const FRONT_QUIET_HATCH = [-0.22, 0.22] as const;
 export const FRONT_CONTACT_HATCH = [-0.36, -0.12, 0.12, 0.36] as const;
@@ -88,12 +88,6 @@ export function reachInkIsWarm(hex: string): boolean {
   const g = (n >> 8) & 255;
   const b = n & 255;
   return r >= 100 && g >= 70 && b <= g - 8 && r > b + 30 && r + g > b * 2.5;
-}
-
-/** Near wash outranks the seam so the soil stain leads the silhouette. */
-export function reachFillLeadsRim(kind: ReachKind = 'open', cost = 1, mp = 4): boolean {
-  if (kind === 'zoc') return false;
-  return reachFillOpacity(kind, cost, mp) > REACH_EDGE_OPACITY[kind] * 0.55;
 }
 
 export interface TelegraphEdge {

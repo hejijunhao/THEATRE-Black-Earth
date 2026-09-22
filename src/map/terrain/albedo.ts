@@ -8,12 +8,12 @@ import { CORRIDORS } from '../../game/scenarios/blackEarth2025';
 import { tileWorld } from '../../game/hex';
 import { fracAtWorld, heightM } from './heightfield';
 import { WORLD_H, WORLD_W } from '../data/terrainData';
-import { RGB, fieldColor, mix, noise2, rgb } from './strips';
+import { RGB, fieldColor, mix, noise2, rgb, stripFrame } from './strips';
 
 // Extended bounds: the painted area covers the mesh margin beyond the grid.
 export const ALBEDO_MARGIN = 10; // world units beyond the map rectangle
 
-const TEX_W = 2048;
+const TEX_W = 4096;
 
 export type { RGB };
 
@@ -21,15 +21,15 @@ const GRASS = rgb('#3e3c24');
 // Forests stay lighter than water, and light enough that rain + AO cannot
 // drop a woodland hex into a grey hole. Not retuned — north charcoal
 // was the previous failure, and this slice is soil authenticity.
-const FOREST_FLOOR = rgb('#7a864c');
-const FOREST_DEEP = rgb('#667444');
+const FOREST_FLOOR = rgb('#55513c');
+const FOREST_DEEP = rgb('#454735');
 const MARSH = rgb('#6c7250');
 const URBAN = rgb('#9a9488');
 const URBAN_DARK = rgb('#7a756c');
 const SEA_FLOOR = rgb('#2a3a4a');
 const BEACH = rgb('#b09864');
 /** Warm umber loft the far north must match under rain — soil, not mustard. */
-export const KHAKI_FIELD = rgb('#c49050');
+export const KHAKI_FIELD = rgb('#aa8e6b');
 export const SOIL_FIELD = KHAKI_FIELD;
 export const CHERNOZEM = rgb('#3e2a16');
 export const LOESS = rgb('#746448');
@@ -52,28 +52,11 @@ export function northSoilLift(wz: number, heightMetres: number): number {
 
 export function applySoilContinuity(c: RGB, wz: number, heightMetres: number): RGB {
   const lat = 1 - Math.min(1, Math.max(0, wz / WORLD_H));
-  // Midground crush toward chernozem/loam — rain lighting still lifts, so
-  // the paint has to start dark or campaign zoom stays an ochre plate.
-  // Far north keeps loft; the scar is not washed toward khaki.
-  const crush = 0.52 + 0.40 * smooth(0.62, 0.97, lat);
-  let out: RGB = { r: c.r * crush, g: c.g * crush * 0.86, b: c.b * crush * 0.76 };
-  const lift = northSoilLift(wz, heightMetres);
-  out = mix(out, KHAKI_FIELD, lift);
-  const luma = 0.2126 * out.r + 0.7152 * out.g + 0.0722 * out.b;
-  // Floor is far-north only. A constant 48-luma midground floor was the
-  // ochre plate — it lifted crushed chernozem toward khaki loft.
-  const northKeep = smooth(0.70, 0.97, lat);
-  const floor = 118 * northKeep;
-  if (northKeep > 0.001 && luma < floor) {
-    // Lift toward warm soil, not a grey scale-up of cool forest.
-    const k = (floor - luma) / Math.max(1, floor);
-    out = mix(out, KHAKI_FIELD, Math.min(0.55, k * 0.85));
-    const luma2 = 0.2126 * out.r + 0.7152 * out.g + 0.0722 * out.b;
-    if (luma2 < floor) {
-      const s = floor / Math.max(1, luma2);
-      out = { r: out.r * s, g: out.g * s, b: out.b * s };
-    }
-  }
+  // Keep parcel values rather than crushing then re-normalizing the shader.
+  // Latitude adds warm loess locally; it never repaints every dark pixel.
+  const exposure = 0.88 + 0.12 * smooth(0.62, 0.97, lat);
+  const base = { r: c.r * exposure, g: c.g * exposure, b: c.b * exposure };
+  const out = mix(base, SOIL_FIELD, northSoilLift(wz, heightMetres) * 0.55);
   return out;
 }
 
@@ -186,8 +169,30 @@ export function makeAlbedoTexture(): THREE.CanvasTexture {
   // was leaving scar texels as bright linear khaki. The terrain shader
   // decodes once via sRGBTransferEOTF.
   tex.colorSpace = THREE.NoColorSpace;
+  // World z grows down the painted canvas. Custom world UVs need no GL flip.
+  tex.flipY = false;
   tex.wrapS = THREE.ClampToEdgeWrapping;
   tex.wrapT = THREE.ClampToEdgeWrapping;
   tex.anisotropy = 8;
+  return tex;
+}
+
+/** Survey direction + cultivated cover. Data, never colour-managed. */
+export function makeSoilSurveyTexture(): THREE.DataTexture {
+  const w = 512, h = 384;
+  const data = new Uint8Array(w * h * 4);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const wx = (x + 0.5) / w * (WORLD_W + ALBEDO_MARGIN * 2) - ALBEDO_MARGIN;
+    const wz = (y + 0.5) / h * (WORLD_H + ALBEDO_MARGIN * 2) - ALBEDO_MARGIN;
+    const f = stripFrame(wx, wz);
+    const o = (y * w + x) * 4;
+    data[o] = Math.round((Math.cos(f.theta) * 0.5 + 0.5) * 255);
+    data[o + 1] = Math.round((Math.sin(f.theta) * 0.5 + 0.5) * 255);
+    data[o + 2] = Math.round(Math.max(0, fracAtWorld(wx, wz, 2) - fracAtWorld(wx, wz, 1)) * 255);
+    data[o + 3] = 255;
+  }
+  const tex = new THREE.DataTexture(data, w, h);
+  tex.minFilter = tex.magFilter = THREE.NearestFilter;
+  tex.needsUpdate = true;
   return tex;
 }

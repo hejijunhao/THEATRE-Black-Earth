@@ -13,10 +13,76 @@ import {
 } from './forestPaint';
 import { makeLabelTexture } from './textures';
 import { groundY, hexFracs, tileGroundY } from './terrain/heightfield';
+import { cbox, ccyl, ctrap, paint } from '../assets/parts';
+import { mergeGeometries } from './geomUtils';
+import { CORRIDORS } from '../game/scenarios/blackEarth2025';
+import { RIVER_COURSES } from './data/terrainData';
+import { riverRibbon } from './riverRibbon';
 import { WORLD_H } from './worldDims';
 
 function jitter(x: number, y: number, salt: number): number {
   return ((hashSeed(`${x}:${y}:${salt}`) % 1000) / 1000 - 0.5);
+}
+
+/** An irregular broadleaf crown with overlapping boughs and a shaded trunk. */
+function woodlandGeometry(): THREE.BufferGeometry {
+  const parts = [ccyl(0.009, 0.014, 0.11, '#38382a', 0, 0.04, 0, 'y', 7)];
+  for (let k = 0; k < 11; k++) {
+    const a = k * 2.4;
+    const g = new THREE.SphereGeometry(k === 0 ? 0.075 : 0.047, 12, 9);
+    const p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+      const r = 1 + 0.20 * Math.sin(x * 163 + z * 87) * Math.cos(y * 141);
+      p.setXYZ(i, x * r, y * r * 0.85, z * r);
+    }
+    g.translate(Math.cos(a) * (k ? 0.072 : 0), 0.10 + (k % 3) * 0.026, Math.sin(a) * (k ? 0.072 : 0));
+    g.computeVertexNormals();
+    paint(g, ['#afb597', '#899475', '#bec3a2'][k % 3]);
+    const color = g.getAttribute('color');
+    for (let i = 0; i < p.count; i++) {
+      const fleck = 0.80 + 0.20 * Math.sin(p.getX(i) * 431 + p.getY(i) * 227 + p.getZ(i) * 313);
+      color.setXYZ(i, color.getX(i) * fleck, color.getY(i) * fleck, color.getZ(i) * fleck);
+    }
+    parts.push(g);
+  }
+  return mergeGeometries(parts)!;
+}
+
+/** Keep settlement footprints on the bank, even where a town crosses a meander. */
+function dryBuildingPosition(x: number, z: number): [number, number] {
+  for (let pass = 0; pass < 2; pass++) for (const course of RIVER_COURSES) {
+    const clearance = course.width * (course.name === 'Dnipro' ? 0.55 : 0.35) / 2 + 0.14;
+    for (let i = 0; i < course.points.length - 1; i++) {
+      const a = course.points[i], b = course.points[i + 1];
+      const vx = b[0] - a[0], vz = b[1] - a[1];
+      const length2 = vx * vx + vz * vz;
+      const t = Math.max(0, Math.min(1, ((x - a[0]) * vx + (z - a[1]) * vz) / (length2 || 1)));
+      const dx = x - (a[0] + vx * t), dz = z - (a[1] + vz * t);
+      const distance = Math.hypot(dx, dz);
+      if (distance >= clearance) continue;
+      const nx = distance > 0.0001 ? dx / distance : -vz / (Math.sqrt(length2) || 1);
+      const nz = distance > 0.0001 ? dz / distance : vx / (Math.sqrt(length2) || 1);
+      x += nx * (clearance - distance); z += nz * (clearance - distance);
+    }
+  }
+  return [x, z];
+}
+
+/** Low masonry, pitched slate / oxidised roofs, eaves and recessed windows. */
+function townGeometry(): THREE.BufferGeometry {
+  const parts = [
+    cbox(0.15, 0.073, 0.10, '#a09880', 0, 0.037, 0),
+    cbox(0.162, 0.009, 0.113, '#4a453a', 0, 0.078, 0),
+    ctrap(0.164, 0.115, 0.164, 0.001, 0.043, '#65584b', 0, 0.082, 0),
+    cbox(0.012, 0.043, 0.014, '#786d59', -0.044, 0.116, 0.017),
+    cbox(0.018, 0.035, 0.002, '#393b33', 0.045, 0.023, 0.051),
+  ];
+  for (const x of [-0.051, -0.017, 0.018, 0.052]) for (const z of [-0.051, 0.051]) {
+    parts.push(cbox(0.013, 0.018, 0.002, '#43473e', x, 0.051, z));
+    parts.push(cbox(0.019, 0.003, 0.004, '#b0a389', x, 0.041, z));
+  }
+  return mergeGeometries(parts)!;
 }
 
 export function Forests() {
@@ -25,7 +91,7 @@ export function Forests() {
 
   const { geometry, count, matrices } = useMemo(() => {
     if (!game) return { geometry: null, count: 0, matrices: [] as THREE.Matrix4[] };
-    const geometry = new THREE.ConeGeometry(0.16, 0.42, 6);
+    const geometry = woodlandGeometry();
     const matrices: THREE.Matrix4[] = [];
     for (const tile of Object.values(game.tiles)) {
       const frac = hexFracs(tile.x, tile.y).forest;
@@ -36,15 +102,18 @@ export function Forests() {
       const { wx, wz } = tileWorld(tile.x, tile.y);
       // Density follows the geodata forest fraction, thinned on the far
       // north so rain AO cannot pile a charcoal band on the horizon.
-      const n = forestStemCount(isForest, frac, wz, hashSeed(tile.id), WORLD_H);
+      const n = forestStemCount(isForest, frac, wz, hashSeed(tile.id), WORLD_H) * 3;
       for (let k = 0; k < n; k++) {
-        const dx = jitter(tile.x, tile.y, k * 3 + 1) * 1.15;
-        const dz = jitter(tile.x, tile.y, k * 3 + 2) * 1.05;
+        let dx = jitter(tile.x, tile.y, k * 3 + 1) * 1.4;
+        let dz = jitter(tile.x, tile.y, k * 3 + 2) * 1.2;
+        const r = Math.hypot(dx, dz);
+        // Leave the formation anchor clear, including when formations move.
+        if (r < 0.53) { dx *= 0.53 / Math.max(r, 0.01); dz *= 0.53 / Math.max(r, 0.01); }
         const s = forestStemScale(0.75 + (jitter(tile.x, tile.y, k * 3 + 3) + 0.5) * 0.6, wz, WORLD_H);
         const gy = groundY(wx + dx, wz + dz);
         const m = new THREE.Matrix4()
-          .makeScale(s, s, s)
-          .setPosition(wx + dx, gy + 0.2 * s, wz + dz);
+          .makeScale(s * 1.1, s * 0.85, s)
+          .setPosition(wx + dx, gy - 0.012, wz + dz);
         matrices.push(m);
       }
     }
@@ -74,13 +143,16 @@ export function Forests() {
     <instancedMesh
       args={[geometry, undefined, count]}
       ref={meshRef}
+      castShadow
+      receiveShadow
+      raycast={() => null}
     >
       <meshStandardMaterial
         color="#ffffff"
         roughness={0.9}
-        flatShading
+        vertexColors
         emissive={snow ? FOREST_SNOW : FOREST_EMIT_SOUTH}
-        emissiveIntensity={snow ? 0.18 : 0.34}
+        emissiveIntensity={snow ? 0.12 : 0.03}
       />
     </instancedMesh>
   );
@@ -91,23 +163,24 @@ export function UrbanBlocks() {
 
   const { geometry, count, matrices } = useMemo(() => {
     if (!game) return { geometry: null, count: 0, matrices: [] as THREE.Matrix4[] };
-    const geometry = new THREE.BoxGeometry(0.2, 0.22, 0.2);
+    const geometry = townGeometry();
     const matrices: THREE.Matrix4[] = [];
     for (const tile of Object.values(game.tiles)) {
       const isUrban = tile.terrain === 'urban';
       const isTown = !!tile.cityId && !isUrban;
       if (!isUrban && !isTown) continue;
       const { wx, wz } = tileWorld(tile.x, tile.y);
-      const n = isUrban ? 6 : 2;
+      const n = isUrban ? 24 : 12;
       for (let k = 0; k < n; k++) {
-        const dx = jitter(tile.x, tile.y, k * 5 + 11) * 1.1;
-        const dz = jitter(tile.x, tile.y, k * 5 + 12) * 1.0;
-        const sy = 0.7 + (jitter(tile.x, tile.y, k * 5 + 13) + 0.5) * 1.6;
-        const sxz = 0.7 + (jitter(tile.x, tile.y, k * 5 + 14) + 0.5) * 0.8;
-        const gy = groundY(wx + dx, wz + dz);
+        const dx = -0.55 + (k % 6 - 2.5) * 0.14 + jitter(tile.x, tile.y, k * 5 + 11) * 0.025;
+        const dz = -0.48 + (Math.floor(k / 6) - (isUrban ? 1.5 : 0.5)) * 0.17 + jitter(tile.x, tile.y, k * 5 + 12) * 0.035;
+        const sy = 0.7 + (jitter(tile.x, tile.y, k * 5 + 13) + 0.5) * 0.75;
+        const sxz = 0.62 + (jitter(tile.x, tile.y, k * 5 + 14) + 0.5) * 0.32;
+        const [bx, bz] = dryBuildingPosition(wx + dx, wz + dz);
+        const gy = groundY(bx, bz);
         const m = new THREE.Matrix4()
           .makeScale(sxz, sy, sxz)
-          .setPosition(wx + dx, gy + 0.11 * sy, wz + dz);
+          .setPosition(bx, gy, bz);
         matrices.push(m);
       }
     }
@@ -123,13 +196,16 @@ export function UrbanBlocks() {
       ref={(mesh) => {
         if (mesh && meshRef.current !== mesh) {
           meshRef.current = mesh;
-          matrices.forEach((m, i) => mesh.setMatrixAt(i, m));
+          matrices.forEach((m, i) => {
+            mesh.setMatrixAt(i, m);
+            mesh.setColorAt(i, new THREE.Color(['#ffffff', '#ccc7b7', '#ddd7c8', '#b9bcb1'][i % 4]));
+          });
           mesh.instanceMatrix.needsUpdate = true;
         }
       }}
       castShadow
     >
-      <meshStandardMaterial color="#7b7973" roughness={0.85} flatShading />
+      <meshLambertMaterial vertexColors />
     </instancedMesh>
   );
 }
@@ -149,7 +225,7 @@ function CityLabel({ cityId }: { cityId: string }) {
   const scale = city.size === 'capital' ? 3.1 : city.size === 'major' ? 2.5 : 1.75;
 
   return (
-    <sprite position={[wx, top + 1.2, wz]} scale={[scale * aspect * 0.32, scale * 0.32, 1]}>
+    <sprite position={[wx, top + 1.2, wz]} scale={[scale * aspect * 0.16, scale * 0.16, 1]}>
       <spriteMaterial map={texture} transparent depthWrite={false} />
     </sprite>
   );
@@ -198,4 +274,30 @@ export function Fortifications() {
       ))}
     </group>
   );
+}
+
+/** A narrow compacted surface and dusty shoulder on the existing corridors. */
+export function RoadStrips() {
+  const geometry = useMemo(() => {
+    const parts: THREE.BufferGeometry[] = [];
+    for (const road of CORRIDORS) {
+      if (road.rail) continue;
+      let pts: Array<[number, number]> = road.path.map(([x, z]) => {
+        const p = tileWorld(x, z); return [p.wx, p.wz];
+      });
+      for (let pass = 0; pass < 2; pass++) {
+        const next: Array<[number, number]> = [pts[0]];
+        for (let i = 0; i < pts.length - 1; i++) {
+          const a = pts[i], b = pts[i + 1];
+          next.push([a[0] * .75 + b[0] * .25, a[1] * .75 + b[1] * .25]);
+          next.push([a[0] * .25 + b[0] * .75, a[1] * .25 + b[1] * .75]);
+        }
+        next.push(pts[pts.length - 1]); pts = next;
+      }
+      parts.push(paint(riverRibbon(pts, .048, groundY), '#73634d'));
+      parts.push(paint(riverRibbon(pts, .025, (x, z) => groundY(x, z) + .003), '#4f4b3e'));
+    }
+    return mergeGeometries(parts);
+  }, []);
+  return geometry ? <mesh geometry={geometry} raycast={() => null}><meshLambertMaterial vertexColors /></mesh> : null;
 }

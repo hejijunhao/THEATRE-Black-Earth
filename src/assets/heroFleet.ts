@@ -10,7 +10,7 @@
 
 import * as THREE from 'three';
 import { FactionId, UnitType } from '../game/types';
-import { getHeroMaterial, getStampHeroMaterial } from './heroParts';
+import { getHeroMaterial } from './heroParts';
 import { makeArtilleryHero } from './heroArtillery';
 import { makeMechHero } from './heroMech';
 import { makeReconHero } from './heroRecon';
@@ -35,12 +35,8 @@ export function heroGeometry(type: HeroUnitType, faction: FactionId): THREE.Buff
   return MAKERS[type](faction).geometry;
 }
 
-export function usesStampHero(type: HeroUnitType): boolean {
-  return type === 'armored' || type === 'mechanized' || type === 'artillery';
+export function heroMaterial(_type: HeroUnitType): THREE.Material {
+  return getHeroMaterial();
 }
 
-export function heroMaterial(type: HeroUnitType): THREE.Material {
-  return usesStampHero(type) ? getStampHeroMaterial() : getHeroMaterial();
-}
-
-export { getHeroMaterial, getStampHeroMaterial };
+export { getHeroMaterial };

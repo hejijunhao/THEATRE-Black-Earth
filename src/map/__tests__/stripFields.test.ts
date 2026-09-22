@@ -19,11 +19,11 @@ describe('contact-scale strip fields', () => {
     expect(max).toBeGreaterThan(14);
   });
 
-  it('raises parcel lips so the rest mesh is not a flat slab', () => {
+  it('keeps relief subordinate to painted parcel boundaries', () => {
     const a = parcelRelief(BOOT.wx, BOOT.wz);
     const b = parcelRelief(BOOT.wx + 0.31, BOOT.wz + 0.12);
-    expect(Math.abs(a - b)).toBeGreaterThan(0.004);
-    expect(Math.abs(a)).toBeLessThan(0.14);
+    expect(Math.abs(a - b)).toBeGreaterThan(0.001);
+    expect(Math.abs(a)).toBeLessThan(0.035);
   });
 
   it('does not flatten the scar with the north khaki lift', () => {

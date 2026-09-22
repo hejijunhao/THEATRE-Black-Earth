@@ -1,28 +1,19 @@
-// Hero-grade modern German-pattern MBT (Leopard-family idiom, class-level —
-// no insignia, no catalogued marks). Inspector/showcase asset: authored in
-// metres, ~20k triangles, one merged draw call. Mid-zoom uses the INF-path
-// unlit stamp (MeshBasic + authored vertex paint) so the hull / turret /
-// gun read as a silhouette, not a weathered pale-plastic wash. Geometry is
-// unchanged; paint assignment is the stamp. vehicles.ts `panzer()` stays
-// the superseded LOD; #assets reviews this factory.
-//
-// Layout: +x forward, +y up, z lateral, ground at y = 0. Scaled by
-// HERO_SCALE at the end so it drops onto the same base plates as the
-// miniatures (hull 7.7 m -> 0.2 world units).
+// Operational tank model. Deterministic metre-scale geometry with muted
+// vertex paint and diffuse lighting; hull, turret and gun retain their depth.
 
 import * as THREE from 'three';
 import { FactionId } from '../game/types';
 import {
-  HERO_SCALE, getStampHeroMaterial, hbox, hcyl, hsphere, htorus, htrap, mergeHero,
-  stampMats,
+  HERO_SCALE, getHeroMaterial, hbox, hcyl, hsphere, htorus, htrap, mergeHero,
+  heroMats,
 } from './heroParts';
 
 export function makePanzerHeroGeometry(faction: FactionId): THREE.BufferGeometry {
-  // Dark hull / light turret / dark gun — same stamp language as MECH.
+  // Dark hull / light turret / dark gun — same silhouette language as MECH.
   // Hull roofs stay SHADE so the turret owns the top-down read.
   const {
     BODY, TOP, SHADE, TRACKM, RUBBER, STEEL, DARKSTEEL, MUZZLE, CANVAS, CANVAS2, OPTIC,
-  } = stampMats(faction);
+  } = heroMats(faction);
   const parts: THREE.BufferGeometry[] = [];
 
   // ---- Running gear -------------------------------------------------------
@@ -174,7 +165,7 @@ export function makePanzerHeroGeometry(faction: FactionId): THREE.BufferGeometry
   }
 
   // ---- Turret -------------------------------------------------------------
-  // Light turret owns the stamp. Hull stayed BODY/SHADE; this is TOP.
+  // Light turret owns the silhouette. Hull stayed BODY/SHADE; this is TOP.
   parts.push(htrap(3.8, 3.0, 3.66, 2.7, 0.82, TOP, { x: -0.45, y: 1.6 }, -0.06, 0));
   parts.push(hbox(3.5, 0.028, 2.52, TOP, { x: -0.5, y: 2.43 })); // roof skin
   // Recessed panel seams so the big flat walls read as built-up plate.
@@ -322,5 +313,5 @@ export function makePanzerHero(faction: FactionId): {
     geometry = makePanzerHeroGeometry(faction);
     geoCache.set(faction, geometry);
   }
-  return { geometry, material: getStampHeroMaterial() };
+  return { geometry, material: getHeroMaterial() };
 }

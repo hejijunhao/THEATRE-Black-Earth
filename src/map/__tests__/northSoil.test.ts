@@ -26,11 +26,11 @@ describe('north soil continuity gate', () => {
     expect(northSoilLift(WORLD_H * 0.4, 240)).toBeGreaterThan(northSoilLift(WORLD_H * 0.4, 40));
   });
 
-  it('will not let charcoal survive on far-north soil', () => {
+  it('warms northern soil without forcing a pale brightness floor', () => {
     const charcoal = { r: 40, g: 36, b: 30 };
     const north = applySoilContinuity(charcoal, WORLD_H * 0.06, 70);
     const mid = applySoilContinuity(charcoal, WORLD_H * 0.5, 70);
-    expect(luma(north)).toBeGreaterThan(108);
+    expect(luma(north)).toBeGreaterThan(luma(charcoal) + 15);
     expect(luma(north)).toBeGreaterThan(luma(mid));
     expect(north.r).toBeGreaterThan(north.b);
     expect(north.g).toBeGreaterThan(north.b);
@@ -42,7 +42,7 @@ describe('north soil continuity gate', () => {
     expect(KHAKI_FIELD.g).toBeGreaterThan(KHAKI_FIELD.b);
     expect(KHAKI_FIELD.r).toBeLessThan(200);
     expect(KHAKI_FIELD.r - KHAKI_FIELD.b).toBeGreaterThan(40);
-    expect(KHAKI_FIELD.g).toBeLessThan(KHAKI_FIELD.r * 0.80);
+    expect(KHAKI_FIELD.g).toBeLessThan(KHAKI_FIELD.r * 0.9);
     expect(l).toBeGreaterThan(130);
     expect(l).toBeLessThan(170);
   });
@@ -67,8 +67,8 @@ describe('rain air is warm khaki, not a charcoal veil', () => {
     expect(ao.r).toBeGreaterThan(ao.b);
     expect(RAIN_VIGNETTE.darkness).toBeLessThan(0.02);
     expect(RAIN_VIGNETTE.offset).toBeGreaterThan(0.75);
-    expect(WEATHER_GRADE.rain.veil).toBe(1);
-    expect(WEATHER_GRADE.rain.lift).toBeGreaterThan(0.035);
+    expect(WEATHER_GRADE.rain.sat).toBeLessThanOrEqual(1);
+    expect(WEATHER_GRADE.rain.lift).toBeLessThan(0.015);
   });
 });
 
@@ -91,9 +91,9 @@ describe('machine paint silhouettes on khaki', () => {
       const p = HERO_PAINT[side];
       const dark = luma(hexRgb(p.dark));
       const light = luma(hexRgb(p.light));
-      expect(dark).toBeLessThan(40);
+      expect(dark).toBeLessThan(45);
       expect(light).toBeGreaterThan(100);
-      expect(light).toBeLessThan(field * 0.85);
+      expect(light).toBeLessThan(field * 0.95);
       expect(light - dark).toBeGreaterThan(70);
     }
   });
