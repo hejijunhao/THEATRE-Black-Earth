@@ -35,6 +35,21 @@ manufacturer catalogue, no spectacle.
 | counter plates (campaign LOD) | `src/map/textures.ts` | runtime | cardstock NATO: faction rail, ink frame, brass MP disc | ✓ no insignia, stamp hierarchy | 2026-09-17 |
 | standards (miniature nameplates) | `src/map/textures.ts` | runtime | distilled counter plate | ✓ | 2026-08-03 |
 
+## 2026-09-21 — map craft pass
+
+Current material authority: all runtime hero classes share matte Lambert vertex paint with subtle object-space mottling and lower-hull dust in `heroParts.ts`. Earlier stamp-material descriptions above are historical; the current registry is `heroFleet.ts`. Armor, IFV, artillery and recon topology is retained.
+
+| Factory / layer | File | Status | Review |
+| --- | --- | --- | --- |
+| Tapered infantry figures; six-figure squads, up to four echelons | `src/assets/vehicles.ts`, `units.ts` | runtime | No faces/insignia; smaller human scale, strength still drives count. |
+| Raked truck cab and shaped canvas | `src/assets/vehicles.ts` | runtime | Muted soft-skin silhouette; supply/command roles retained. |
+| Irregular broadleaf crowns | `src/map/Decorations.tsx` | runtime | Volumetric cover, shaded foliage; clear formation anchors. |
+| Masonry street blocks | `src/map/Decorations.tsx` | runtime | Pitched roofs, eaves, chimneys and windows; generic buildings, no photogrammetry. |
+| Soil detail and survey texture | `src/map/terrain/TerrainMesh.tsx`, `albedo.ts` | runtime | Filtered clods/drill rows, subtle normal relief; campaign survey retained. |
+| Banked river cross-section, road strips, thin bridge curbs | `src/map/riverRibbon.ts`, `terrain/Water.tsx`, `Decorations.tsx` | runtime | Earth margins and quiet water; presentation only, crossing rules untouched. |
+
+Review: [five annotated in-game frames](art-direction/index.html), plus the existing `#assets` turntable for formation and paint inspection. Procedural and deterministic throughout; no imported imagery.
+
 ## Review checklist
 
 1. Silhouette identifiable at gameplay camera height (the squint test).

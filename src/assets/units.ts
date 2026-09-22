@@ -53,12 +53,11 @@ export function miniatureKey(s: MiniatureSpec): string {
 
 // Infantry ranks on the plate. Authored figures (person + rifle) plus a
 // command truck are the boot-height silhouette — a pale plate must not win.
-const INF_RANKS: Array<[number, number]> = [
-  [-0.15, -0.19], [0, -0.19], [0.15, -0.19],
-  [-0.15, -0.08], [0, -0.08], [0.15, -0.08],
-  [-0.15, 0.03], [0, 0.03], [0.15, 0.03],
-];
-const INF_FIGURE_SCALE = 1.25;
+const INF_RANKS: Array<[number, number]> = Array.from({ length: 24 }, (_, i) => {
+  const squad = Math.floor(i / 6), file = i % 3, rank = Math.floor(i % 6 / 3);
+  return [-0.23 + file * 0.070 + squad * 0.055, -0.24 + squad * 0.115 + rank * 0.047];
+});
+const INF_FIGURE_SCALE = 0.65;
 const INF_TRUCK_SCALE = 0.85;
 
 // Hero formations are echelons. Vehicles are authored +x forward, and a hero
@@ -123,16 +122,16 @@ export function makeMiniatureBuild(spec: MiniatureSpec): MiniatureBuild {
   if (heroType === null) {
     // Infantry — no hero factory for this class yet. Rank of rifle figures
     // plus a command truck so the boot read is people, not a ghost plate.
-    const figures = Math.min(INF_RANKS.length, 1 + spec.tier * 2); // 3..9
+    const figures = Math.min(INF_RANKS.length, spec.tier * 6); // 6..24 in squad echelons
     for (let i = 0; i < figures; i++) {
       const [fx, fz] = INF_RANKS[i];
       const sx = spec.disorganized ? fx * 1.45 : fx;
       const sz = spec.disorganized ? fz * 1.35 + 0.04 : fz;
-      parts.push(...place(figure(), sx, sz, (i * 37) % 7 * 0.12, 0, INF_FIGURE_SCALE));
+      parts.push(...place(figure(), sx, sz, ((i * 37) % 7 - 3) * 0.035, 0, INF_FIGURE_SCALE));
     }
-    parts.push(...place(commandTruck(spec.faction), 0.10, 0.12, spec.disorganized ? 0.7 : 0.10, 0, INF_TRUCK_SCALE));
+    parts.push(...place(commandTruck(spec.faction), 0.20, 0.06, spec.disorganized ? 0.7 : 0.10, 0, INF_TRUCK_SCALE));
     if (spec.tier >= 3) {
-      parts.push(...place(commandTruck(spec.faction), -0.12, 0.13, spec.disorganized ? -0.4 : -0.08, 0, INF_TRUCK_SCALE));
+      parts.push(...place(commandTruck(spec.faction), 0.17, 0.17, spec.disorganized ? -0.4 : -0.08, 0, INF_TRUCK_SCALE));
     }
   } else {
     const count = spec.type === 'recon' ? Math.min(2, Math.ceil(spec.tier / 2)) : spec.tier;
@@ -140,13 +139,13 @@ export function makeMiniatureBuild(spec: MiniatureSpec): MiniatureBuild {
     // Foot elements move to the rear-left quarter, which the echelon leaves
     // open — at hero scale they no longer fit between the vehicles.
     if (spec.type === 'mechanized' && spec.tier >= 2 && !spec.disorganized) {
-      parts.push(...place(figure(), -0.262, -0.142, 0.3));
-      parts.push(...place(figure(), -0.309, -0.196, 0.62));
+      parts.push(...place(figure(), -0.262, -0.142, 0.3, 0, INF_FIGURE_SCALE));
+      parts.push(...place(figure(), -0.309, -0.196, 0.62, 0, INF_FIGURE_SCALE));
     }
     if (spec.type === 'recon') {
       // The hero recon carries its own sensor mast, so the separate
       // droneMast prop is gone; one dismounted scout stays for scale.
-      parts.push(...place(figure(), -0.256, -0.166, 0.2));
+      parts.push(...place(figure(), -0.256, -0.166, 0.2, 0, INF_FIGURE_SCALE));
     }
     if (spec.type === 'artillery' && spec.tier >= 2) {
       // Limber parked behind the gun line (guns fire toward +x).

@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.31](#0231--2026-09-22--paradox-theatre-redesign) | 2026-09-22 | Paradox theatre redesign | matte machines, cadastral soil, company ranks, banked rivers |
 | [0.2.30](#0230--2026-09-20--slice-6-assault-dispatch-stamps) | 2026-09-20 | Slice 6 — ASSAULT/DISPATCH stamps | thin classification strip, no rubber badge |
 | [0.2.29](#0229--2026-09-20--slice-3-armor-stamp) | 2026-09-20 | Slice 3 — armor stamp | unlit MeshBasic, dark hull / light turret, no wash |
 | [0.2.28](#0228--2026-09-17--slice-1-ground-retip) | 2026-09-17 | Slice 1 — ground retip | chernozem midground, district chroma, north umber keep |
@@ -49,6 +50,52 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.31] — 2026-09-22 · Paradox theatre redesign
+
+Presentation only. One shipment of the operational picture: matte
+machines on cadastral soil, a thin field header, and a closer map. No
+new rules. No workflows.
+
+Machines, soil and the field header land together with the close-range
+craft pass: soil grain, company ranks, banked water, streets and crowns.
+
+This cut:
+
+- **Machines.** Shared matte lighting and muted faction paint. Hull,
+  turret and gun stay readable. Solid plinths and the unlit green stamp
+  are gone. Close up, paint is lightly mottled, with dust on the lower
+  hull.
+- **Companies.** Infantry are tapered figures in six-figure squads, four
+  squads at full strength, at a human scale beside the vehicles. Truck
+  cabs and canvas beds are shaped. Dismounts use the same smaller figure.
+- **Soil.** The painted canvas matches the world, and cadastral parcels
+  stay visible under the lights. Campaign furrows are only a trace. Near
+  the ground, drill rows, clods and a little stubble resolve along the
+  survey, and rain darkens that material. Political and snow views stay
+  flat. The ground mesh is finer; the height model is the same.
+- **Board.** Relief, tree crowns and grass stay small against the map.
+  Contact marks are shorter. Movement range is a light stain that follows
+  the hills instead of a flat wash over the machines.
+- **Field header and paper.** The header and Next chip leave the map
+  open. The formation list opens on request and can close while a unit
+  stays selected. Combat paper leads with the odds and the strength bill.
+  Confirm and dismiss are plain controls, and the order bench leaves
+  while the paper is open. City labels use the intended size.
+- **Rivers, roads and settlements.** A river reads as silt, a wet bank,
+  shallows and a dark channel, draped on the ground. Bridges are thin
+  decks with curbs on that channel. Roads are a narrow surface and a
+  shoulder on the existing corridors, and they hide on the political map.
+  Towns are low masonry with pitched roofs, kept off the water and off
+  the formation anchor. Trees are irregular shaded crowns, also kept off
+  that anchor.
+
+Review sheets are in `docs/art-direction/`. The campaign, AI, supply,
+combat math, save schema and generated geodata are unchanged.
+
+The theatre integration refreshed the seven visual baselines. The later
+craft pass did not re-bless them: political mode and the front close-up
+sit just over the 1.5% mean-error threshold.
 
 ## [0.2.30] — 2026-09-20 · Slice 6 — ASSAULT / DISPATCH stamps
 
@@ -1350,22 +1397,3 @@ empty repository.
 
 See [README — Known limitations](../README.md#known-limitations): the AI does
 not honour fog of war, one scenario, five unit types, desktop WebGL only.
-
-## September 2026 — Paradox theatre redesign
-
-- Operational units use matte diffuse lighting, class-readable geometry and
-  muted faction paint. No solid miniature bases or green stamp materials.
-- Corrected the soil canvas orientation; cadastral values survive lighting.
-  Quiet relief, smaller ranks and crowns, thin contact/selection markings.
-- The 32px field-green header and Next chip leave the map open. Formation
-  lists open on request and can collapse while a unit remains selected.
-- Combat paper ranks odds and the strength bill above the verdict. Simple
-  confirm/dismiss controls replace engraved action blocks; the order bench
-  leaves while paper is open.
-- `node scripts/shot-theatre.mjs` verifies these states in native Chrome with
-  full postprocessing, including a compact desktop viewport and weather.
-
-Final integration also corrects river-ribbon face winding and samples long
-segments against both banks so rivers remain visible across relief. The
-existing canvas font helper now supplies CSS pixel units, restoring intended
-label typography instead of relying on the canvas fallback font.

@@ -11,12 +11,12 @@ export const REACH_FILL_LIFT = 0.06;
 /** Near-cost heart of the blob (secondary interior), not a per-hex disc. */
 export const REACH_NEAR_COST_FRAC = 0.5;
 export const REACH_FILL = {
-  open: '#7a5c28',
-  enemy: '#7a4a1c',
+  open: '#81765b',
+  enemy: '#78604a',
 } as const;
 export const REACH_FILL_OPACITY = {
-  open: 0.52,
-  enemy: 0.56,
+  open: 0.18,
+  enemy: 0.20,
   zoc: 0,
 } as const;
 
@@ -88,12 +88,6 @@ export function reachInkIsWarm(hex: string): boolean {
   const g = (n >> 8) & 255;
   const b = n & 255;
   return r >= 100 && g >= 70 && b <= g - 8 && r > b + 30 && r + g > b * 2.5;
-}
-
-/** Near wash outranks the seam so the soil stain leads the silhouette. */
-export function reachFillLeadsRim(kind: ReachKind = 'open', cost = 1, mp = 4): boolean {
-  if (kind === 'zoc') return false;
-  return reachFillOpacity(kind, cost, mp) > REACH_EDGE_OPACITY[kind] * 0.55;
 }
 
 export interface TelegraphEdge {

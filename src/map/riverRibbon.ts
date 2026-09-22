@@ -36,3 +36,39 @@ export function riverRibbon(
   g.computeVertexNormals();
   return g;
 }
+
+/** A continuous cross-section: dry verge, wet bank, shallows, deep channel.
+ * Shares the draped centreline, so the banks never float over the water. */
+export function bankedRiverRibbon(
+  course: readonly (readonly [number, number])[], width: number,
+  elevation: (x: number, z: number) => number,
+): THREE.BufferGeometry {
+  const base = riverRibbon(course, width + 0.055, elevation);
+  const source = base.getAttribute('position');
+  const sections = [0, 0.08, 0.18, 0.50, 0.82, 0.92, 1];
+  const palette = ['#61563f', '#494637', '#46524a', '#3e4e49', '#46524a', '#494637', '#61563f'].map(c => new THREE.Color(c));
+  const positions: number[] = [], colors: number[] = [], indices: number[] = [];
+  for (let i = 0; i < source.count / 2; i++) {
+    const a = i * 2, b = a + 1;
+    for (let k = 0; k < sections.length; k++) {
+      const t = sections[k];
+      const x = THREE.MathUtils.lerp(source.getX(a), source.getX(b), t);
+      const z = THREE.MathUtils.lerp(source.getZ(a), source.getZ(b), t);
+      const y = source.getY(a) + (k === 0 || k === 6 ? 0.002 : k === 1 || k === 5 ? 0.005 : 0.003);
+      positions.push(x, y, z);
+      const c = palette[k].clone().multiplyScalar(0.96 + Math.sin(x * 37 + z * 19) * 0.04);
+      colors.push(c.r, c.g, c.b);
+      if (i && k < 6) {
+        const v = i * 7 + k;
+        indices.push(v - 7, v, v - 6, v - 6, v, v + 1);
+      }
+    }
+  }
+  base.dispose();
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  g.setIndex(indices);
+  g.computeVertexNormals();
+  return g;
+}

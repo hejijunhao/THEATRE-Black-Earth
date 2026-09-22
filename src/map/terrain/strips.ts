@@ -117,7 +117,9 @@ export function fieldColor(wx: number, wz: number): RGB {
 
   // Furrow / drill rows: high-frequency dirt inside the parcel.
   const furrow = 0.5 + 0.5 * Math.sin((f.u / f.stripW) * Math.PI * 2 * (3 + ihash(rx, rz, 111) * 3));
-  if (furrow > 0.62) c = mix(c, FURROW, 0.16 * (furrow - 0.62) / 0.38);
+  // Only a trace in the campaign bake. Resolved drill rows belong in the
+  // close material; enlarging these low-resolution bands looked like timber.
+  if (furrow > 0.62) c = mix(c, FURROW, 0.03 * (furrow - 0.62) / 0.38);
 
   // Shelter-belt / headland darkening on both axes.
   if (f.edgeU < 0.12) c = mix(c, SHELTER, 0.34 * (1 - f.edgeU / 0.12));

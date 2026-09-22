@@ -11,14 +11,14 @@ import { MAP_H, MAP_W } from '../../game/scenarios/blackEarth2025';
 import { useStore } from '../../game/state/store';
 import { TileId } from '../../game/types';
 import { WORLD_H, WORLD_W } from '../data/terrainData';
-import { ALBEDO_MARGIN, makeAlbedoTexture } from './albedo';
+import { ALBEDO_MARGIN, makeAlbedoTexture, makeSoilSurveyTexture } from './albedo';
 import { groundY } from './heightfield';
 import { makeTintTexture, updateTintTexture } from './tint';
 
 const HEXW = Math.sqrt(3);
 
 // Geometry resolution (one draw call; Low preset can decimate later).
-const SEG_X = 288;
+const SEG_X = 512;
 
 function buildGeometry(): THREE.PlaneGeometry {
   const spanX = WORLD_W + ALBEDO_MARGIN * 2;
@@ -77,11 +77,14 @@ export function TerrainMesh() {
 
   const geometry = useMemo(() => buildGeometry(), []);
   const albedo = useMemo(() => makeAlbedoTexture(), []);
+  const survey = useMemo(() => makeSoilSurveyTexture(), []);
   const tint = useMemo(() => makeTintTexture(), []);
 
   const uniforms = useMemo(
     () => ({
       uAlbedo: { value: albedo },
+      uSurvey: { value: survey },
+      uWet: { value: 0 },
       uTint: { value: tint },
       uOrigin: { value: new THREE.Vector2(-ALBEDO_MARGIN, -ALBEDO_MARGIN) },
       uSpan: {
@@ -96,7 +99,7 @@ export function TerrainMesh() {
       // flat washes, graticule. 0 = terrain, 1 = paper; lerped ~400 ms.
       uPaper: { value: 0 },
     }),
-    [albedo, tint],
+    [albedo, tint, survey],
   );
 
   const material = useMemo(() => {
@@ -125,6 +128,8 @@ export function TerrainMesh() {
           `#include <common>
           varying vec3 vWorldPos3;
           uniform sampler2D uAlbedo;
+          uniform sampler2D uSurvey;
+          uniform float uWet;
           uniform sampler2D uTint;
           uniform vec2 uOrigin;
           uniform vec2 uSpan;
@@ -135,6 +140,7 @@ export function TerrainMesh() {
           uniform float uCloudTime;
           uniform float uPaper;
           vec3 uSoilGround;
+          float soilHeight;
           ${HEX_GLSL}
           // Cheap 2-octave value noise for drifting cloud shadow patches.
           float chash(vec2 p) {
@@ -157,6 +163,25 @@ export function TerrainMesh() {
             vec2 auv = (wp - uOrigin) / uSpan;
             vec3 groundSrgb = texture2D(uAlbedo, auv).rgb;
             vec3 ground = pow(groundSrgb, vec3(2.2));
+
+            // World-space, derivative-filtered soil. Rows follow the same survey
+            // as the campaign bake; fine clods resolve only as the camera drops.
+            vec3 survey = texture2D(uSurvey, auv).rgb;
+            vec2 direction = normalize(survey.rg * 2.0 - 1.0);
+            float nearSoil = 1.0 - smoothstep(13.0, 27.0, distance(cameraPosition, vWorldPos3));
+            nearSoil *= (1.0 - uPaper) * (1.0 - uSnow);
+            float across = dot(wp, direction);
+            float along = dot(wp, vec2(-direction.y, direction.x));
+            float phase = across * 310.0 + cnoise(wp * 9.0) * 0.7;
+            float resolved = 1.0 - smoothstep(0.7, 2.8, fwidth(phase));
+            float rows = sin(phase) * resolved * survey.b;
+            float clods = cnoise(wp * 48.0) - 0.5;
+            float crumb = (cnoise(wp * 135.0) - 0.5) * (1.0 - smoothstep(0.015, 0.06, length(fwidth(wp))));
+            float stubble = smoothstep(0.72, 0.88, cnoise(vec2(across * 100.0, along * 180.0))) * survey.b;
+            ground *= 1.0 + nearSoil * (clods * 0.28 + crumb * 0.15 + rows * 0.075);
+            ground += vec3(0.055, 0.046, 0.027) * stubble * nearSoil;
+            ground *= 1.0 - uWet * 0.09 * nearSoil;
+            soilHeight = nearSoil * (clods * 0.0018 + rows * 0.0006);
 
             // Snow cover (uniform-driven; water plane handles the sea).
             ground = mix(ground, vec3(0.72, 0.74, 0.76), uSnow * 0.5 * (1.0 - uPaper));
@@ -208,6 +233,18 @@ export function TerrainMesh() {
           }`,
         )
         .replace(
+          '#include <normal_fragment_maps>',
+          `#include <normal_fragment_maps>
+          // Screen derivatives perturb the existing DEM normal, not its silhouette.
+          vec3 soilDx = dFdx(-vViewPosition);
+          vec3 soilDy = dFdy(-vViewPosition);
+          vec3 soilR1 = cross(soilDy, normal);
+          vec3 soilR2 = cross(normal, soilDx);
+          float soilDet = dot(soilDx, soilR1);
+          vec3 soilGrad = sign(soilDet) * (dFdx(soilHeight) * soilR1 + dFdy(soilHeight) * soilR2);
+          normal = normalize(abs(soilDet) * normal - soilGrad);`,
+        )
+        .replace(
           '#include <emissivemap_fragment>',
           `#include <emissivemap_fragment>
           float northEmit = 1.0 - clamp(vWorldPos3.z / ${WORLD_H.toFixed(4)}, 0.0, 1.0);
@@ -226,6 +263,7 @@ export function TerrainMesh() {
   // Snow + cloud-shadow amount follow weather.
   useEffect(() => {
     const w = game?.weather;
+    uniforms.uWet.value = w === 'rain' || w === 'mud' ? 1 : w === 'overcast' ? 0.35 : 0;
     uniforms.uSnow.value = w === 'snow' ? 1 : 0;
     uniforms.uCloud.value =
       w === 'overcast' ? 0.28 : w === 'rain' ? 0.14 : w === 'mud' ? 0.16 : w === 'snow' ? 0.22 : 0.08;

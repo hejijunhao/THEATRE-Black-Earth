@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 import * as THREE from 'three';
 import { useStore } from '../game/state/store';
 import { CameraRig } from './CameraRig';
-import { CityMarkers, Forests, Fortifications, UrbanBlocks } from './Decorations';
+import { CityMarkers, Forests, Fortifications, UrbanBlocks, RoadStrips } from './Decorations';
 import { Frontline } from './Frontline';
 import { Overlays } from './Overlays';
 import { BattleWear, CombatMoment, Landmarks, SupplyFlow } from './Presentation';
@@ -124,6 +124,7 @@ export function MapScene() {
       <TerrainMesh />
       <Sea />
       <RiverRibbons />
+      {!paper && <RoadStrips />}
       <Frontline />
       {!paper && <Vegetation />}
       {!paper && <Forests />}

@@ -41,7 +41,7 @@ export function standardOpacityAtHeight(cameraY: number): number {
 /** Select is a ground annulus, never a camera-facing parchment card. */
 export const SELECT_RING_IN = 0.59;
 export const SELECT_RING_OUT = 0.62;
-export const ATTACK_CHEV_R = 0.20;
+export const ATTACK_CHEV_R = 0.10;
 
 export const COUNTER_ZOOM_IN = 34;
 export const COUNTER_ZOOM_FULL = 52;

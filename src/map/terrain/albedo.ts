@@ -8,7 +8,7 @@ import { CORRIDORS } from '../../game/scenarios/blackEarth2025';
 import { tileWorld } from '../../game/hex';
 import { fracAtWorld, heightM } from './heightfield';
 import { WORLD_H, WORLD_W } from '../data/terrainData';
-import { RGB, fieldColor, mix, noise2, rgb } from './strips';
+import { RGB, fieldColor, mix, noise2, rgb, stripFrame } from './strips';
 
 // Extended bounds: the painted area covers the mesh margin beyond the grid.
 export const ALBEDO_MARGIN = 10; // world units beyond the map rectangle
@@ -174,5 +174,25 @@ export function makeAlbedoTexture(): THREE.CanvasTexture {
   tex.wrapS = THREE.ClampToEdgeWrapping;
   tex.wrapT = THREE.ClampToEdgeWrapping;
   tex.anisotropy = 8;
+  return tex;
+}
+
+/** Survey direction + cultivated cover. Data, never colour-managed. */
+export function makeSoilSurveyTexture(): THREE.DataTexture {
+  const w = 512, h = 384;
+  const data = new Uint8Array(w * h * 4);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const wx = (x + 0.5) / w * (WORLD_W + ALBEDO_MARGIN * 2) - ALBEDO_MARGIN;
+    const wz = (y + 0.5) / h * (WORLD_H + ALBEDO_MARGIN * 2) - ALBEDO_MARGIN;
+    const f = stripFrame(wx, wz);
+    const o = (y * w + x) * 4;
+    data[o] = Math.round((Math.cos(f.theta) * 0.5 + 0.5) * 255);
+    data[o + 1] = Math.round((Math.sin(f.theta) * 0.5 + 0.5) * 255);
+    data[o + 2] = Math.round(Math.max(0, fracAtWorld(wx, wz, 2) - fracAtWorld(wx, wz, 1)) * 255);
+    data[o + 3] = 255;
+  }
+  const tex = new THREE.DataTexture(data, w, h);
+  tex.minFilter = tex.magFilter = THREE.NearestFilter;
+  tex.needsUpdate = true;
   return tex;
 }

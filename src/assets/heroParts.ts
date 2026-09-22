@@ -179,5 +179,24 @@ export function getHeroMaterial(): THREE.MeshLambertMaterial {
 }
 
 export function makeHeroMaterial(): THREE.MeshLambertMaterial {
-  return new THREE.MeshLambertMaterial({ vertexColors: true });
+  const material = new THREE.MeshLambertMaterial({ vertexColors: true });
+  material.onBeforeCompile = (shader) => {
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vPaintPos;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvPaintPos = position;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>
+        varying vec3 vPaintPos;
+        float paintNoise(vec3 p) {
+          return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453);
+        }`)
+      .replace('#include <color_fragment>', `#include <color_fragment>
+        // Small-scale mottled paint, dust on the lower hull; no glossy wash.
+        vec3 metre = vPaintPos / ${HERO_SCALE.toFixed(4)};
+        float wear = paintNoise(floor(metre * 19.0));
+        float dust = (1.0 - smoothstep(0.2, 1.1, metre.y)) * 0.14;
+        diffuseColor.rgb *= 0.94 + wear * 0.12;
+        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.12, 0.104, 0.076), dust);`);
+  };
+  return material;
 }

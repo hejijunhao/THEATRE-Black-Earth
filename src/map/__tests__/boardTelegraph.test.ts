@@ -14,7 +14,6 @@ import {
   perimeterEdges,
   REACH_EDGE,
   REACH_FILL_OPACITY,
-  reachFillLeadsRim,
   reachFillOpacity,
   reachInkIsWarm,
   scarIsHairline,
@@ -31,8 +30,8 @@ describe('board telegraph', () => {
     expect(REACH_FILL_OPACITY.zoc).toBe(0);
     expect(reachFillOpacity('zoc', 1, 4)).toBe(0);
     expect(reachFillOpacity('open', 1, 4)).toBeGreaterThan(reachFillOpacity('open', 4, 4));
-    expect(reachFillOpacity('open', 1, 4)).toBeGreaterThan(0.24);
-    expect(reachFillOpacity('open', 4, 4)).toBeGreaterThan(0.18);
+    expect(reachFillOpacity('open', 1, 4)).toBeGreaterThan(0.12);
+    expect(reachFillOpacity('open', 4, 4)).toBeGreaterThan(0.10);
     expect(reachFillOpacity('open', 4, 4)).toBeLessThan(reachFillOpacity('open', 1, 4));
   });
 
@@ -72,9 +71,9 @@ describe('board telegraph', () => {
     expect(neighborAcrossHexEdge(tileId(10, 10), 0)).toBeTruthy();
   });
 
-  it('lets the soil wash lead a warm perimeter seam', () => {
-    expect(reachFillLeadsRim('open')).toBe(true);
-    expect(reachFillLeadsRim('enemy')).toBe(true);
+  it('preserves soil through a light stain and readable warm perimeter', () => {
+    expect(reachFillOpacity('open', 0, 4)).toBeLessThan(0.3);
+    expect(reachFillOpacity('enemy', 0, 4)).toBeLessThan(0.3);
     expect(reachInkIsWarm(REACH_EDGE.open)).toBe(true);
     expect(reachInkIsWarm(REACH_EDGE.enemy)).toBe(true);
     expect(reachInkIsWarm(REACH_EDGE.zoc)).toBe(true);

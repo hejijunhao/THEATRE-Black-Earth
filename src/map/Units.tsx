@@ -89,7 +89,7 @@ function AgencyMarks({
             </mesh>
             <mesh position={[0, 0, 0.004]} scale={0.78} raycast={() => null}>
               <circleGeometry args={[chevR, 3]} />
-              <meshBasicMaterial color="#d4b05a" depthWrite={false} />
+              <meshBasicMaterial color="#b5a47c" depthWrite={false} />
             </mesh>
           </group>
         </Billboard>

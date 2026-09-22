@@ -58,7 +58,7 @@ function ReachTerritory({
   color: string;
   opacity: number;
 }) {
-  const geo = useMemo(() => buildTerritoryGeometry(tiles, { lift }), [tiles, lift]);
+  const geo = useMemo(() => buildTerritoryGeometry(tiles, { lift, maxEdge: 0.22 }), [tiles, lift]);
   useEffect(() => () => { geo?.dispose(); }, [geo]);
   if (!geo || opacity <= 0.004) return null;
   return (
@@ -68,7 +68,7 @@ function ReachTerritory({
         transparent
         opacity={opacity}
         depthWrite={false}
-        depthTest={false}
+        depthTest
         side={THREE.DoubleSide}
         polygonOffset
         polygonOffsetFactor={-1}
@@ -187,7 +187,7 @@ export function Overlays() {
       nearTiles,
       seams,
       farOpacity: reachFillOpacity('open', mp, mp),
-      nearOpacity: reachFillOpacity('open', 0, mp),
+      nearOpacity: (reachFillOpacity('open', 0, mp) - reachFillOpacity('open', mp, mp)) / (1 - reachFillOpacity('open', mp, mp)),
     };
   }, [game, selectedUnit]);
 
