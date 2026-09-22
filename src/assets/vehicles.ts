@@ -6,6 +6,7 @@
 // units on a ~1.7-unit hex — miniatures, not simulation.
 
 import * as THREE from 'three';
+import { truckParts, soldierParts } from './supportModels';
 import { FactionId } from '../game/types';
 import { cbox, ccyl, ccone, csphere, ctrap } from './parts';
 
@@ -16,17 +17,8 @@ const PAINT: Record<FactionId, { hull: string; dark: string; accent: string }> =
 };
 const TRACK = '#2e2c26';
 const TIRE = '#1a1814';
-const CANVAS_TOP = '#514e40';
 // Wool, canvas and steel: ranks share the machines' quiet material range.
-const FIGURE = '#626a52';
-const FIGURE_DARK = '#343c30';
-const FIGURE_HELM = '#72795f';
-const FIGURE_RIM = '#899078';
-const RIFLE = '#242923';
-const INF_HULL = '#515b4b';
-const INF_CANVAS = '#655f4d';
 const BARREL = '#3a3d36';
-const GLASS = '#101410';
 
 export function tank(faction: FactionId): THREE.BufferGeometry[] {
   const p = PAINT[faction];
@@ -177,40 +169,11 @@ export function ifv(faction: FactionId): THREE.BufferGeometry[] {
 }
 
 export function lightTruck(faction: FactionId): THREE.BufferGeometry[] {
-  const p = PAINT[faction];
-  const parts: THREE.BufferGeometry[] = [];
-  for (const zx of [-0.05, 0.05]) {
-    parts.push(ccyl(0.016, 0.016, 0.02, TIRE, zx, 0.016, -0.036, 'z', 8));
-    parts.push(ccyl(0.010, 0.010, 0.008, p.dark, zx, 0.016, -0.036, 'z', 6));
-    parts.push(ccyl(0.016, 0.016, 0.02, TIRE, zx, 0.016, 0.036, 'z', 8));
-    parts.push(ccyl(0.010, 0.010, 0.008, p.dark, zx, 0.016, 0.036, 'z', 6));
-  }
-  parts.push(cbox(0.11, 0.012, 0.068, p.dark, 0.0, 0.022, 0)); // chassis
-  parts.push(ctrap(0.053, 0.068, 0.036, 0.061, 0.038, p.hull, 0.052, 0.033, 0, -0.006)); // cab
-  parts.push(cbox(0.028, 0.016, 0.056, GLASS, 0.068, 0.058, 0)); // windshield
-  parts.push(ctrap(0.094, 0.068, 0.09, 0.051, 0.039, CANVAS_TOP, -0.028, 0.032, 0)); // canvas bed
-  return parts;
+  return truckParts(faction);
 }
 
-// Infantry command wagon: cab / canvas / wheels / whip antenna. Same
-// scale as lightTruck so it stays a truck, not a barn. Saturated dark
-// green so the rain veil cannot lift it back to a pale plate.
-export function commandTruck(_faction: FactionId): THREE.BufferGeometry[] {
-  const parts: THREE.BufferGeometry[] = [];
-  for (const zx of [-0.05, 0.05]) {
-    parts.push(ccyl(0.016, 0.016, 0.02, TIRE, zx, 0.016, -0.036, 'z', 8));
-    parts.push(ccyl(0.010, 0.010, 0.008, FIGURE_DARK, zx, 0.016, -0.036, 'z', 6));
-    parts.push(ccyl(0.016, 0.016, 0.02, TIRE, zx, 0.016, 0.036, 'z', 8));
-    parts.push(ccyl(0.010, 0.010, 0.008, FIGURE_DARK, zx, 0.016, 0.036, 'z', 6));
-  }
-  parts.push(cbox(0.11, 0.012, 0.068, FIGURE_DARK, 0.0, 0.022, 0));
-  parts.push(ctrap(0.053, 0.068, 0.036, 0.061, 0.038, INF_HULL, 0.052, 0.033, 0, -0.006));
-  parts.push(cbox(0.028, 0.016, 0.056, GLASS, 0.068, 0.058, 0));
-  parts.push(ctrap(0.094, 0.068, 0.09, 0.051, 0.039, INF_CANVAS, -0.028, 0.032, 0));
-  parts.push(ccyl(0.0022, 0.0022, 0.055, FIGURE_DARK, 0.042, 0.094, 0.018, 'y', 5));
-  parts.push(cbox(0.012, 0.008, 0.028, FIGURE_DARK, 0.052, 0.074, 0.028));
-  parts.push(cbox(0.018, 0.006, 0.062, FIGURE_RIM, 0.078, 0.030, 0));
-  return parts;
+export function commandTruck(faction: FactionId): THREE.BufferGeometry[] {
+  return truckParts(faction, true);
 }
 
 export function supplyTruck(faction: FactionId): THREE.BufferGeometry[] {
@@ -256,21 +219,8 @@ export function mrap(faction: FactionId): THREE.BufferGeometry[] {
   return parts;
 }
 
-export function figure(): THREE.BufferGeometry[] {
-  return [
-    ctrap(0.018, 0.024, 0.027, 0.021, 0.033, FIGURE, 0, 0.034, 0),
-    ccyl(0.006, 0.007, 0.035, FIGURE_DARK, -0.005, 0.021, -0.007, 'y', 7),
-    ccyl(0.006, 0.007, 0.032, FIGURE_DARK, 0.004, 0.019, 0.007, 'y', 7),
-    cbox(0.017, 0.007, 0.010, RIFLE, 0.002, 0.005, -0.007),
-    cbox(0.017, 0.007, 0.010, RIFLE, 0.009, 0.004, 0.007),
-    cbox(0.011, 0.023, 0.023, FIGURE_DARK, -0.014, 0.052, 0),
-    csphere(0.0105, FIGURE_HELM, 0.001, 0.080, 0),
-    ccyl(0.011, 0.012, 0.009, FIGURE_HELM, 0.001, 0.085, 0, 'y', 9),
-    ccyl(0.005, 0.006, 0.027, FIGURE, 0.012, 0.055, 0.014, 'x', 7),
-    ccyl(0.004, 0.005, 0.025, FIGURE, 0.009, 0.055, -0.013, 'x', 7),
-    ccyl(0.0024, 0.003, 0.043, RIFLE, 0.034, 0.053, 0.013, 'x', 7),
-    cbox(0.022, 0.007, 0.006, RIFLE, 0.007, 0.054, 0.013),
-  ];
+export function figure(variant = 0): THREE.BufferGeometry[] {
+  return soldierParts(variant);
 }
 
 export function droneMast(faction: FactionId): THREE.BufferGeometry[] {

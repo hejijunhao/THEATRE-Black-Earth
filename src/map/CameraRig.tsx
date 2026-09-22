@@ -113,7 +113,7 @@ export function CameraRig() {
       maxPolarAngle={1.05}
       minAzimuthAngle={-0.7}
       maxAzimuthAngle={0.7}
-      minDistance={7}
+      minDistance={4.2}
       maxDistance={80}
       dampingFactor={0.12}
       panSpeed={1.1}

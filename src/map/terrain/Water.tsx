@@ -4,7 +4,7 @@
 // keep the hex-edge river set; the visual follows the geography it encodes).
 
 import { useFrame } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { sharedEdge } from '../../game/hex';
 import { useStore } from '../../game/state/store';
@@ -190,6 +190,29 @@ export function Sea() {
 // Rivers as draped ribbons along their real courses.
 export function RiverRibbons() {
   const game = useStore((s) => s.game);
+  const time = useMemo(() => ({ value: 0 }), []);
+  useFrame((_, delta) => { time.value += delta; });
+  const riverMaterial = useMemo(() => {
+    const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .38, metalness: .08, envMapIntensity: .65 });
+    material.onBeforeCompile = shader => {
+      shader.uniforms.uRiverTime = time;
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nattribute float aWater; varying float vWater; varying vec3 vRiverPos;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWater = aWater; vRiverPos = position;');
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', '#include <common>\nvarying float vWater; varying vec3 vRiverPos; uniform float uRiverTime;')
+        .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = mix(.95, .32, vWater);')
+        .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+          float ripple = (sin(vRiverPos.x * 49.0 + vRiverPos.z * 31.0 + uRiverTime * .7)
+            + sin(vRiverPos.x * 23.0 - vRiverPos.z * 57.0 - uRiverTime * .4)) * .00045 * vWater;
+          vec3 dx = dFdx(-vViewPosition), dy = dFdy(-vViewPosition);
+          vec3 r1 = cross(dy, normal), r2 = cross(normal, dx);
+          float det = dot(dx, r1);
+          normal = normalize(abs(det) * normal - sign(det) * (dFdx(ripple) * r1 + dFdy(ripple) * r2));`);
+    };
+    return material;
+  }, [time]);
+  useEffect(() => () => riverMaterial.dispose(), [riverMaterial]);
 
   const { riverGeo, bridgeGeo } = useMemo(() => {
     if (!game) return { riverGeo: null, bridgeGeo: null };
@@ -262,7 +285,7 @@ export function RiverRibbons() {
   return (
     <group>
       <mesh geometry={riverGeo} renderOrder={2} raycast={() => null}>
-        <meshStandardMaterial vertexColors roughness={0.91} metalness={0.02} />
+        <primitive attach="material" object={riverMaterial} />
       </mesh>
       {bridgeGeo && (
         <mesh geometry={bridgeGeo}>

@@ -9,6 +9,7 @@ add a row for them here.
 
 | Version | Date | Scope | Keywords |
 | --- | --- | --- | --- |
+| [0.2.32](#0232--2026-09-22--terrain-and-unit-fidelity) | 2026-09-22 | Terrain and unit fidelity | shaped armour, PBR materials, detailed infantry and trucks, ground contact, leaf crowns |
 | [0.2.31](#0231--2026-09-22--paradox-theatre-redesign) | 2026-09-22 | Paradox theatre redesign | matte machines, cadastral soil, company ranks, banked rivers |
 | [0.2.30](#0230--2026-09-20--slice-6-assault-dispatch-stamps) | 2026-09-20 | Slice 6 — ASSAULT/DISPATCH stamps | thin classification strip, no rubber badge |
 | [0.2.29](#0229--2026-09-20--slice-3-armor-stamp) | 2026-09-20 | Slice 3 — armor stamp | unlit MeshBasic, dark hull / light turret, no wash |
@@ -50,6 +51,48 @@ add a row for them here.
 | [0.2.0-B](#020-b--2026-08-03--v2-phase-b-the-surface) | 2026-08-03 | v2 Phase B — The surface | continuous terrain mesh, strip-field albedo, tint washes, hex seam, sea shader, river ribbons, road decals, picking, golden-image harness |
 | [0.2.0-A](#020-a--2026-08-03--v2-phase-a-ground-truth) | 2026-08-03 | v2 Phase A — Ground truth | geodata pipeline, 48×36 grid, DEM/WorldCover/Natural Earth, river ladders, bridges, balance re-tune, SAVE_VERSION 2 |
 | [0.1.0](#010--2026-08-02) | 2026-08-02 | Initial vertical slice | simulation core, hex grid, combat, supply, fog, AI, saves, HUD, audio, tests |
+
+## [0.2.32] — 2026-09-22 · Terrain and unit fidelity
+
+Rebuilds the large shapes and surfaces that still made the terrain and
+formations look like basic building blocks. Presentation only; campaign
+rules, combat, AI, supply, saves and generated geodata are unchanged.
+
+- **Armour and materials.** Tank cheeks and tank/IFV turrets now use
+  compound slopes and clipped corners. Larger vehicle parts have small
+  chamfers. A shared physically based material uses each part's roughness
+  and metalness, distinguishing painted steel, rubber, glass and canvas,
+  with filtered paint variation, lower-hull dust and local sky reflections.
+- **Infantry and logistics.** Rebuilt soldiers have rounded anatomy,
+  three static poses, helmets, faces, packs, webbing and detailed rifles.
+  Trucks have three axles, wheel hubs, separate hoods and glazed cabs,
+  grilles, mirrors, steps and seamed canvas covers.
+- **Ground contact and camera.** Individual soldiers and trucks sit at
+  their own ground height; fighting vehicles also follow the local slope.
+  Sun shadows fit the visible ground to retain small details. Minimum
+  camera distance drops from 7 to 4.2 for closer inspection.
+- **Terrain and scenery.** Shorter field parcels, varied pasture and
+  stubble colours, narrower headlands, denser terrain sampling, soil
+  breakup, drill rows and paired tractor runs replace the broad-band read.
+  Wet soil has varied roughness. Leaf sprays replace solid tree crowns;
+  roofs gain courses, ridge caps, gutters and chimney caps. River water
+  has animated ripple normals and a different surface response from banks.
+- **Review tooling.** Adds `scripts/shot-fidelity.mjs`, six retained
+  screenshots and a [before/after review](art-direction/fidelity.html).
+  [Implementation notes](art-direction/fidelity.md) document reproduction
+  and remaining limits.
+
+Validation: production build and 112 tests pass; the opt-in campaign
+balance test remains skipped. Browser checks passed picking, selection,
+movement, combat and a full AI turn without page errors. Visual captures
+cover all five unit classes, both factions, clear/rain/snow, selection,
+political mode, counters and the asset review without browser or shader
+errors. Existing golden baselines were left unchanged and were not
+revalidated for this intentional visual revision.
+
+Models remain static procedural miniatures, settlement archetypes still
+repeat, and river beds remain draped geometry. Low-end GPU performance
+has not been benchmarked. Vite retains its existing large-chunk warning.
 
 ## [0.2.31] — 2026-09-22 · Paradox theatre redesign
 

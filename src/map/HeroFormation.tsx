@@ -11,12 +11,14 @@ import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { FactionId } from '../game/types';
 import { HeroUnitType, heroGeometry, heroMaterial } from '../assets/heroFleet';
+import { groundY } from './terrain/heightfield';
 import { HeroSlot } from '../assets/units';
 
-export function HeroFormation({ type, faction, slots }: {
+export function HeroFormation({ type, faction, slots, ground }: {
   type: HeroUnitType;
   faction: FactionId;
   slots: HeroSlot[];
+  ground?: { x: number; z: number; y: number; heading: number; scale: number };
 }) {
   const ref = useRef<THREE.InstancedMesh>(null);
   const geometry = useMemo(() => heroGeometry(type, faction), [type, faction]);
@@ -31,12 +33,27 @@ export function HeroFormation({ type, faction, slots }: {
     slots.forEach((s, i) => {
       // YXZ applies the roll before the heading, matching parts.ts place().
       q.setFromEuler(new THREE.Euler(0, s.ry, s.rz, 'YXZ'));
-      p.set(s.x, 0, s.z);
+      let y = 0;
+      if (ground) {
+        const c = Math.cos(ground.heading), sn = Math.sin(ground.heading);
+        const sample = (x: number, z: number) => groundY(
+          ground.x + (x * c + z * sn) * ground.scale,
+          ground.z + (-x * sn + z * c) * ground.scale,
+        );
+        y = (sample(s.x, s.z) - ground.y) / ground.scale;
+        const dx = (sample(s.x + .08, s.z) - sample(s.x - .08, s.z)) / (.16 * ground.scale);
+        const dz = (sample(s.x, s.z + .05) - sample(s.x, s.z - .05)) / (.10 * ground.scale);
+        const tilt = new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.atan(dz), 0, -Math.atan(dx)));
+        // A rotation around z raises +x; around x lowers +z.
+        tilt.invert();
+        q.premultiply(tilt);
+      }
+      p.set(s.x, y, s.z);
       im.setMatrixAt(i, m.compose(p, q, unit));
     });
     im.instanceMatrix.needsUpdate = true;
     im.computeBoundingSphere();
-  }, [slots, geometry]);
+  }, [slots, geometry, ground?.x, ground?.z, ground?.y, ground?.heading, ground?.scale]);
 
   return (
     <instancedMesh

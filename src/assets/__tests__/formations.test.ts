@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MeshLambertMaterial, Vector3 } from 'three';
+import { MeshStandardMaterial, Vector3 } from 'three';
 import { MACHINE_SCALE } from '../../map/lod';
 import { HEX_H, HEX_W } from '../../game/hex';
 import { makeMiniatureBuild } from '../units';
@@ -61,7 +61,7 @@ describe('non-armor boot silhouettes', () => {
       return Math.max(m, g.boundingBox!.max.y);
     }, -Infinity);
     // Rifle must stick forward of the torso; helmet must sit above it.
-    expect(mergedX).toBeGreaterThan(0.045);
+    expect(mergedX).toBeGreaterThan(0.038);
     expect(mergedY).toBeGreaterThan(0.08);
   });
 
@@ -115,9 +115,9 @@ function srgb(hex: string): { r: number; g: number; b: number } {
 }
 
 describe('operational machine materials', () => {
-  it('uses one dimensional, matte paint family for every vehicle class', () => {
+  it('shares physically based paint across every vehicle class', () => {
     const material = getHeroMaterial();
-    expect(material).toBeInstanceOf(MeshLambertMaterial);
+    expect(material).toBeInstanceOf(MeshStandardMaterial);
     for (const type of ['armored', 'mechanized', 'artillery', 'recon'] as const) {
       expect(heroMaterial(type)).toBe(material);
     }
@@ -176,5 +176,29 @@ describe('armor class silhouette', () => {
     const turret = sampleWhere(geo, (_x, y) => y >= 2.35 * HERO_SCALE && y <= 2.55 * HERO_SCALE);
     expect(gun.n).toBeGreaterThan(20);
     expect(gun.luma).toBeLessThan(turret.luma * 0.85);
+  });
+});
+
+describe('surface data survives runtime formation assembly', () => {
+  it('preserves material ranges and rigid ground anchors on support props', () => {
+    for (const type of ['infantry', 'mechanized', 'artillery'] as const) {
+      const geo = makeMiniatureBuild({ ...spec(type, 4), supplyTruck: true }).props!;
+      const pos = geo.getAttribute('position'), mat = geo.getAttribute('aMat'), anchor = geo.getAttribute('aAnchor');
+      expect(mat.count).toBe(pos.count);
+      expect(anchor.count).toBe(pos.count);
+      let minRoughness = 1, maxRoughness = 0, maxMetalness = 0;
+      for (let i = 0; i < pos.count; i++) {
+        if (![pos.getX(i), pos.getY(i), pos.getZ(i), anchor.getX(i), anchor.getY(i)].every(Number.isFinite)) {
+          throw new Error(`Invalid formation vertex ${type}:${i}`);
+        }
+        minRoughness = Math.min(minRoughness, mat.getX(i));
+        maxRoughness = Math.max(maxRoughness, mat.getX(i));
+        maxMetalness = Math.max(maxMetalness, mat.getY(i));
+      }
+      expect(minRoughness).toBeLessThan(.4); // glazing
+      expect(maxRoughness).toBeGreaterThan(.9); // cloth
+      expect(maxMetalness).toBeGreaterThan(.6); // running gear
+      expect(pos.count).toBeLessThan(150000);
+    }
   });
 });

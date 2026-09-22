@@ -103,6 +103,12 @@ export function place(
   const rot = new THREE.Matrix4().makeRotationY(ry);
   const trans = new THREE.Matrix4().makeTranslation(x, 0, z);
   const full = trans.clone().multiply(rot).multiply(m);
-  for (const g of parts) g.applyMatrix4(full);
+  for (const g of parts) {
+    g.applyMatrix4(full);
+    // Preserve each rigid prop's foot point through the formation merge.
+    const anchor = new Float32Array(g.getAttribute('position').count * 2);
+    for (let i = 0; i < anchor.length; i += 2) { anchor[i] = x; anchor[i + 1] = z; }
+    g.setAttribute('aAnchor', new THREE.BufferAttribute(anchor, 2));
+  }
   return parts;
 }

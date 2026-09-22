@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Black Theatre · terrain and unit fidelity</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #1d211d; color: #e2dfd0; font: 16px/1.6 system-ui, sans-serif; }
+  main { max-width: 1440px; margin: auto; padding: 40px 28px 70px; }
+  h1,h2 { font-family: Georgia, serif; font-weight: 400; line-height: 1.2; }
+  h1 { font-size: clamp(32px,5vw,58px); margin: 8px 0 20px; }
+  h2 { font-size: 30px; margin-top: 48px; }
+  p { max-width: 850px; color: #bfbeae; }
+  .eyebrow { color: #b5a575; letter-spacing: .18em; font-size: 12px; text-transform: uppercase; }
+  .compare { position: relative; aspect-ratio: 8/5; overflow: hidden; background: #111; border: 1px solid #585846; }
+  .compare img { position: absolute; inset: 0; width: 100%; height: auto; }
+  .compare .after { clip-path: inset(0 0 0 50%); }
+  .tag { position: absolute; bottom: 18px; padding: 5px 12px; background: #1d211de6; font-size: 12px; letter-spacing: .12em; }
+  .before-tag { left: 18px; } .after-tag { right: 18px; }
+  label { display: block; margin: 12px 0; color: #c6c3b0; }
+  input { width: 100%; accent-color: #b5a575; }
+  figure { margin: 24px 0; }
+  figure img { display: block; width: 100%; border: 1px solid #585846; }
+  figcaption { color: #c6c3b0; padding: 10px 0; font-size: 14px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  a { color: #d0bd86; }
+  @media(max-width: 800px) { .grid { grid-template-columns: 1fr; } main { padding: 24px 16px; } }
+</style>
+<main>
+  <div class="eyebrow">Black Theatre · 22 September 2026 · Running-game captures</div>
+  <h1>Shaped steel. Worked earth.</h1>
+  <p>A second pass on the actual models and map: sloped armour, material-specific reflections, fitted uniforms and equipment, detailed logistics vehicles, leaf silhouettes, shorter field parcels, and ground contact for individual elements.</p>
+  <h2>Same camera, before and after</h2>
+  <p>The left side is the previous review frame; the right side is the updated game. The numbered markers on the earlier image belong to that review.</p>
+  <div class="compare">
+    <img src="frames/03-armor.jpg" alt="Previous armour and terrain at parcel zoom">
+    <img class="after" id="after" src="fidelity/03-armor.jpg" alt="Updated armour and terrain at the same camera position">
+    <span class="tag before-tag">BEFORE</span><span class="tag after-tag">AFTER</span>
+  </div>
+  <label for="split">Compare the terrain and tank silhouettes</label>
+  <input id="split" type="range" min="0" max="100" value="50" aria-label="Before and after divider">
+  <h2>Closer inspection</h2>
+  <p>The playable minimum camera distance is now 4.2. These views use the same models and materials as the operational map.</p>
+  <figure><a href="fidelity/detail-armored.jpg"><img src="fidelity/detail-armored.jpg" alt="Close view of four tanks with sloped turret cheeks, tracks and detailed support truck"></a><figcaption>Armour — clipped turret corners, compound cheek plates, chamfered edges, painted steel, dusty running gear and ground-following placement.</figcaption></figure>
+  <div class="grid">
+    <figure><a href="fidelity/detail-infantry.jpg"><img src="fidelity/detail-infantry.jpg" alt="Infantry with articulated limbs, helmets, packs and rifles"></a><figcaption>Infantry — three static poses, rounded anatomy, webbing, packs, hands and separate rifle components.</figcaption></figure>
+    <figure><a href="fidelity/detail-mechanized.jpg"><img src="fidelity/detail-mechanized.jpg" alt="Mechanized formation with sloped turrets and detailed logistics vehicles"></a><figcaption>Mechanized — shaped turrets and shared PBR paint; trucks have three axles, glazing, grilles, mirrors and seamed canvas.</figcaption></figure>
+  </div>
+  <h2>The operational map</h2>
+  <figure><a href="fidelity/02-front.jpg"><img src="fidelity/02-front.jpg" alt="Updated operational map with varied fields, trees, rivers and formations"></a><figcaption>Shorter parcels, olive pasture and dry stubble, soil relief, survey-aligned drill rows and tractor runs. Camera-fitted shadows retain small model details.</figcaption></figure>
+  <figure><a href="fidelity/05-river-town.jpg"><img src="fidelity/05-river-town.jpg" alt="River and town with detailed roofs, leaf crowns and reflective water"></a><figcaption>Porous leaf crowns replace solid tree lumps. Roof courses, gutters and masonry foundations add settlement detail. Water has animated ripple normals and a distinct response from the matte banks.</figcaption></figure>
+  <p><a href="fidelity.md">Implementation, checks and reproduction instructions</a></p>
+</main>
+<script>
+  document.getElementById('split').addEventListener('input', event => {
+    document.getElementById('after').style.clipPath = `inset(0 0 0 ${event.target.value}%)`;
+  });
+</script>
+</html>

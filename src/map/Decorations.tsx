@@ -18,35 +18,11 @@ import { mergeGeometries } from './geomUtils';
 import { CORRIDORS } from '../game/scenarios/blackEarth2025';
 import { RIVER_COURSES } from './data/terrainData';
 import { riverRibbon } from './riverRibbon';
+import { leafAtlas, woodlandGeometry } from './foliage';
 import { WORLD_H } from './worldDims';
 
 function jitter(x: number, y: number, salt: number): number {
   return ((hashSeed(`${x}:${y}:${salt}`) % 1000) / 1000 - 0.5);
-}
-
-/** An irregular broadleaf crown with overlapping boughs and a shaded trunk. */
-function woodlandGeometry(): THREE.BufferGeometry {
-  const parts = [ccyl(0.009, 0.014, 0.11, '#38382a', 0, 0.04, 0, 'y', 7)];
-  for (let k = 0; k < 11; k++) {
-    const a = k * 2.4;
-    const g = new THREE.SphereGeometry(k === 0 ? 0.075 : 0.047, 12, 9);
-    const p = g.attributes.position;
-    for (let i = 0; i < p.count; i++) {
-      const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
-      const r = 1 + 0.20 * Math.sin(x * 163 + z * 87) * Math.cos(y * 141);
-      p.setXYZ(i, x * r, y * r * 0.85, z * r);
-    }
-    g.translate(Math.cos(a) * (k ? 0.072 : 0), 0.10 + (k % 3) * 0.026, Math.sin(a) * (k ? 0.072 : 0));
-    g.computeVertexNormals();
-    paint(g, ['#afb597', '#899475', '#bec3a2'][k % 3]);
-    const color = g.getAttribute('color');
-    for (let i = 0; i < p.count; i++) {
-      const fleck = 0.80 + 0.20 * Math.sin(p.getX(i) * 431 + p.getY(i) * 227 + p.getZ(i) * 313);
-      color.setXYZ(i, color.getX(i) * fleck, color.getY(i) * fleck, color.getZ(i) * fleck);
-    }
-    parts.push(g);
-  }
-  return mergeGeometries(parts)!;
 }
 
 /** Keep settlement footprints on the bank, even where a town crosses a meander. */
@@ -82,12 +58,28 @@ function townGeometry(): THREE.BufferGeometry {
     parts.push(cbox(0.013, 0.018, 0.002, '#43473e', x, 0.051, z));
     parts.push(cbox(0.019, 0.003, 0.004, '#b0a389', x, 0.041, z));
   }
+  // Fine roof courses, gutters, ridge caps and masonry foundations.
+  parts.push(cbox(.154,.009,.105,'#6c695c',0,.005,0));
+  parts.push(cbox(.17,.007,.009,'#887663',0,.125,0));
+  parts.push(cbox(.017,.005,.019,'#514c43',-.044,.139,.017));
+  for(const side of [-1,1]) {
+    parts.push(cbox(.17,.004,.005,'#57594e',0,.081,side*.056));
+    for(let k=1;k<6;k++) {
+      const z=side*k*.009;
+      parts.push(cbox(.164,.002,.002,'#786758',0,.125-Math.abs(z)*.74,z));
+    }
+    for(const x of [-.05,-.017,.018,.052]) {
+      parts.push(cbox(.002,.017,.003,'#aaa18b',x,.051,side*.052));
+    }
+  }
   return mergeGeometries(parts)!;
 }
 
 export function Forests() {
   const game = useStore((s) => s.game);
   const snow = game?.weather === 'snow';
+  const leaves = useMemo(() => leafAtlas(), []);
+  useEffect(() => () => leaves.dispose(), [leaves]);
 
   const { geometry, count, matrices } = useMemo(() => {
     if (!game) return { geometry: null, count: 0, matrices: [] as THREE.Matrix4[] };
@@ -149,10 +141,14 @@ export function Forests() {
     >
       <meshStandardMaterial
         color="#ffffff"
-        roughness={0.9}
+        map={leaves}
+        alphaTest={0.42}
+        alphaToCoverage
+        side={THREE.DoubleSide}
+        roughness={0.94}
         vertexColors
         emissive={snow ? FOREST_SNOW : FOREST_EMIT_SOUTH}
-        emissiveIntensity={snow ? 0.12 : 0.03}
+        emissiveIntensity={snow ? 0.12 : 0.12}
       />
     </instancedMesh>
   );
@@ -205,7 +201,7 @@ export function UrbanBlocks() {
       }}
       castShadow
     >
-      <meshLambertMaterial vertexColors />
+      <meshStandardMaterial vertexColors roughness={0.92} />
     </instancedMesh>
   );
 }
